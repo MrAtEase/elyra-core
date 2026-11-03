@@ -1,0 +1,28 @@
+{
+  "name": "@elyra-core/ai-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google-cloud/vertexai": "^1.9.2",
+    "@supabase/supabase-js": "^2.47.0",
+    "fastify": "^5.2.1",
+    "@fastify/cors": "^10.0.2",
+    "nanoid": "^5.1.2",
+    "openai": "^4.77.0",
+    "pino": "^9.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

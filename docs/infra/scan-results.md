@@ -1,0 +1,98 @@
+# Infra Scan Results
+
+## Localhost / dev agent references
+- `worker/src/apiServer.ts:250` – `const HOST = "127.0.0.1";` – Dev agent server binds only to loopback for local autopilot runs; Cloudflare Worker is not exposed on this host.
+- `worker/src/apiServer.ts:814` – `new URL(... http://${req.headers.host ?? "localhost"})` – The Node dev agent silently defaults to `localhost` when the incoming host header is missing; acceptable for tooling that only runs locally.
+- `worker/src/apiServer.ts:1070` – `new URL(... http://${req.headers.host ?? "localhost"})` – Same local host fallback in the dev agent; not part of the production API route.
+- `worker/src/apiServer.ts:1087` – `new URL(... http://${req.headers.host ?? "localhost"})` – Another dev-only helper that assumes loopback when the host cannot be resolved.
+- `worker/src/apiServer.ts:1106` – `new URL(... http://${req.headers.host ?? "localhost"})` – Same pattern for request rewriting inside the agent server.
+- `worker/src/apiServer.ts:1662` – `new URL(... http://${req.headers.host ?? "localhost"})` – Local-only URL builder used by the dev agent’s session plumbing.
+- `merlin-vscode/src/extension.ts:27` – `const HOST = "127.0.0.1";` – The VS Code extension connects to the dev agent via loopback only.
+- `merlin-vscode/src/extension.ts:142` – `reject(ws, "Forbidden: only 127.0.0.1 allowed");` – Remote debugging is locked to `127.0.0.1` so the extension cannot be hijacked from the open internet.
+- `merlin-vscode/README.md:5` – Documentation states: "Starts a WS server on `ws://127.0.0.1:4021`" – Informational note for contributors; not a runtime dependency.
+- `merlin-vscode/README.md:37` – Doc suggests pinging `ws://127.0.0.1:<PORT>` – Dev-only guidance.
+- `merlin-vscode/README.md:49` – Doc reminds you to ensure the agent is bound to `127.0.0.1`:4021 – Local-only.
+- `merlin-vscode/tools/ws-test.js:5` – `const url = \\`ws://127.0.0.1:${PORT}/?token=...\\`` – Helper test script targeting the dev agent.
+- `mira-app/modules/settings.js:39` – `baseUrl: "http://127.0.0.1:5050",` – The UI’s dev agent defaults use loopback; autopilot only works when the agent is running locally.
+- `mira-app/modules/devAgentConfig.js:2` – `baseUrl: "http://127.0.0.1:5050",` – Primary dev agent endpoint in the shared config; production shells should override this before shipping.
+- `mira-app/modules/devAgentConfig.js:7` – `baseUrl: "http://127.0.0.1:5050",` – `DEV_AGENT_DEFAULTS` reiterates the local agent base; safe for development.
+- `mira-app/tests/documents-no-backend-smoke-test.mjs:221` – `location: { origin: "http://localhost:3000" }` – Smoke test assumes a local dev host.
+- `mira-app/tests/documents-no-backend-smoke-test.mjs:254` – `assert.strictEqual(state.auth?.lastBaseOrigin, "http://localhost:3000");` – Test ensures the client records the dev host origin; not used in prod.
+- `worker/sessions/merlin-mira-ui-full-polish-001.json:15` – JSON comment highlights the Dev Agent URL `http://127.0.0.1:5050` – Descriptive metadata about local sessions.
+- `mira-os/engines/email-engine/email-engine.ts:46` – `workerBaseUrl: process.env.PERSONAL_ASSISTANT_BASE || "http://127.0.0.1:5050"` – Production environments must set `PERSONAL_ASSISTANT_BASE`, otherwise the engine falls back to localhost for local testing.
+
+## API origin references – code/config
+- `wrangler.personal-assistant-dev..toml:8` – `GOOGLE_REDIRECT_URI = "https://api.elyra-core.app/api/google/callback"` – Dev Wrangler config still points Google OAuth at the real API host; this mirrors production routing.
+- `mira-app/modules/email.js:4` – `import MerlinClient from "../js/merlin-client.js";` – The email module wires `MerlinClient` for `/assistant` calls.
+- `merlin-vscode/src/config.ts:8` – `export const DEFAULT_API_BASE = "https://personal-assistant.fish-delish.workers.dev";` – The VS Code helper defaults to the worker preview origin unless overriden.
+- `merlin-vscode/src/config.ts:13` – `const apiBase = (rawBase || DEFAULT_API_BASE).trim().replace(/\/+$, "");` – Sanitizes overrides so the API base remains a clean origin.
+- `mira-app/modules/slides.js:1` – `import MerlinClient from "../js/merlin-client.js";` – Slides automation calls the worker via `MerlinClient`.
+- `mira-app/modules/settings.js:1958` – `(typeof window !== "undefined" && window.MERLIN_API_BASE) ||` – Settings UI reads any live override before falling back to `apiOrigin.js`.
+- `fish-delish-site/config/env.ts:2` – `"NEXT_PUBLIC_API_URL",` – Next enforces `NEXT_PUBLIC_API_URL`, so the workspace app must receive the API origin via env.
+- `fish-delish-site/config/env.ts:49` – `NEXT_PUBLIC_API_URL: "",` – Placeholder value ensures builds fail fast when API origin is missing.
+- `fish-delish-site/config/env.ts:73` – `apiUrl: RequiredEnvValues["NEXT_PUBLIC_API_URL"];` – Typed contract that requires the API base to be present.
+- `fish-delish-site/config/env.ts:80` – `apiUrl: requiredEnvValues.NEXT_PUBLIC_API_URL,` – Exported config that other components will import to talk to the API.
+- `mira-app/modules/calendar.js:1` – `import MerlinClient from "../js/merlin-client.js";` – Calendar module relies on the helper to reach `/assistant/calendar` endpoints.
+- `mira-app/modules/dashboard.js:1` – `import MerlinClient from "../js/merlin-client.js";` – Dashboard module likewise calls the worker.
+- `mira-app/modules/tasks.js:1` – `import MerlinClient from "../js/merlin-client.js";` – Tasks module uses the shared API client.
+- `mira-app/modules/featurePlanner.js:3` – `import MerlinClient from "../js/merlin-client.js";` – Feature planning UI uses the worker client.
+- `mira-app/modules/documents.js:3` – `import MerlinClient from "../js/merlin-client.js";` – Documents inspector depends on the API.
+- `mira-app/js/merlin-client.js:1` – `// mira-app/js/merlin-client.js` – Header comment marks this module as the worker-facing client.
+- `mira-app/js/merlin-client.js:132` – `// mira-app/js/merlin-client.js` – Footer reference around the exported helpers.
+- `mira-app/js/apiOrigin.js:1` – `const API_ORIGIN_OVERRIDE_KEY = "miraApiOrigin";` – Defines the storage key for overriding the API origin.
+- `mira-app/js/apiOrigin.js:2` – `const DEFAULT_API_ORIGIN = "https://api.elyra-core.app";` – Default production origin for the MERLIN client.
+- `mira-app/js/apiOrigin.js:37` – `normalizeOriginCandidate(win.__MIRA_API_ORIGIN__) ||` – Looks at a global override first (useful for staging).
+- `mira-app/js/apiOrigin.js:38` – `normalizeOriginCandidate(safelyReadLocalStorage(API_ORIGIN_OVERRIDE_KEY));` – Falls back to the stored override in localStorage.
+- `mira-app/js/apiOrigin.js:45` – `return DEFAULT_API_ORIGIN;` – Otherwise, the helper stabilizes on `https://api.elyra-core.app`.
+- `mira-app/js/apiOrigin.js:58` – `const baseOrigin = overrideOrigin || DEFAULT_API_ORIGIN;` – Helper used by `buildAssistantRequestUrl` to keep URLs consistent.
+- `mira-app/js/mira.js:35` – `import MerlinClient from "./merlin-client.js";` – The shell entrypoint imports the API client.
+- `mira-app/js/mira.js:53` – `const OVERRIDDEN_API_ORIGIN = getApiOriginOverride();` – Captures runtime overrides before modules start.
+- `mira-app/js/mira.js:1148` – `apiBase: OVERRIDDEN_API_ORIGIN || null,` – Passes the resolved API base down to modules.
+- `mira-app/tests/dashboard-summary-post-test.mjs:41` – `const { default: MerlinClient } = await import("../js/merlin-client.js");` – Test harness explicitly imports the same client for verification.
+- `worker/wrangler.toml:11` – `GOOGLE_REDIRECT_URI = "https://api.elyra-core.app/api/google/callback"` – Production worker ensures Google OAuth still trusts the public API domain.
+- `worker/sessions/merlin-mira-ui-full-polish-001.json:16` – JSON instructs `API_BASE` in `mira.js` to remain `personal-assistant.fish-delish.workers.dev`; historical note for the preview route.
+
+## API origin references – docs & audits
+- `docs/audit/04-app-stack-identification.md:11` – Notes that `merlin-client` targets `https://api.elyra-core.app` and fires `auth:required`; documentation-level reference.
+- `docs/audit/04-app-stack-identification.md:13` – Explains the static shell’s `MerlinClient` handshake, default user key, and credential policy pointing at `https://api.elyra-core.app`.
+- `docs/audit/04-app-stack-identification.md:15` – Labels `api.elyra-core.app` as the Cloudflare Worker API layer; informational.
+- `docs/audit/03-auth-login-flow.md:4` – Describes how the MERLIN shell reacts when the worker returns `401`/`AUTH_REQUIRED` from `https://api.elyra-core.app`.
+- `docs/audit/03-auth-login-flow.md:19` – Captures cookie requirements for `mira_session` so the worker’s domain can send credentials securely.
+- `docs/audit/03-auth-login-flow.md:23` – Advises the marketing login button to hit `https://api.elyra-core.app/assistant/oauth/google/start` with a `next` parameter.
+- `docs/audit/03-auth-login-flow.md:26` – Notes that CORS already allows `https://app.elyra-core.app` and `https://mira-assistant.elyra-core.app` so the API can be called with credentials.
+- `docs/audit/03-auth-login-flow.md:27` – Recommends placing the login guard on `api.elyra-core.app` to avoid third-party cookie issues.
+- `docs/audit/03-auth-login-flow.md:32` – Mentions calling `https://api.elyra-core.app/auth/session` to verify session cookies before building responses.
+- `docs/audit/03-auth-login-flow.md:37` – Details redirecting missing sessions back to `https://api.elyra-core.app/assistant/oauth/google/start`.
+- `docs/audit/00-exec-summary.md:2` – Summarizes that the marketing page, Next workspace, static shell, and Cloudflare Worker all connect via `https://api.elyra-core.app`.
+- `docs/audit/05-api-worker-analysis.md:13` – Highlights the worker’s CORS allowlist, including `https://app.elyra-core.app`, `https://pitchdeck.elyra-core.app`, and the preview origin.
+- `docs/audit/05-api-worker-analysis.md:39` – Urges verifying the `api.elyra-core.app/*` worker route in the Cloudflare dashboard.
+- `docs/audit/01-repo-map.md:7` – Notes that the `mira-assistant` shell and its JS bundles target `https://api.elyra-core.app` via `js/apiOrigin.js` and `js/merlin-client.js`.
+- `docs/audit/01-repo-map.md:41` – Reiterates that the shell is wired to the worker origin through `mira-app/js/apiOrigin.js`.
+- `docs/audit/07-risk-register.md:4` – Flags unauthenticated access to `app.elyra-core.app` and `api.elyra-core.app` as a vector for leaking data.
+- `docs/audit/08-backlog-epics-stories.md:7` – Backlog entry instructs calling `https://api.elyra-core.app/assistant/dashboard/summary` to test the auth gate.
+- `docs/audit/08-backlog-epics-stories.md:8` – Lists secret dependencies to get `merlin-client` requests working with the API domain.
+- `docs/audit/08-backlog-epics-stories.md:10` – Points at `fish-delish-site/index.html`, `mira-app/js/mira.js`, and `merlin-client` when updating the Login CTA to hit the worker.
+- `docs/audit/08-backlog-epics-stories.md:12` – Highlights the SameSite cookie risk when the worker issues cookies from `api.elyra-core.app`.
+- `docs/audit/08-backlog-epics-stories.md:20` – Notes the `merlin-client` `workspaceId` prop used when calling `/assistant/dashboard/summary`.
+- `docs/audit/08-backlog-epics-stories.md:21` – Acceptance criteria stress verifying workspace-aware dashboard requests to `https://api.elyra-core.app`.
+- `docs/audit/08-backlog-epics-stories.md:30` – Task entry mentions using `mira-app/js/apiOrigin.js` while hitting `/assistant/email/createTasks`.
+- `docs/audit/08-backlog-epics-stories.md:46` – Notes slides helpers and the API client in the context of pitchdeck automation.
+- `docs/audit/02-runtime-domains-routing.md:8` – Documents that `api.elyra-core.app` routes to the worker and that the route must be verified externally.
+- `docs/audit/09-investor-demo-script.md:6` – Calls out that the Login CTA triggers `api.elyra-core.app/assistant/oauth/google/start` before landing on `app.elyra-core.app`.
+- `docs/audit/09-investor-demo-script.md:10` – Describes the fallback when hitting `https://api.elyra-core.app/assistant/dashboard/summary` without tokens.
+- `docs/audit/09-investor-demo-script.md:17` – Mentions email endpoints such as `/assistant/email/summarize` on `https://api.elyra-core.app`.
+- `docs/audit/09-investor-demo-script.md:26` – Emphasizes the worker+MIRA shell powering `app.elyra-core.app` and `mira-assistant` via the shared API origin.
+- `docs/phase3/02-naming-plan.md:16` – Records the naming plan that keeps `api.elyra-core.app` tied to the backend worker.
+- `docs/phase4/00-baseline.md:66` – Baseline doc section dedicated to `api.elyra-core.app`.
+- `docs/phase4/00-baseline.md:89` – Reiterates that `api.elyra-core.app/*` is served by the Cloudflare Worker listed in `worker/wrangler.toml`.
+- `docs/phase4/04-worker-rename-plan.md:4` – Explains that `mira-assistant` stays bound to `api.elyra-core.app` while renaming efforts proceed.
+- `docs/phase4/04-worker-rename-plan.md:11` – Advises gradually aliasing `api.elyra-core.app/*` to the new worker alias.
+- `docs/phase4/04-worker-rename-plan.md:15` – TODO item reminding maintainers to add the alias while keeping the current route live.
+- `docs/phase4/99-verification.md:8` – Verification step instructs `curl -I https://api.elyra-core.app`.
+- `docs/phase4/99-verification.md:9` – Another check against `https://api.elyra-core.app/status`.
+- `docs/phase4/99-verification.md:10` – Verifies `/assistant/dashboard/summary` responds through the worker.
+- `docs/phase4/99-verification.md:14` – Notes verifying the shell still points to `https://api.elyra-core.app` in the browser console.
+- `docs/phase4/99-verification.md:16` – Suggests hitting `/assistant/health` on the API to ensure JSON responses.
+- `docs/phase4/05-multitenant-extraction.md:4` – Describes how multiple files contain hardcoded domains like `api.elyra-core.app` and `app.elyra-core.app`.
+- `docs/phase4/05-multitenant-extraction.md:15` – Calls for moving domain references into structured tenant metadata.
+- `docs/phase4/05-multitenant-extraction.md:22` – Notes that OAuth redirect URIs will stay tied to `api.elyra-core.app` until Cloudflare routes are updated.

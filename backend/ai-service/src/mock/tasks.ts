@@ -1,0 +1,16 @@
+export const mockTasks = [
+  { id: "tk1", title: "Finalize spring menu pricing", status: "in_progress", dueDate: "2026-02-18", description: "Review food costs and set final prices for 12 new spring items" },
+  { id: "tk2", title: "Order compostable takeout containers", status: "todo", dueDate: "2026-02-19", description: "Switch from plastic to compostable. Get quotes from 3 suppliers." },
+  { id: "tk3", title: "Update Google Business hours for March", status: "todo", dueDate: "2026-02-25", description: "Extended Friday/Saturday hours start March 1" },
+  { id: "tk4", title: "Review staff schedule for next week", status: "todo", dueDate: "2026-02-20", description: "Approve Amy's draft, confirm Jake's day off coverage" },
+  { id: "tk5", title: "Prepare health inspection documents", status: "todo", dueDate: "2026-02-28", description: "Temperature logs, cleaning schedules, staff certifications" },
+  { id: "tk6", title: "Respond to catering inquiry — Elena Torres", status: "todo", dueDate: "2026-02-18", description: "80-person corporate lunch, March 15. Send quote and menu options." },
+  { id: "tk7", title: "Fix walk-in cooler door seal", status: "in_progress", dueDate: "2026-02-17", description: "Door seal causing temperature spikes. Technician ordered replacement." },
+  { id: "tk8", title: "Post Valentine's recap on social media", status: "done", dueDate: "2026-02-16", description: "Photos from Saturday event, tag local influencers" },
+  { id: "tk9", title: "Approve logo rebrand direction", status: "todo", dueDate: "2026-02-20", description: "Pick from 3 options David sent. Wave-fork concept leading." },
+  { id: "tk10", title: "Set up Elyra Core workspace for Fish Delish", status: "done", dueDate: "2026-02-14", description: "Connect Google Calendar and Gmail" },
+  { id: "tk11", title: "Plan staff appreciation dinner", status: "todo", dueDate: "2026-03-01", description: "End of Q1 team dinner. Book venue for 15 people." },
+  { id: "tk12", title: "Negotiate salmon contract renewal", status: "in_progress", dueDate: "2026-02-22", description: "Current contract expires March 1. Push for 5% volume discount." },
+  { id: "tk13", title: "Test new POS system update", status: "todo", dueDate: "2026-02-21", description: "V4.2 update adds table-side ordering. Test before rolling out." },
+  { id: "tk14", title: "Review February P&L draft", status: "todo", dueDate: "2026-02-28", description: "Accountant will send by Feb 25" },
+];

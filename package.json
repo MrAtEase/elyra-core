@@ -1,0 +1,41 @@
+{
+  "name": "elyra-core",
+  "version": "1.0.0",
+  "description": "Elyra Core - AI-powered personal assistant",
+  "workspaces": [
+    "frontend",
+    "worker",
+    "backend/*",
+    "email-io"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:worker": "node scripts/run-worker-dev.mjs",
+    "dev:email": "npm run dev --workspace=email-io",
+    "dev:all": "npx --yes concurrently \"npm run dev:worker\" \"npm run dev:ai\" \"npm run dev:email\" \"npm run dev:frontend\"",
+    "dev:localhost": "npm run dev:all",
+    "env:localhost": "bash scripts/localhost-env.sh",
+    "smoke:localhost": "bash scripts/localhost-smoke.sh",
+    "db:migrate": "node ./worker/scripts/migrate.mjs",
+    "db:seed": "node ./worker/scripts/seed-vision-2035.mjs",
+    "deploy:worker": "npm run deploy --workspace=worker",
+    "deploy:frontend": "npm run build --workspace=frontend",
+    "dev:ai": "npm run dev --workspace=backend/ai-service",
+    "build": "npm run build --workspace=worker",
+    "build:ai": "npm run build --workspace=backend/ai-service",
+    "build:email": "npm run build --workspace=email-io"
+  },
+  "devDependencies": {
+    "node-addon-api": "^8.6.0",
+    "serve": "^14.2.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.0",
+    "express": "^5.2.1",
+    "googleapis": "^131.0.0",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.18.0",
+    "ts-node": "^10.9.2"
+  }
+}

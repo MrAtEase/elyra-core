@@ -1,0 +1,12 @@
+# App Owner Assessment
+
+## Frontend candidates for `app.elyra-core.app`
+- **`fish-delish-site/` Next workspace**: `app/page.tsx` redirects visitors to `app/workspace/page.tsx`, which renders the workspace entry card that links to `/merlin`. The workspace UI is built from `components/merlin/MerlinLayout.tsx` and its supporting hooks, so it surfaces the same `Merlin` experience you would expect when hitting `app.elyra-core.app`. The Next stack reads `config/env.ts` for `NEXT_PUBLIC_API_URL`, meaning every deployment must inject the production API origin (`https://api.elyra-core.app`). There is no build step or Pages configuration for this folder inside the repo, so the deployment pipeline must live somewhere outside this repository (see `docs/audit/06-ci-cd-analysis.md`).
+- **`mira-app/` static shell**: This folder contains the HTML/CSS/JS bundle (`index.html`, `js/mira.js`, `js/merlin-client.js`, `js/apiOrigin.js`, and `modules/*`) that is currently published to `mira-assistant.elyra-core.app` via Cloudflare Pages workflows. Its scripts resolve the API origin through `window.__MIRA_API_ORIGIN__` or the hardcoded `https://api.elyra-core.app`, and each module calls `MerlinClient` before reaching `/assistant/*` on the worker. The static shell is not the primary candidate for `app.elyra-core.app` because it already owns a dedicated `mira-assistant` domain and exposes a broader MIRA OS dashboard.
+
+## Deployment/CI status
+- **MIRA Pages (`mira-app/`)**: There are workflow triggers that watch `mira-app/**` (`deploy-mira.yml` and `deploy-site.yml`) and publish the `./mira-app` directory to the `mira-assistant` Pages project via `cloudflare/pages-action@v1`. Those workflows depend on Cloudflare secrets (`CF_API_TOKEN`, `CF_ACCOUNT_ID` or the equivalent) and keep the shell in sync with main.
+- **Workspace app (`fish-delish-site/`)**: No workflow refers to `fish-delish-site/` inside `.github/workflows`, so there is no automated build/deploy for the workspace in this repository. Confirm in the Cloudflare dashboard (Pages, Workers, or DNS) which pipeline currently hosts `app.elyra-core.app`, and ensure it uses `npm run build` (Next) plus `NEXT_PUBLIC_API_URL=https://api.elyra-core.app` when pushing a release.
+
+## Summary
+`app.elyra-core.app` is best matched to the Next workspace in `fish-delish-site/` (with `components/merlin` and the `app` router) even though the repo doesn’t provide a pipeline for it. `mira-app/` keeps running on its own domain through the Cloudflare Pages workflows listed above.

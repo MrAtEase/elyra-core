@@ -1,0 +1,35 @@
+name = "personal-assistant-dev"
+main = "worker/src/index.ts"
+compatibility_date = "2025-11-05"
+workers_dev = true
+
+[vars]
+GOOGLE_SCOPES = "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/presentations https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly"
+GOOGLE_CLIENT_ID = "1094305241304-stv3smfb4o2f4siu4t17jrcrj7s6u64r.apps.googleusercontent.com"
+GOOGLE_REDIRECT_URI = "http://localhost:8787/assistant/oauth/google/callback"
+DEFAULT_USER_KEY = "paul"
+MAILCHANNELS_DOMAIN = "fish-delish.pt"
+MAIL_FROM = "assistant@fish-delish.pt"
+MIRA_TASKS_DB_ID = "2ac470a2a93280499677dabb0c2dfa58"
+MIRA_ROOT_PAGE_ID = "2ac470a2a9328014b142fb7ea074b677"
+OPENAI_CHAT_MODEL = "gpt-5.2"
+DASHBOARD_URL = "https://app.fish-delish.pt"
+
+[[d1_databases]]
+binding = "ASSISTANT_DB"
+database_name = "assistant-db"
+database_id = "48342d22-9394-4714-8d35-cb53bff00bba"
+
+[[kv_namespaces]]
+binding = "ASSISTANT_KV" # For local development, wrangler dev will provision a temporary KV namespace if no id is provided.
+preview = true
+
+[triggers]
+crons = ["*/2 * * * *"]
+
+[observability]
+  [observability.logs]
+    enabled = true
+    head_sampling_rate = 1
+    invocation_logs = true
+    persist = true

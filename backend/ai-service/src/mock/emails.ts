@@ -1,0 +1,14 @@
+export const mockEmails = [
+  { id: "m1", threadId: "t1", from: "Sarah Chen <sarah@fishdelish.co>", subject: "Q1 Menu Refresh — Final Selections", snippet: "Hi team, I've finalized the spring menu. Please review the attached deck and confirm by Friday.", date: "2026-02-17T09:14:00Z" },
+  { id: "m2", threadId: "t2", from: "Marco Rossi <marco@supplierfish.eu>", subject: "Invoice #4821 — Atlantic Salmon Delivery", snippet: "Attached is the invoice for this week's salmon delivery. Payment due net-30.", date: "2026-02-17T08:30:00Z" },
+  { id: "m3", threadId: "t3", from: "Lisa Park <lisa@fishdelish.co>", subject: "Re: Kitchen Equipment Maintenance", snippet: "The technician confirmed Tuesday 10am for the grill inspection. Should I book it?", date: "2026-02-16T17:45:00Z" },
+  { id: "m4", threadId: "t4", from: "Tom Miller <tom@reviewhub.io>", subject: "Your February Performance Report", snippet: "Fish Delish scored 4.7/5 this month. Top highlight: 'Best poke bowl in town' — 23 new reviews.", date: "2026-02-16T14:20:00Z" },
+  { id: "m5", threadId: "t5", from: "Amy Liu <amy@fishdelish.co>", subject: "Staff Schedule — Week of Feb 23", snippet: "Draft schedule attached. Jake requested Thursday off, I've covered with Maria.", date: "2026-02-16T11:00:00Z" },
+  { id: "m6", threadId: "t6", from: "David Wong <david@designstudio.co>", subject: "Fish Delish Rebrand — Logo Options V2", snippet: "Three new directions based on your feedback. The wave-fork concept tested best.", date: "2026-02-15T16:30:00Z" },
+  { id: "m7", threadId: "t7", from: "Notification <noreply@stripe.com>", subject: "Weekly Payout Summary", snippet: "Your payout of €8,432.50 has been initiated. Expected arrival: Feb 19.", date: "2026-02-15T10:00:00Z" },
+  { id: "m8", threadId: "t8", from: "Health Inspector <inspections@city.gov>", subject: "Routine Inspection Scheduled — March 3", snippet: "This is to confirm your routine food safety inspection on March 3rd between 10am-12pm.", date: "2026-02-14T09:00:00Z" },
+  { id: "m9", threadId: "t9", from: "Paul Odak <paul@elyra.dev>", subject: "Elyra Core Beta Invite", snippet: "Welcome to the beta! Your workspace is ready. Start by connecting your Google account.", date: "2026-02-14T08:00:00Z" },
+  { id: "m10", threadId: "t10", from: "Carlos Vega <carlos@fishdelish.co>", subject: "Walk-in Cooler Temperature Alert", snippet: "Sensor flagged a 2°C spike at 3am. I checked — door was ajar. Reset and stable now.", date: "2026-02-13T07:15:00Z" },
+  { id: "m11", threadId: "t11", from: "Elena Torres <elena@cateringco.com>", subject: "Catering Quote for Corporate Event", snippet: "Hi, we'd love to book Fish Delish for our March 15 company lunch — 80 guests.", date: "2026-02-13T14:00:00Z" },
+  { id: "m12", threadId: "t12", from: "Jake Peters <jake@fishdelish.co>", subject: "New Dessert Ideas", snippet: "I tested three new desserts this weekend — the yuzu sorbet was the clear winner.", date: "2026-02-12T20:30:00Z" },
+];

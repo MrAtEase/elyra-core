@@ -1,0 +1,11 @@
+{
+  "id": "generate-project-report",
+  "goal": "Generate a project analysis report and summarize key modules, symbols, and risks.",
+  "mode": "docs",
+  "projectRoot": "/Users/paulodak/Projects/elyra-core",
+  "target": {
+    "file": "README.md"
+  },
+  "writeMode": "preview",
+  "safetyLevel": "strict"
+}

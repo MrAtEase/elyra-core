@@ -1,0 +1,9 @@
+# node / cf
+node_modules
+dist
+.wrangler
+.DS_Store
+.env
+*.local
+# editor
+.vscode/settings.json

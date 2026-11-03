@@ -1,0 +1,39 @@
+{
+  "name": "worker",
+  "version": "0.1.0",
+  "description": "This starter gives you a **single Worker** that can: - Link your Google Workspace account (OAuth) - Read inbox + send emails via Gmail API - List Calendar events (and provides hooks to sync with Notion) - Store tokens & state in Cloudflare KV - Expose simple REST endpoints and a mini HTML dashboard - Run scheduled jobs (cron) to do syncs",
+  "main": "dist/apiServer.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "wrangler dev --env dev --config wrangler.toml",
+    "build": "tsc -p tsconfig.json",
+    "dev-agent": "node dist/apiServer.js",
+    "dev-agent:watch": "tsc -p tsconfig.json --watch",
+    "test": "npm run check-safeNext && npm run check-mailSend && npm run check-sanitize && npm run check-elli && npm run test:proxy-signature",
+    "check-safeNext": "tsx src/safeNext.test.ts",
+    "check-mailSend": "tsx src/mailSendPayload.test.ts",
+    "check-sanitize": "tsx src/sanitizeNextTarget.test.ts",
+    "check-elli": "tsx src/elli/system.test.ts",
+    "test:proxy-signature": "tsx src/cloudOsV2.proxySignature.test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^24.10.1",
+    "jose": "^5.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "tsx": "^3.12.7",
+    "wrangler": "4.55.0"
+  }
+}

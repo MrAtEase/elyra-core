@@ -1,0 +1,27 @@
+{
+  "name": "@elyra/email-io",
+  "version": "0.1.0",
+  "description": "Elyra Email I/O service for iCloud mail sync",
+  "type": "module",
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "imapflow": "^1.2.6",
+    "nodemailer": "^6.9.11"
+    ,
+    "tsdav": "^2.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

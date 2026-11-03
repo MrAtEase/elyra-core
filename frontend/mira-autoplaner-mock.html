@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Merlin – Dashboard Mock (Light + Chat)</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --bg-elevated: #ffffff;
+      --bg-soft: #f9fafb;
+      --border-subtle: #e5e7eb;
+      --border-strong: #d1d5db;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --accent-soft-strong: rgba(37, 99, 235, 0.18);
+      --accent-text: #1d4ed8;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --danger: #dc2626;
+      --radius-lg: 18px;
+      --radius-xl: 22px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+      background: radial-gradient(circle at top, #e5e7eb 0, #f9fafb 40%, #f3f4f6 100%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-root {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.9);
+      backdrop-filter: blur(18px);
+      background: rgba(249, 250, 251, 0.92);
+      box-shadow: 0 8px 24px rgba(148, 163, 184, 0.25);
+      z-index: 10;
+    }
+
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.35);
+    }
+
+    .brand-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: conic-gradient(from 180deg, #2563eb, #22c55e, #facc15, #2563eb);
+    }
+
+    .brand-text-main {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #111827;
+    }
+
+    .brand-text-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .view-toggle {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px;
+      background: #f9fafb;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.25);
+    }
+
+    .view-toggle button {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s ease-out;
+    }
+
+    .view-toggle button.active {
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
+    }
+
+    .view-toggle button span.icon {
+      font-size: 14px;
+    }
+
+    .app-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill-button {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.3);
+    }
+
+    .pill-button .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+    }
+
+    .pill-button:hover {
+      border-color: #9ca3af;
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(148, 163, 184, 0.45);
+    }
+
+    .icon-button {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+      box-shadow: 0 6px 16px rgba(148, 163, 184, 0.3);
+    }
+
+    .icon-button:hover {
+      color: #111827;
+      border-color: #9ca3af;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.45);
+    }
+
+    /* Layout */
+
+    .app-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1.9fr) minmax(0, 1.1fr);
+      gap: 12px;
+      padding: 12px 14px 14px;
+      max-height: calc(100vh - 52px);
+    }
+
+    .panel {
+      border-radius: var(--radius-xl);
+      background: var(--bg-elevated);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* Sidebar */
+
+    .sidebar {
+      gap: 10px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      padding: 0 4px;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      border-radius: 999px;
+      padding: 7px 9px;
+      font-size: 12px;
+      color: #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+      border: 1px solid transparent;
+    }
+
+    .nav-item span.label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-item span.icon {
+      font-size: 14px;
+    }
+
+    .nav-item small {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .nav-item:hover {
+      background: #f3f4f6;
+      border-color: rgba(209, 213, 219, 0.9);
+      color: #111827;
+    }
+
+    .nav-item.active {
+      background: #eff6ff;
+      border-color: rgba(37, 99, 235, 0.8);
+      color: #1d4ed8;
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.28);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 11px;
+      color: #6b7280;
+      padding: 6px 8px;
+      border-radius: 14px;
+      background: #f9fafb;
+      border: 1px dashed rgba(209, 213, 219, 0.9);
+    }
+
+    /* Center: chat + auto-planer/map */
+
+    .center-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+    }
+
+    /* Chat */
+
+    .chat-panel {
+      border-radius: 16px;
+      background: #f9fafb;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: 0 10px 26px rgba(148, 163, 184, 0.25);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      min-height: 0;
+      flex: 1.1;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .chat-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .chat-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #111827;
+    }
+
+    .chat-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .chat-mode-pill {
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #ffffff;
+      font-size: 11px;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chat-mode-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .chat-body {
+      flex: 1;
+      min-height: 0;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      max-width: 80%;
+      padding: 6px 9px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .chat-message.user {
+      margin-left: auto;
+      background: #eff6ff;
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      color: #1e3a8a;
+    }
+
+    .chat-message.assistant {
+      margin-right: auto;
+      background: #f3f4f6;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      color: #111827;
+    }
+
+    .chat-footer {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chat-input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border-radius: 999px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      padding: 4px 10px;
+    }
+
+    .chat-input-wrapper input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 12px;
+      background: transparent;
+      color: #111827;
+    }
+
+    .chat-input-wrapper input::placeholder {
+      color: #9ca3af;
+    }
+
+    .chat-footer button {
+      border-radius: 999px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #111827;
+      color: #f9fafb;
+      font-size: 12px;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
+      transition: all 0.15s ease-out;
+    }
+
+    .chat-footer button:hover {
+      background: #0f172a;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.6);
+    }
+
+    /* Center: Auto-Planer / Map section */
+
+    .center-panel {
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: 0 8px 22px rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 9px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .center-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 0 2px;
+    }
+
+    .center-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .center-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #111827;
+    }
+
+    .center-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .center-chips {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #f9fafb;
+    }
+
+    .tag.accent {
+      border-color: rgba(37, 99, 235, 0.9);
+      background: var(--accent-soft);
+      color: #1d4ed8;
+    }
+
+    .center-body {
+      flex: 1;
+      min-height: 0;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      padding: 8px;
+    }
+
+    /* Board */
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      height: 100%;
+    }
+
+    .board-column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      border-radius: 12px;
+      padding: 6px;
+      background: #ffffff;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+    }
+
+    .board-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .board-column-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+    }
+
+    .board-column-count {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .board-column-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card {
+      border-radius: 12px;
+      padding: 7px 8px;
+      background: #f9fafb;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      box-shadow: 0 6px 16px rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 10px 22px rgba(59, 130, 246, 0.3);
+      background: #ffffff;
+    }
+
+    .card.selected {
+      border-color: rgba(37, 99, 235, 0.9);
+      background: #eff6ff;
+      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .card-desc {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 2px 6px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #f3f4f6;
+    }
+
+    .pill.priority-high {
+      border-color: rgba(220, 38, 38, 0.9);
+      color: #b91c1c;
+      background: rgba(254, 226, 226, 0.9);
+    }
+
+    .pill.priority-med {
+      border-color: rgba(234, 179, 8, 0.9);
+      color: #92400e;
+      background: rgba(254, 249, 195, 0.9);
+    }
+
+    .pill.priority-low {
+      border-color: rgba(34, 197, 94, 0.9);
+      color: #166534;
+      background: rgba(220, 252, 231, 0.9);
+    }
+
+    /* Map */
+
+    .map {
+      display: flex;
+      height: 100%;
+      gap: 10px;
+    }
+
+    .map-column {
+      flex: 1;
+      border-radius: 12px;
+      padding: 6px;
+      background: #ffffff;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .map-column-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .map-node-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .map-node {
+      border-radius: 12px;
+      padding: 7px 8px;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      background: #f9fafb;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+      box-shadow: 0 6px 16px rgba(148, 163, 184, 0.2);
+      font-size: 12px;
+    }
+
+    .map-node:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.75);
+      box-shadow: 0 10px 22px rgba(59, 130, 246, 0.3);
+      background: #ffffff;
+    }
+
+    .map-node.selected {
+      border-color: rgba(37, 99, 235, 0.9);
+      background: #eff6ff;
+      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    .map-node-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .map-node-type {
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    .map-node-meta {
+      margin-top: 3px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    /* Context Panel (rechts) */
+
+    .context-header {
+      margin-bottom: 6px;
+      padding: 0 2px;
+    }
+
+    .context-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .context-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .context-tabs {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 3px;
+      background: #f3f4f6;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      margin-bottom: 6px;
+      gap: 2px;
+    }
+
+    .context-tab {
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: #6b7280;
+      font-size: 11px;
+      padding: 5px 9px;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+    }
+
+    .context-tab.active {
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 6px 16px rgba(148, 163, 184, 0.3);
+    }
+
+    .context-body {
+      flex: 1;
+      min-height: 0;
+      border-radius: 14px;
+      background: #f9fafb;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      padding: 8px;
+      font-size: 12px;
+      color: #111827;
+      overflow-y: auto;
+    }
+
+    .context-section {
+      margin-bottom: 8px;
+    }
+
+    .context-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 3px;
+    }
+
+    .context-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .context-pill {
+      font-size: 10px;
+      border-radius: 999px;
+      padding: 3px 7px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #ffffff;
+      color: #6b7280;
+    }
+
+    .context-pill.primary {
+      border-color: rgba(37, 99, 235, 0.9);
+      background: var(--accent-soft);
+      color: #1d4ed8;
+    }
+
+    .context-text {
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.4;
+    }
+
+    .context-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 12px;
+      color: #374151;
+    }
+
+    .context-list li {
+      margin-bottom: 3px;
+    }
+
+    .context-meta {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .context-meta strong {
+      color: #111827;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      margin-right: 4px;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+    }
+
+    .status-dot.red {
+      background: #dc2626;
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25);
+    }
+
+    .status-dot.amber {
+      background: #facc15;
+      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
+    }
+
+    .context-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      background: #ffffff;
+      color: #111827;
+      font-size: 11px;
+      padding: 4px 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+      box-shadow: 0 6px 16px rgba(148, 163, 184, 0.3);
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(37, 99, 235, 0.9);
+      background: #eff6ff;
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost span.icon {
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-root">
+    <header class="app-header">
+      <div class="app-header-left">
+        <div class="brand-pill">
+          <div class="brand-icon"></div>
+          <div>
+            <div class="brand-text-main">Merlin</div>
+            <div class="brand-text-sub">Fish Delish CTO · Workspace</div>
+          </div>
+        </div>
+      </div>
+      <div class="app-header-right">
+        <button class="pill-button">
+          <span class="dot"></span>
+          <span>Local Dev Agent</span>
+        </button>
+        <button class="icon-button" title="Dev">
+          ⌘
+        </button>
+        <button class="icon-button" title="Settings">
+          ⚙
+        </button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- Sidebar -->
+      <aside class="panel sidebar">
+        <div>
+          <div class="sidebar-title">Workspace</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">✅</span>
+                Tasks
+              </span>
+              <small>Heute</small>
+            </li>
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">📅</span>
+                Kalender
+              </span>
+              <small>Google</small>
+            </li>
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">📧</span>
+                E-Mail
+              </span>
+              <small>IMAP</small>
+            </li>
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">📊</span>
+                Slides
+              </span>
+              <small>Pitch</small>
+            </li>
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">📚</span>
+                Knowledge
+              </span>
+              <small>Notion</small>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="sidebar-title" style="margin-top: 10px;">Autopilot</div>
+          <ul class="nav-list">
+            <li class="nav-item active" id="navAuto">
+              <span class="label">
+                <span class="icon">🧠</span>
+                Auto-Planer
+              </span>
+              <small>Features</small>
+            </li>
+            <li class="nav-item" id="navMap">
+              <span class="label">
+                <span class="icon">🗺️</span>
+                Project Map
+              </span>
+              <small>System</small>
+            </li>
+            <li class="nav-item">
+              <span class="label">
+                <span class="icon">💻</span>
+                Dev Autopilot
+              </span>
+              <small>Worker</small>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-footer">
+          Merlin plant, schreibt und testet Code.  
+          Du steuerst nur noch Features & Prioritäten.
+        </div>
+      </aside>
+
+      <!-- Center: Chat + Auto-Planer/Map -->
+      <section class="panel">
+        <div class="center-stack">
+          <!-- Chat -->
+          <div class="chat-panel">
+            <div class="chat-header">
+              <div class="chat-title-block">
+                <div class="chat-title">Merlin Chat</div>
+                <div class="chat-subtitle">
+                  Frag Merlin: „Bau mir X“ – darunter siehst du Plan & System.
+                </div>
+              </div>
+              <div class="chat-mode-pill">
+                <span class="dot"></span>
+                CTO-Modus · Autopilot vorbereitet
+              </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+              <div class="chat-message assistant">
+                Hi Paul, ich bin bereit. Sag mir z.B.:<br />
+                <em>„Merlin, bau mir das Investor-Pitchdeck für Fish Delish.“</em>
+              </div>
+              <div class="chat-message user">
+                Merlin, bau mir die Landingpage fish-delish.pt mit Login oben rechts.
+              </div>
+              <div class="chat-message assistant">
+                Alles klar – ich lege dafür ein Feature im Auto-Planer an und baue
+                darunter den Plan. Rechts siehst du Details & Risiken.
+              </div>
+            </div>
+            <div class="chat-footer">
+              <div class="chat-input-wrapper">
+                <input
+                  id="chatInput"
+                  placeholder='„Merlin, bau mir X…“'
+                />
+              </div>
+              <button type="button" id="chatSendBtn">
+                <span>➤</span>
+                Senden
+              </button>
+            </div>
+          </div>
+
+          <!-- Auto-Planer / Map -->
+          <div class="center-panel">
+            <div class="center-header">
+              <div class="center-title-block">
+                <div class="center-title" id="centerTitle">Auto-Planer</div>
+                <div class="center-subtitle" id="centerSubtitle">
+                  Plan → Build → Test → Deploy für Fish Delish.
+                </div>
+              </div>
+              <div class="center-chips">
+                <div class="tag accent">Fish-Delish.pt</div>
+                <div class="tag">Pitchdeck</div>
+                <div class="tag">Merlin CTO V1</div>
+              </div>
+            </div>
+            <div class="center-body">
+              <div class="view-toggle" id="viewToggleCenter">
+                <button data-view="auto" class="active">
+                  <span class="icon">🧩</span>
+                  Auto-Planer
+                </button>
+                <button data-view="map">
+                  <span class="icon">🗺️</span>
+                  Project Map
+                </button>
+              </div>
+              <div style="height: 8px;"></div>
+
+              <!-- Board -->
+              <div class="board" id="autoBoardView">
+                <div class="board-column" data-column="backlog">
+                  <div class="board-column-header">
+                    <span class="board-column-title">Backlog</span>
+                    <span class="board-column-count" id="count-backlog">0</span>
+                  </div>
+                  <div class="board-column-body" id="col-backlog"></div>
+                </div>
+                <div class="board-column" data-column="planning">
+                  <div class="board-column-header">
+                    <span class="board-column-title">Planning</span>
+                    <span class="board-column-count" id="count-planning">0</span>
+                  </div>
+                  <div class="board-column-body" id="col-planning"></div>
+                </div>
+                <div class="board-column" data-column="progress">
+                  <div class="board-column-header">
+                    <span class="board-column-title">In Progress</span>
+                    <span class="board-column-count" id="count-progress">0</span>
+                  </div>
+                  <div class="board-column-body" id="col-progress"></div>
+                </div>
+                <div class="board-column" data-column="done">
+                  <div class="board-column-header">
+                    <span class="board-column-title">Done</span>
+                    <span class="board-column-count" id="count-done">0</span>
+                  </div>
+                  <div class="board-column-body" id="col-done"></div>
+                </div>
+              </div>
+
+              <!-- Project Map -->
+              <div class="map" id="mapView" style="display: none;">
+                <div class="map-column">
+                  <div class="map-column-title">
+                    Kern-Systeme
+                    <span style="font-size: 10px; color: #9ca3af;">Code & Module</span>
+                  </div>
+                  <div class="map-node-list" id="map-core"></div>
+                </div>
+                <div class="map-column">
+                  <div class="map-column-title">
+                    Customer Facing
+                    <span style="font-size: 10px; color: #9ca3af;">Website & Pitch</span>
+                  </div>
+                  <div class="map-node-list" id="map-customer"></div>
+                </div>
+                <div class="map-column">
+                  <div class="map-column-title">
+                    Ops & Tools
+                    <span style="font-size: 10px; color: #9ca3af;">Backoffice</span>
+                  </div>
+                  <div class="map-node-list" id="map-ops"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right context panel -->
+      <aside class="panel">
+        <div class="context-header">
+          <div class="context-title" id="contextTitle">
+            Kein Item ausgewählt
+          </div>
+          <div class="context-subtitle" id="contextSubtitle">
+            Wähle ein Feature im Auto-Planer oder einen Node in der Project Map.
+          </div>
+        </div>
+        <div class="context-tabs" id="contextTabs">
+          <button class="context-tab active" data-tab="info">Info</button>
+          <button class="context-tab" data-tab="plan">Plan</button>
+          <button class="context-tab" data-tab="risks">Risiken</button>
+          <button class="context-tab" data-tab="dev">Dev / Code</button>
+          <button class="context-tab" data-tab="history">History</button>
+        </div>
+        <div class="context-body" id="contextBody">
+          <div class="context-text">
+            Hier erscheinen die Details zum aktuell gewählten Feature oder System-Knoten.
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // gleiche Demo-Daten & Logik wie im letzten Mock,
+    // nur leicht gekürzt für diesen Ausschnitt
+
+    const features = [
+      {
+        id: "feature-pitchdeck-v1",
+        type: "feature",
+        column: "planning",
+        title: "Investor-Pitchdeck V1",
+        desc: "Storyline & Content für Investoren vorbereiten.",
+        priority: "high",
+        status: "In Planung",
+        owner: "Paul",
+        tags: ["Slides", "Notion", "Merlin"],
+        info: {
+          goal:
+            "In 10 Minuten verstehen Investoren, warum Fish Delish skalierbar und profitabel werden kann.",
+          outcome:
+            "Verständliches, strukturiertes Pitchdeck mit klaren Zahlen & Stories.",
+        },
+        plan: [
+          "Aktuelle Zahlen & KPIs aus Notion einsammeln.",
+          "Storyline: Problem → Lösung → Markt → Unit Economics → Roadmap.",
+          "Slide-Struktur definieren und in Google Slides/Keynote anlegen.",
+          "Mit Merlin Inhalt feinschleifen und Q&A-Notizen generieren.",
+        ],
+        risks: [
+          "Marktvolumen & Pricing sind teilweise Annahmen → Zahlen müssen manuell geprüft werden.",
+          "Zu viele Slides könnten Investoren überladen.",
+        ],
+        dev: {
+          sessions: [
+            "session:pitchdeck-content-v1",
+            "session:pitchdeck-structure",
+          ],
+          tests: "Kein automatisches Testing, aber Content-Checks via Merlin.",
+        },
+        history: [
+          "Feature angelegt: 2025-11-24",
+          "Plan V1 erstellt: 2025-11-25",
+        ],
+      },
+      {
+        id: "feature-landing-login",
+        type: "feature",
+        column: "progress",
+        title: "Landingpage Login & Workspace-Entry",
+        desc: "Login-Button + Weiterleitung ins Merlin-Dashboard.",
+        priority: "high",
+        status: "In Umsetzung",
+        owner: "Merlin Autopilot",
+        tags: ["Next.js", "Auth", "UI"],
+        info: {
+          goal:
+            "Ein klarer Einstiegspunkt von fish-delish.pt in das interne Workspace/Dashboard.",
+          outcome:
+            "User sehen einen ‚Login‘-Button und landen nach Auth im Merlin-Workspace.",
+        },
+        plan: [
+          "Top-Navigation mit Login-CTA designen.",
+          "Auth-Flow definieren (erstmal Fake/Login-Stub).",
+          "Routing ins Dashboard vorbereiten.",
+          "Später: echte Auth-Lösung anbinden.",
+        ],
+        risks: [
+          "Ohne echte Auth können Links nur Demo sein.",
+          "Spätere Umstellung auf echte Auth darf UX nicht brechen.",
+        ],
+        dev: {
+          sessions: [
+            "session:landing-login-ui",
+            "session:landing-routing-setup",
+          ],
+          tests: "Next.js build & einfache smoke-tests.",
+        },
+        history: [
+          "Feature angelegt: 2025-11-25",
+          "First UI Sketch: 2025-11-25",
+        ],
+      },
+    ];
+
+    const mapNodes = [
+      {
+        id: "node-fishdelish-site",
+        type: "node",
+        group: "customer",
+        title: "fish-delish.pt Landingpage",
+        nodeType: "Next.js App",
+        desc: "Öffentliche Seite für Gäste & Investoren.",
+        files: ["fish-delish-site/app/page.tsx", "layout.tsx"],
+        linkedFeatures: ["feature-landing-login"],
+      },
+      {
+        id: "node-merlin-dashboard",
+        type: "node",
+        group: "core",
+        title: "Merlin Dashboard",
+        nodeType: "Frontend / SPA",
+        desc: "Dein Workspace mit Kalender, Tasks, Slides & Dev-Autopilot.",
+        files: ["mira-app/index.html", "mira-app/js/mira.js"],
+        linkedFeatures: ["feature-pitchdeck-v1"],
+      },
+    ];
+
+    let currentCenterView = "auto";
+    let selectedItemId = null;
+    let selectedItemType = null;
+    let activeContextTab = "info";
+
+    const $ = (s) => document.querySelector(s);
+    const $all = (s) => Array.from(document.querySelectorAll(s));
+
+    const findFeatureById = (id) => features.find((f) => f.id === id);
+    const findNodeById = (id) => mapNodes.find((n) => n.id === id);
+
+    const getSelectedItem = () => {
+      if (!selectedItemId) return null;
+      if (selectedItemType === "feature") return findFeatureById(selectedItemId);
+      if (selectedItemType === "node") return findNodeById(selectedItemId);
+      return null;
+    };
+
+    function renderBoard() {
+      const columns = {
+        backlog: $("#col-backlog"),
+        planning: $("#col-planning"),
+        progress: $("#col-progress"),
+        done: $("#col-done"),
+      };
+      Object.values(columns).forEach((col) => (col.innerHTML = ""));
+      const counts = { backlog: 0, planning: 0, progress: 0, done: 0 };
+
+      features.forEach((feature) => {
+        const colKey = feature.column || "backlog";
+        const colEl = columns[colKey];
+        if (!colEl) return;
+        counts[colKey]++;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.id = feature.id;
+        card.dataset.type = "feature";
+        if (selectedItemId === feature.id && selectedItemType === "feature") {
+          card.classList.add("selected");
+        }
+
+        const title = document.createElement("div");
+        title.className = "card-title";
+        title.textContent = feature.title;
+
+        const desc = document.createElement("div");
+        desc.className = "card-desc";
+        desc.textContent = feature.desc;
+
+        const meta = document.createElement("div");
+        meta.className = "card-meta";
+
+        const leftMeta = document.createElement("div");
+        leftMeta.textContent = feature.owner || "unassigned";
+
+        const rightMeta = document.createElement("div");
+        const pill = document.createElement("span");
+        pill.classList.add("pill");
+        if (feature.priority === "high") {
+          pill.classList.add("priority-high");
+          pill.textContent = "High";
+        } else if (feature.priority === "med") {
+          pill.classList.add("priority-med");
+          pill.textContent = "Medium";
+        } else {
+          pill.classList.add("priority-low");
+          pill.textContent = "Low";
+        }
+
+        rightMeta.appendChild(pill);
+        meta.appendChild(leftMeta);
+        meta.appendChild(rightMeta);
+
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(meta);
+
+        card.addEventListener("click", () => {
+          selectedItemId = feature.id;
+          selectedItemType = "feature";
+          renderBoard();
+          renderMap();
+          renderContextPanel();
+        });
+
+        colEl.appendChild(card);
+      });
+
+      $("#count-backlog").textContent = counts.backlog;
+      $("#count-planning").textContent = counts.planning;
+      $("#count-progress").textContent = counts.progress;
+      $("#count-done").textContent = counts.done;
+    }
+
+    function renderMap() {
+      const core = $("#map-core");
+      const customer = $("#map-customer");
+      const ops = $("#map-ops");
+      core.innerHTML = "";
+      customer.innerHTML = "";
+      ops.innerHTML = "";
+
+      mapNodes.forEach((node) => {
+        const el = document.createElement("div");
+        el.className = "map-node";
+        el.dataset.id = node.id;
+        el.dataset.type = "node";
+        if (selectedItemId === node.id && selectedItemType === "node") {
+          el.classList.add("selected");
+        }
+
+        const title = document.createElement("div");
+        title.className = "map-node-title";
+        title.textContent = node.title;
+
+        const type = document.createElement("div");
+        type.className = "map-node-type";
+        type.textContent = node.nodeType;
+
+        const meta = document.createElement("div");
+        meta.className = "map-node-meta";
+        meta.innerHTML = `
+          <span>📁 ${node.files.length} Ressource(n)</span>
+          <span>🧩 ${node.linkedFeatures.length} Feature(s)</span>
+        `;
+
+        el.appendChild(title);
+        el.appendChild(type);
+        el.appendChild(meta);
+
+        el.addEventListener("click", () => {
+          selectedItemId = node.id;
+          selectedItemType = "node";
+          renderBoard();
+          renderMap();
+          renderContextPanel();
+        });
+
+        if (node.group === "core") core.appendChild(el);
+        else if (node.group === "customer") customer.appendChild(el);
+        else ops.appendChild(el);
+      });
+    }
+
+    function setContextHeader(title, subtitle) {
+      $("#contextTitle").textContent = title;
+      $("#contextSubtitle").textContent = subtitle;
+    }
+
+    function renderContextInfo(item) {
+      const container = document.createElement("div");
+      const section1 = document.createElement("div");
+      section1.className = "context-section";
+
+      const title1 = document.createElement("div");
+      title1.className = "context-section-title";
+      title1.textContent = "Überblick";
+
+      const pills = document.createElement("div");
+      pills.className = "context-pill-row";
+
+      if (item.type === "feature") {
+        const typePill = document.createElement("span");
+        typePill.className = "context-pill primary";
+        typePill.textContent = "Feature";
+
+        const statusPill = document.createElement("span");
+        statusPill.className = "context-pill";
+        statusPill.textContent = item.status || "Unklar";
+
+        const ownerPill = document.createElement("span");
+        ownerPill.className = "context-pill";
+        ownerPill.textContent = item.owner || "Owner: n/a";
+
+        pills.appendChild(typePill);
+        pills.appendChild(statusPill);
+        pills.appendChild(ownerPill);
+      } else if (item.type === "node") {
+        const typePill = document.createElement("span");
+        typePill.className = "context-pill primary";
+        typePill.textContent = "System-Knoten";
+
+        const nodeTypePill = document.createElement("span");
+        nodeTypePill.className = "context-pill";
+        nodeTypePill.textContent = item.nodeType;
+
+        pills.appendChild(typePill);
+        pills.appendChild(nodeTypePill);
+      }
+
+      section1.appendChild(title1);
+      section1.appendChild(pills);
+
+      const text = document.createElement("div");
+      text.className = "context-text";
+      text.textContent = item.desc || item.info?.goal || "";
+      section1.appendChild(text);
+      container.appendChild(section1);
+
+      return container;
+    }
+
+    function renderContextPanel() {
+      const body = $("#contextBody");
+      body.innerHTML = "";
+      const item = getSelectedItem();
+
+      if (!item) {
+        setContextHeader(
+          "Kein Item ausgewählt",
+          "Wähle ein Feature oder einen Node aus."
+        );
+        const msg = document.createElement("div");
+        msg.className = "context-text";
+        msg.textContent =
+          "Klicke in der Mitte auf ein Feature (Auto-Planer) oder einen Knoten (Project Map), um Details zu sehen.";
+        body.appendChild(msg);
+        return;
+      }
+
+      if (item.type === "feature") {
+        setContextHeader(item.title, "Feature im Auto-Planer");
+      } else {
+        setContextHeader(item.title, "System-Knoten in der Project Map");
+      }
+
+      let contentEl = renderContextInfo(item);
+      body.appendChild(contentEl);
+    }
+
+    function setCenterView(view) {
+      currentCenterView = view;
+      const autoBoard = $("#autoBoardView");
+      const mapView = $("#mapView");
+
+      if (view === "auto") {
+        autoBoard.style.display = "grid";
+        mapView.style.display = "none";
+        $("#centerTitle").textContent = "Auto-Planer";
+        $("#centerSubtitle").textContent =
+          "Features & Initiativen planen – Merlin macht die Umsetzung.";
+      } else {
+        autoBoard.style.display = "none";
+        mapView.style.display = "flex";
+        $("#centerTitle").textContent = "Project Map";
+        $("#centerSubtitle").textContent =
+          "System-Landkarte von Fish Delish – Code, Tools & Verbindungen.";
+      }
+
+      $all("#viewToggleCenter button").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.view === view);
+      });
+
+      renderContextPanel();
+    }
+
+    function initEvents() {
+      $all("#viewToggleCenter button").forEach((btn) => {
+        btn.addEventListener("click", () => setCenterView(btn.dataset.view));
+      });
+
+      // Sidebar shortcuts
+      $("#navAuto").addEventListener("click", () => setCenterView("auto"));
+      $("#navMap").addEventListener("click", () => setCenterView("map"));
+
+      // Context tabs – hier nur Info aktiv, aber Struktur da
+      $all(".context-tab").forEach((tabBtn) => {
+        tabBtn.addEventListener("click", () => {
+          $all(".context-tab").forEach((b) =>
+            b.classList.toggle("active", b === tabBtn)
+          );
+          // Für den Mock bleibt der Inhalt gleich,
+          // später unterscheiden wir Info/Plan/Risiken/Dev/History
+          renderContextPanel();
+        });
+      });
+
+      // Chat-Demo
+      const chatInput = $("#chatInput");
+      const chatBody = $("#chatBody");
+      const sendBtn = $("#chatSendBtn");
+
+      function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        const userMsg = document.createElement("div");
+        userMsg.className = "chat-message user";
+        userMsg.textContent = text;
+        chatBody.appendChild(userMsg);
+        chatInput.value = "";
+
+        const reply = document.createElement("div");
+        reply.className = "chat-message assistant";
+        reply.textContent =
+          "Alles klar – im echten System würde ich daraus eine Feature-Planung machen und unten im Auto-Planer ein neues Item anlegen.";
+        setTimeout(() => {
+          chatBody.appendChild(reply);
+          chatBody.scrollTop = chatBody.scrollHeight;
+        }, 400);
+      }
+
+      sendBtn.addEventListener("click", sendMessage);
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    }
+
+    function init() {
+      renderBoard();
+      renderMap();
+      renderContextPanel();
+      initEvents();
+    }
+
+    init();
+  </script>
+</body>
+</html>

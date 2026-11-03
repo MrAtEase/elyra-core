@@ -1,0 +1,27 @@
+.futura-card {
+  background: var(--panel-elev, var(--panel));
+  border: none;
+  border-radius: 12px;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  box-shadow: var(--shadow-1), var(--shadow-2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="midnight"] .futura-card {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+}
+
+.futura-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.futura-card:focus-within {
+  box-shadow: 
+    0 0 0 3px var(--focus),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+  outline: none;
+}

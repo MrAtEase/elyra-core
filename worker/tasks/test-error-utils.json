@@ -1,0 +1,9 @@
+{
+  "id": "test-error-utils-001",
+  "goal": "Refaktoriere die Error-Utility-Funktionen in dieser Datei und mache sie robuster, ohne das Verhalten nach außen zu brechen.",
+  "mode": "refactor",
+  "projectRoot": "/Users/paulodak/Projects/elyra-core",
+  "target": {
+    "file": "frontend/lib/error.ts"
+  }
+}

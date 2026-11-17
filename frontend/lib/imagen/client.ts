@@ -2,7 +2,7 @@
  * Image generation client for Elyra.
  *
  * Primary path: Gemini image generation API
- *   Model: gemini-2.0-flash-preview-image-generation (or IMAGEN_GEMINI_MODEL env var)
+ *   Model: gemini-3.1-flash-image (Nano Banana 2) with fallbacks (or IMAGEN_GEMINI_MODEL env var)
  *   Auth: GEMINI_API_KEY (same key used for text generation)
  *
  * Fallback path: Vertex AI Imagen (when IMAGEN_PROJECT_ID is set)
@@ -45,8 +45,12 @@ async function generateWithGemini(input: GenerateImageInput): Promise<GeneratedI
   const apiKey = process.env.GEMINI_API_KEY ?? "";
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured.");
 
-  const model =
-    process.env.IMAGEN_GEMINI_MODEL ?? "gemini-2.0-flash-preview-image-generation";
+  // Current Gemini image models ("Nano Banana"); older 2.0/2.5 image models are gone for new keys.
+  const models = [
+    process.env.IMAGEN_GEMINI_MODEL?.trim() || "gemini-3.1-flash-image",
+    "gemini-3.1-flash-lite-image",
+    "gemini-nano-banana-2.1",
+  ].filter((m, i, a) => a.indexOf(m) === i);
 
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     { text: input.prompt },
@@ -69,19 +73,28 @@ async function generateWithGemini(input: GenerateImageInput): Promise<GeneratedI
     },
   };
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: input.signal ?? null,
-    },
-  );
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`Gemini image generation failed (${res.status}): ${errText}`);
+  let res: Response | null = null;
+  let lastError = "";
+  for (const model of models) {
+    const attempt = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify(body),
+        signal: input.signal ?? null,
+      },
+    );
+    if (attempt.ok) {
+      res = attempt;
+      break;
+    }
+    lastError = `${model} (${attempt.status}): ${(await attempt.text().catch(() => "")).slice(0, 300)}`;
+    // Overloaded / unavailable / not allowed → try the next image model
+    if (![404, 429, 503, 400, 403].includes(attempt.status)) break;
+  }
+  if (!res) {
+    throw new Error(`Gemini image generation failed: ${lastError}`);
   }
 
   const json = (await res.json()) as {

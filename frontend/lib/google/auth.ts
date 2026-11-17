@@ -140,6 +140,11 @@ function resolveWorkspaceId(
           if (byType) return byType.id;
         }
       }
+
+      // SECURITY: a specific workspace was requested but is not one of the user's
+      // workspaces. Never fall back to another workspace — that leaked e.g. the
+      // personal Gmail inbox into the "Fish Delish" workspace.
+      return null;
     }
   }
 
@@ -328,7 +333,9 @@ export async function getGoogleAuthContext(
     return {
       ok: false,
       status: 403,
-      message: "No accessible workspace found for this session.",
+      message: requestedWorkspaceId
+        ? "Dieser Workspace ist nicht verbunden oder existiert nicht für dein Konto."
+        : "No accessible workspace found for this session.",
     };
   }
 

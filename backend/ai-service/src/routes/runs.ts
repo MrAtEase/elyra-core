@@ -34,7 +34,12 @@ export async function runRoutes(app: FastifyInstance) {
 
     await assertRunAccess(authRequest, run.workspaceId);
 
+    // reply.raw.writeHead bypasses Fastify's header pipeline, so the CORS headers
+    // set by @fastify/cors (onRequest hook) must be copied over explicitly —
+    // otherwise the browser's EventSource (localhost:3000 → :8788) is blocked.
+    reply.hijack();
     reply.raw.writeHead(200, {
+      ...(reply.getHeaders() as Record<string, string>),
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",

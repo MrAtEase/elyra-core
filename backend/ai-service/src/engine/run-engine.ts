@@ -185,10 +185,14 @@ export async function startRun(
   // Track intent parsing cost
   const parserCost = estimateCost(parserTokens.model, parserTokens.promptTokens, parserTokens.completionTokens);
   const parserCallId = toolCallId();
+  // public.tool_calls.run_id references public.runs (the foundation run), not ai_runs.
+  // Using the ai run id here caused "tool_calls_run_id_fkey" violations.
+  const foundationRunIdForCalls = options.foundationRunId ?? null;
   await safeToolCallWrite("parser:createPublicToolCall", async () => {
+    if (!foundationRunIdForCalls) return;
     await createPublicToolCall({
       id: parserCallId,
-      runId: id,
+      runId: foundationRunIdForCalls,
       runStepId: null,
       workspaceId,
       toolName: `model.parse_plan:${parserTokens.model}`,
@@ -277,13 +281,15 @@ async function executeRunAsync(
     }
 
     await safeToolCallWrite("step:createPublicToolCall", async () => {
+      if (!options.foundationRunId) return;
       await createPublicToolCall({
         id: callId,
-        runId: id,
-        runStepId: sid,
+        runId: options.foundationRunId,
+        // run_step_id references public.run_steps(id) (generated), not the ai step id.
+        runStepId: null,
         workspaceId,
         toolName: planStep.toolName,
-        requestJson: planStep.input,
+        requestJson: { ...planStep.input, _aiRunId: id, _aiStepId: sid },
       });
     });
 

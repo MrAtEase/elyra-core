@@ -15,6 +15,10 @@ const envSchema = z.object({
   GCP_LOCATION: z.string().default("us-central1"),
   VERTEX_MODEL: z.string().default("gemini-2.0-flash"),
 
+  GEMINI_API_KEY: z.string().default(""),
+  GEMINI_MODEL: z.string().default("gemini-3.8-flash"),
+  GEMINI_FALLBACK_MODEL: z.string().default("gemini-3.6-flash,gemini-3.5-flash-lite"),
+
   ANTHROPIC_API_KEY: z.string().default(""),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-20250514"),
 

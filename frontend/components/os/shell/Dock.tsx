@@ -15,6 +15,8 @@ import {
   Sparkles,
   Wand2,
   Wrench,
+  BarChart3,
+  Target,
 } from "lucide-react";
 import type { AppId, AppManifest } from "@/components/os/kernel/types";
 
@@ -39,6 +41,8 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     studio: "color-mix(in srgb, #a78bfa 18%, var(--bg-surface))",
     code:   "color-mix(in srgb, #f97316 16%, var(--bg-surface))",
     weather: "color-mix(in srgb, #0284c7 16%, var(--bg-surface))",
+    reporting: "color-mix(in srgb, #7B61FF 16%, var(--bg-surface))",
+    leads: "color-mix(in srgb, #16a34a 16%, var(--bg-surface))",
     settings_ai: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_os: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_admin: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
@@ -58,6 +62,8 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     studio: Wand2,
     code:   Code2,
     weather: Cloud,
+    reporting: BarChart3,
+    leads: Target,
     settings_ai: Sparkles,
     settings_os: Settings,
     settings_admin: Shield,

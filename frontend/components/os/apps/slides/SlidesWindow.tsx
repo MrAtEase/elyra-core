@@ -14,11 +14,27 @@ import type { WorkspaceArtifact } from "@/components/os/kernel/types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+type SlideLayout = "title" | "bullets" | "two-col" | "blank" | "stats" | "comparison" | "timeline" | "quote" | "team";
+
 type DeckSlide = {
   title: string;
   body: string;
   bullets?: string[];
-  layout?: "title" | "bullets" | "two-col" | "blank";
+  layout?: SlideLayout;
+  /** stats: 1–3 big numbers */
+  stats?: Array<{ value: string; label: string }>;
+  /** comparison / two-col */
+  columns?: Array<{ heading: string; points: string[] }>;
+  /** timeline: ordered steps */
+  steps?: Array<{ label: string; detail?: string }>;
+  /** quote */
+  quote?: { text: string; author?: string };
+  /** team */
+  people?: Array<{ name: string; role: string }>;
+  /** speaker notes (not shown on the slide) */
+  notes?: string;
+  /** optional illustration (data URL or https) */
+  imageUrl?: string;
 };
 
 type SlideThemeKey = "cyber" | "corporate" | "light" | "gradient" | "ocean" | "warm";
@@ -264,8 +280,67 @@ function SlideCanvas({
           {slide.title}
         </h2>
 
-        {/* Body / bullets */}
-        {slide.bullets && slide.bullets.length > 0 ? (
+        {/* Rich layouts (pitch mode) */}
+        {!isTitle && slide.layout === "stats" && slide.stats && slide.stats.length > 0 ? (
+          <div className="mt-2">
+            <div className={`grid gap-6 ${slide.stats.length === 1 ? "grid-cols-1" : slide.stats.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+              {slide.stats.slice(0, 3).map((stat, i) => (
+                <div key={i}>
+                  <div className={`whitespace-nowrap font-bold tracking-tight ${slide.stats!.length === 1 ? "text-6xl" : stat.value.length > 7 ? "text-4xl" : "text-5xl"}`} style={{ color: theme.accent }}>{stat.value}</div>
+                  <div className="mt-2 text-sm opacity-75" style={{ color: theme.secondary }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+            {slide.body ? <p className="mt-8 text-sm opacity-70" style={{ color: theme.secondary }}>{slide.body}</p> : null}
+          </div>
+        ) : !isTitle && (slide.layout === "comparison" || slide.layout === "two-col") && slide.columns && slide.columns.length >= 2 ? (
+          <div className="grid grid-cols-2 gap-5">
+            {slide.columns.slice(0, 2).map((col, i) => (
+              <div key={i} className="rounded-xl border p-5" style={{ borderColor: i === 1 ? theme.accent : theme.border, background: i === 1 ? `color-mix(in srgb, ${theme.accent} 10%, transparent)` : "transparent" }}>
+                <div className="mb-3 text-sm font-semibold uppercase tracking-[0.1em]" style={{ color: i === 1 ? theme.accent : theme.secondary }}>{col.heading}</div>
+                <ul className="space-y-2 text-sm">
+                  {col.points.slice(0, 5).map((point, j) => (
+                    <li key={j} className="flex gap-2"><span className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: theme.dot }} /><span className="opacity-85">{point}</span></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : !isTitle && slide.layout === "timeline" && slide.steps && slide.steps.length > 0 ? (
+          <div className="relative mt-4">
+            <div className="absolute left-0 right-0 top-[7px] h-px" style={{ background: theme.border }} />
+            <div className="relative grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(slide.steps.length, 5)}, minmax(0, 1fr))` }}>
+              {slide.steps.slice(0, 5).map((step, i) => (
+                <div key={i}>
+                  <div className="h-3.5 w-3.5 rounded-full border-2" style={{ borderColor: theme.accent, background: i === 0 ? theme.accent : theme.bg }} />
+                  <div className="mt-3 text-sm font-semibold">{step.label}</div>
+                  {step.detail ? <div className="mt-1 text-xs opacity-70" style={{ color: theme.secondary }}>{step.detail}</div> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : !isTitle && slide.layout === "quote" && slide.quote ? (
+          <figure className="mx-auto max-w-[85%] text-center">
+            <blockquote className="text-2xl font-medium leading-snug sm:text-3xl" style={{ color: theme.text }}>„{slide.quote.text}“</blockquote>
+            {slide.quote.author ? <figcaption className="mt-5 text-sm opacity-70" style={{ color: theme.accent }}>— {slide.quote.author}</figcaption> : null}
+          </figure>
+        ) : !isTitle && slide.layout === "team" && slide.people && slide.people.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {slide.people.slice(0, 4).map((person, i) => (
+              <div key={i} className="flex flex-col items-center text-center">
+                <div className="grid h-14 w-14 place-items-center rounded-full text-lg font-semibold" style={{ background: `color-mix(in srgb, ${theme.accent} 22%, transparent)`, color: theme.accent }}>
+                  {person.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <div className="mt-3 text-sm font-semibold">{person.name}</div>
+                <div className="text-xs opacity-70" style={{ color: theme.secondary }}>{person.role}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Body / bullets (default layouts) */}
+        {["stats", "comparison", "timeline", "quote", "team"].includes(slide.layout ?? "") && !isTitle &&
+        (slide.stats?.length || slide.columns?.length || slide.steps?.length || slide.quote || slide.people?.length) ? null : slide.bullets && slide.bullets.length > 0 ? (
           <ul className={`space-y-3 ${isTitle ? "mt-6 text-sm opacity-70" : "text-base"}`} style={{ color: isTitle ? theme.secondary : theme.text }}>
             {slide.bullets.map((bullet, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -362,7 +437,7 @@ type RemoteProviderStatus = {
 
 const GB_TONES = ["Inspiring", "Professional", "Conversational", "Authoritative", "Playful"];
 const GB_AUDIENCES = ["Executive", "Technical", "General", "Sales", "Investors", "Team"];
-const STYLES = ["professional", "creative", "minimal", "bold", "narrative"];
+const STYLES = ["pitchdeck", "professional", "creative", "minimal", "bold", "narrative"];
 
 function GenerateModal({
   onGenerate,
@@ -447,7 +522,7 @@ function GenerateModal({
       });
       const data = (await res.json()) as {
         ok: boolean;
-        deck?: { title: string; slides: { title: string; body: string; bullets?: string[] }[] };
+        deck?: { title: string; slides: DeckSlide[] };
         providerLabel?: string;
         error?: string;
         code?: string;
@@ -462,8 +537,9 @@ function GenerateModal({
         id: `gen-${Date.now()}`,
         title: data.deck.title,
         slides: data.deck.slides.map((s) => ({
+          ...s,
           title: s.title,
-          body: s.body,
+          body: s.body ?? "",
           ...(s.bullets && s.bullets.length > 0 ? { bullets: s.bullets } : {}),
         })),
         source: "generated",
@@ -918,8 +994,18 @@ export default function SlidesWindow() {
     return all;
   }, [artifactDecks, generatedDecks]);
 
-  // Auto-select first deck
+  // Auto-select first deck (a deck handed over from another app wins)
+  const pendingSelectRef = useRef<string | null>(null);
   useEffect(() => {
+    const pendingId = pendingSelectRef.current;
+    if (pendingId && deckList.some((d) => d.id === pendingId)) {
+      pendingSelectRef.current = null;
+      if (selectedDeckId !== pendingId) {
+        setSelectedDeckId(pendingId);
+        setSelectedSlideIndex(0);
+      }
+      return;
+    }
     if (!selectedDeckId && deckList.length > 0) {
       setSelectedDeckId(deckList[0]!.id);
       setSelectedSlideIndex(0);
@@ -1050,6 +1136,23 @@ export default function SlidesWindow() {
     setSelectedSlideIndex(0);
     if (deck.theme) setActiveTheme(deck.theme);
   }
+
+  // Decks handed over from other apps (Reporting → "Als Präsentation") via sessionStorage.
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem("elyra:pending-deck");
+      if (!raw) return;
+      window.sessionStorage.removeItem("elyra:pending-deck");
+      const pending = JSON.parse(raw) as Deck;
+      if (pending && Array.isArray(pending.slides) && pending.slides.length > 0) {
+        pendingSelectRef.current = pending.id;
+        handleGenerated(pending);
+      }
+    } catch {
+      // ignore malformed handover
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handlePublishToGoogleSlides() {
     if (!activeDeck) return;
@@ -1379,6 +1482,15 @@ export default function SlidesWindow() {
                     </div>
                   </div>
                 )}
+
+                {activeSlide.notes ? (
+                  <div>
+                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Sprechernotizen</label>
+                    <p className="whitespace-pre-wrap rounded-lg border px-2.5 py-2 text-xs leading-relaxed text-[color:var(--text-secondary)]" style={{ background: "var(--bg-surface)", borderColor: "var(--os-border-soft)" }}>
+                      {activeSlide.notes}
+                    </p>
+                  </div>
+                ) : null}
 
                 {/* Theme in properties */}
                 <div>

@@ -53,6 +53,13 @@ function resolveWorkspaceId(request: NextRequest, payload: WhoamiResponse): stri
     return normalizedRequested;
   }
 
+  // SECURITY: a specific workspace was requested but it isn't one of the user's
+  // workspaces → do not fall back to another workspace (that leaked personal data
+  // such as the Gmail inbox into e.g. "Fish Delish").
+  if (normalizedRequested) {
+    return null;
+  }
+
   const fallback =
     payload.activeWorkspace?.id ||
     payload.session?.activeWorkspaceId ||
@@ -78,8 +85,32 @@ export async function GET(request: NextRequest) {
     ));
   }
 
-  const { response, payload } = await timing.measure("whoami", fetchWhoamiPayload(request), "worker auth");
+  // Local preview without worker/backend: serve the example contract so all apps are visible.
+  const servePreviewContract = () => {
+    const previewWorkspaceId =
+      request.nextUrl.searchParams.get("workspace_id") || "ws-personal";
+    const previewContract = buildExampleBootstrapContract(previewWorkspaceId);
+    return respond(
+      NextResponse.json({
+        ok: true,
+        contract: previewContract,
+        ui: resolveUiModel(previewContract, { role: "owner" }),
+        degraded_mode: true,
+      }),
+      { workspaceId: previewWorkspaceId, mode: "local_preview" }
+    );
+  };
+
+  let whoami: Awaited<ReturnType<typeof fetchWhoamiPayload>>;
+  try {
+    whoami = await timing.measure("whoami", fetchWhoamiPayload(request), "worker auth");
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") return servePreviewContract();
+    throw error;
+  }
+  const { response, payload } = whoami;
   if (!response.ok || !payload) {
+    if (process.env.NODE_ENV !== "production") return servePreviewContract();
     return respond(NextResponse.json({ ok: false, error: "AUTH_REQUIRED" }, { status: response.status }));
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToWorkerOs, WorkerProxyError } from "@/lib/orb-os/runtime/workerProxy";
+import { callGeminiText, geminiConfigured } from "@/lib/ai/geminiDirect";
 import { resolveWorkerAuthorizationHeader, resolveWorkerCookieHeader } from "@/lib/auth/workerSessionHeaders";
 
 type SlidesProvider = "gemini" | "claude_vertex";
@@ -107,6 +108,8 @@ export async function POST(request: NextRequest) {
     workspaceId?: string;
     provider?: SlidesProvider;
     useReasoning?: boolean;
+    /** optional data context (e.g. reporting KPIs) the deck must be based on */
+    context?: string;
   } | null;
 
   if (!body?.prompt && !body?.topic) {
@@ -120,7 +123,7 @@ export async function POST(request: NextRequest) {
   }
 
   const prompt = body.prompt ?? body.topic ?? "";
-  const slideCount = Math.max(3, Math.min(body.slideCount ?? 6, 12));
+  const slideCount = Math.max(3, Math.min(body.slideCount ?? 6, 14));
   const provider = resolveProvider(body.provider);
   const useReasoning = body.useReasoning === true;
   const providerStatus = getProviderStatuses()[provider];
@@ -149,6 +152,82 @@ export async function POST(request: NextRequest) {
       provider,
       reasoning: useReasoning,
     });
+  }
+
+  // Direct Gemini path (GEMINI_API_KEY): the worker has no /v1/os/generate/slides route locally.
+  if (provider === "gemini" && geminiConfigured()) {
+    const isPitch = (body.style ?? "").toLowerCase() === "pitchdeck" || /pitch/i.test(prompt);
+    const dataContext = typeof body.context === "string" ? body.context.slice(0, 12000) : "";
+    try {
+      const { text, model } = await callGeminiText({
+        system: `Du gestaltest hochwertige Präsentationen wie eine Top-Agentur. Antworte NUR mit JSON:
+{"title": "...", "slides": [ SLIDE, ... ]}
+Jede SLIDE hat "title", "layout", "notes" (2–4 Sätze Sprechertext) und je nach layout:
+- "title": "body" (Untertitel)                        → nur für Folie 1
+- "bullets": "body" (1 Satz Kernaussage), "bullets" (3–5 kurze Punkte)
+- "stats": "stats": [{"value": "54.500 €", "label": "..."}] (1–3 große Kennzahlen), "body" (1 Satz Einordnung)
+- "comparison": "columns": [{"heading": "Heute", "points": [...]}, {"heading": "Mit uns", "points": [...]}]
+- "timeline": "steps": [{"label": "Q1", "detail": "..."}] (3–5 Schritte)
+- "quote": "quote": {"text": "...", "author": "..."} → NUR für echte Aussagen von Personen/Kunden, nie für eigene Empfehlungen oder Zahlen
+- "team": "people": [{"name": "...", "role": "..."}] (2–4 Personen)
+Regeln: Genau ${slideCount} Folien. Wähle pro Folie das Layout, das die Botschaft am stärksten zeigt –
+nicht überall "bullets"; mindestens 3 verschiedene Layouts. Eine Kernbotschaft pro Folie, kurze Sätze.
+${isPitch ? "Pitchdeck-Struktur (in dieser Reihenfolge, passend gekürzt): Titel, Problem, Lösung, Markt, Geschäftsmodell, Traktion/Kennzahlen, Wettbewerb (comparison), Roadmap (timeline), Team, Ask/Finanzierungsbedarf." : "Letzte Folie = Fazit / nächste Schritte."}
+${dataContext ? "Verwende für Zahlen AUSSCHLIESSLICH die Daten aus dem Kontext, erfinde keine Zahlen. Kennzeichne Umsatzschätzungen als grobe Schätzung. Keine Zitate erfinden." : "Erfinde keine konkreten Statistiken oder Marktzahlen; nutze Platzhalter wie [Zahl] wo nötig."}
+Stil: ${body.style ?? "professional"}. Sprache: die Sprache der Anfrage. Team-Namen nur, wenn genannt, sonst Rollen als Platzhalter.`,
+        prompt: dataContext ? `${prompt}\n\nKontext/Daten:\n${dataContext}` : prompt,
+        json: true,
+        maxOutputTokens: 8000,
+      });
+      const parsed = JSON.parse(text) as { title?: string; slides?: Array<Record<string, unknown>> };
+      const str = (v: unknown) => (typeof v === "string" ? v : "");
+      const arr = <T,>(v: unknown, map: (x: Record<string, unknown>) => T | null, max: number): T[] =>
+        Array.isArray(v) ? v.map((x) => (x && typeof x === "object" ? map(x as Record<string, unknown>) : null)).filter((x): x is T => x !== null).slice(0, max) : [];
+      const LAYOUTS = new Set(["title", "bullets", "two-col", "blank", "stats", "comparison", "timeline", "quote", "team"]);
+      const slides = (parsed.slides ?? [])
+        .filter((slide) => slide && typeof slide.title === "string")
+        .map((slide, index) => {
+          const layout = LAYOUTS.has(str(slide.layout)) ? str(slide.layout) : index === 0 ? "title" : "bullets";
+          const quote = slide.quote && typeof slide.quote === "object" ? (slide.quote as Record<string, unknown>) : null;
+          return {
+            title: str(slide.title),
+            body: str(slide.body),
+            layout,
+            bullets: Array.isArray(slide.bullets) ? slide.bullets.map(String).slice(0, 6) : [],
+            stats: arr(slide.stats, (x) => (x.value ? { value: String(x.value), label: str(x.label) } : null), 3),
+            columns: arr(slide.columns, (x) => ({ heading: str(x.heading), points: Array.isArray(x.points) ? x.points.map(String).slice(0, 5) : [] }), 2),
+            steps: arr(slide.steps, (x) => (x.label ? { label: String(x.label), detail: str(x.detail) } : null), 5),
+            people: arr(slide.people, (x) => (x.name ? { name: String(x.name), role: str(x.role) } : null), 4),
+            ...(quote && quote.text ? { quote: { text: String(quote.text), author: str(quote.author) } } : {}),
+            notes: str(slide.notes),
+          };
+        });
+      if (slides.length === 0) throw new Error("Gemini returned no slides");
+      return NextResponse.json({
+        ok: true,
+        source: "ai",
+        provider,
+        providerLabel: `Gemini (${model})`,
+        useReasoning: false,
+        deck: { title: parsed.title ?? prompt, slides },
+      });
+    } catch (error) {
+      console.warn("[api/os/slides/generate] direct Gemini failed, using local fallback", {
+        reason: error instanceof Error ? error.message : String(error),
+      });
+      return NextResponse.json({
+        ok: true,
+        source: "local",
+        provider,
+        providerLabel: "Local fallback",
+        useReasoning: false,
+        warning: "Gemini war nicht erreichbar. Es wurde eine Folienvorlage erstellt.",
+        ...(process.env.NODE_ENV !== "production"
+          ? { debugReason: error instanceof Error ? error.message : String(error) }
+          : {}),
+        deck: buildLocalSlides(prompt, slideCount),
+      });
+    }
   }
 
   // Try to route through the AI backbone

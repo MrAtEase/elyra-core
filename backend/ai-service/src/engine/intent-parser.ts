@@ -1,4 +1,5 @@
 import { callModel } from "../models/router.js";
+import { config } from "../config.js";
 import type { OrchestratorPlan } from "../types/plan.js";
 import { logger } from "../lib/logger.js";
 import { listTools } from "../tools/index.js";
@@ -6,6 +7,8 @@ import { listTools } from "../tools/index.js";
 // ── Intent domain keywords (order matters — more specific first) ───────────────
 
 type IntentDomain =
+  | "leads"
+  | "reporting"
   | "weather"
   | "mail"
   | "calendar"
@@ -17,6 +20,18 @@ type IntentDomain =
 
 const DOMAIN_KEYWORDS: Record<IntentDomain, string[]> = {
   // Most specific first to avoid misclassification
+  leads: [
+    "leads", "lead-generierung", "leadgenerierung", "lead generierung", "neukunden finden",
+    "neukunden", "potenzielle kunden", "potentielle kunden", "akquise", "kaltakquise", "prospects",
+    "finde firmen", "finde betriebe", "finde unternehmen", "zielkunden",
+  ],
+  reporting: [
+    "kampagnen-performance", "kampagnenperformance", "kampagnen performance", "campaign performance",
+    "performance-report", "performance report", "performancereport", "kunden-report", "kundenreport",
+    "cross-channel", "roas", "cpa ", "ad spend", "werbebudget", "werbekampagne", "ads-performance",
+    "ads performance", "google ads", "meta ads", "kampagnen analysieren", "analysiere die kampagnen",
+    "marketing-report", "marketing report", "reporting",
+  ],
   slides: [
     "slide", "slides", "pitchdeck", "pitch deck", "pitch-deck",
     "presentation", "präsentation", "ppt", "folien", "deck",
@@ -110,6 +125,8 @@ Available tools:
 - text.summarize — Summarize or analyze text (params: text)
 - text.draft — Draft or generate text content (params: prompt, style?)
 - weather.getForecast — ONLY for actual weather requests (params: location)
+- leads.find — Find and score B2B leads (sample data) (params: prompt, industry?, region?)
+- reporting.analyze — Cross-channel ad performance report with recommendations, sample data (params: focus?, targetRoas?)
 
 IMPORTANT RULES:
 - For presentations/pitchdeck: use slides.create with meaningful slide content, NOT weather
@@ -139,10 +156,24 @@ const WEATHER_TOOL_NAME = "weather.getForecast";
 
 // ── General chat — direct answer, summary IS the response ─────────────────────
 
-async function buildDirectChatPlan(prompt: string, attachments: any[] = []): Promise<OrchestratorPlan> {
-  const CHAT_SYSTEM = `Du bist Elly, die KI-Assistentin im Elyra OS. Antworte direkt, präzise und hilfreich auf Deutsch (oder der Sprache des Users). Keine unnötigen Einleitungen. Sei kurz und hilfreich.`;
+export type ConversationTurn = { role: "user" | "assistant"; content: string };
+
+function withHistory(prompt: string, history: ConversationTurn[]): string {
+  if (history.length === 0) return prompt;
+  const transcript = history
+    .map((turn) => `${turn.role === "user" ? "User" : "Elly"}: ${turn.content}`)
+    .join("\n");
+  return `Bisheriger Verlauf in diesem Chat:\n${transcript}\n\nNeue Nachricht des Users:\n${prompt}`;
+}
+
+async function buildDirectChatPlan(
+  prompt: string,
+  attachments: any[] = [],
+  history: ConversationTurn[] = [],
+): Promise<OrchestratorPlan> {
+  const CHAT_SYSTEM = `Du bist Elly, die KI-Assistentin im Elyra OS (technisch: Google Gemini, Modell ${config().GEMINI_MODEL || "unbekannt"}). Antworte direkt, präzise und hilfreich auf Deutsch (oder der Sprache des Users). Keine unnötigen Einleitungen. Sei kurz und hilfreich.`;
   try {
-    const response = await callModel(CHAT_SYSTEM, prompt, { attachments });
+    const response = await callModel(CHAT_SYSTEM, withHistory(prompt, history), { attachments });
     return {
       // summary becomes the final displayed text when steps is empty
       summary: response.text.trim(),
@@ -162,14 +193,53 @@ export async function parseIntent(
   prompt: string,
   contextSummary?: string,
   attachments: any[] = [],
+  history: ConversationTurn[] = [],
 ): Promise<{ plan: OrchestratorPlan; promptTokens: number; completionTokens: number; model: string }> {
   const domain = classifyIntentDomain(prompt);
   const availableTools = new Set(listTools());
 
   // ── General chat: answer directly, no planning ──────────────────────────────
   if (domain === "general_chat") {
-    const plan = await buildDirectChatPlan(prompt, attachments);
+    const plan = await buildDirectChatPlan(prompt, attachments, history);
     return { plan, promptTokens: 0, completionTokens: 0, model: "direct_chat" };
+  }
+
+  // ── Leads: deterministic fast-path to the lead finder ─────────────────────
+  if (domain === "leads" && availableTools.has("leads.find")) {
+    return {
+      plan: {
+        summary: "Leads finden und bewerten (Beispieldaten)",
+        steps: [{
+          index: 0,
+          toolName: "leads.find",
+          label: "Leads suchen und scoren",
+          input: { prompt },
+          requiresApproval: false,
+        }],
+      },
+      promptTokens: 0,
+      completionTokens: 0,
+      model: "leads",
+    };
+  }
+
+  // ── Reporting: deterministic fast-path to the cross-channel report tool ────
+  if (domain === "reporting" && availableTools.has("reporting.analyze")) {
+    return {
+      plan: {
+        summary: "Cross-Channel-Performance-Report (Beispieldaten)",
+        steps: [{
+          index: 0,
+          toolName: "reporting.analyze",
+          label: "Kampagnen-Performance analysieren",
+          input: { focus: prompt },
+          requiresApproval: false,
+        }],
+      },
+      promptTokens: 0,
+      completionTokens: 0,
+      model: "reporting",
+    };
   }
 
   // ── Weather: fast-path with location extraction ────────────────────────────
@@ -217,7 +287,7 @@ export async function parseIntent(
 
   // ── All other domains: LLM-generated plan ─────────────────────────────────
   const systemPrompt = buildSystemPrompt(domain, contextSummary);
-  const response = await callModel(systemPrompt, prompt, { json: true, attachments });
+  const response = await callModel(systemPrompt, withHistory(prompt, history), { json: true, attachments });
 
   let plan: OrchestratorPlan;
   try {

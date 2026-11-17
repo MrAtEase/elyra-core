@@ -122,9 +122,7 @@ function buildGoogleConnectResponse(input: {
     // Force account picker so each workspace can connect a different Google account.
     googleUrl.searchParams.set("prompt", "consent select_account");
     googleUrl.searchParams.set("include_granted_scopes", "true");
-    if (auth.context.email) {
-      googleUrl.searchParams.set("login_hint", auth.context.email);
-    }
+    // No login_hint: the Elyra login account is often not the Google account to connect.
     googleUrl.searchParams.set(
       "scope",
       serializeScopes([...(requestedScopes ?? []), ...GOOGLE_REQUIRED_DEMO_SCOPES])

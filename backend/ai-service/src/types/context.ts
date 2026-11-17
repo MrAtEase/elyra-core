@@ -42,6 +42,12 @@ export type PersonaMemorySlice = {
   verbosityPreference: "low" | "normal" | "high";
 };
 
+// Restored: this declaration was truncated in the file (only "updatedAt: string; };" was left).
+export type ContextArtifact = {
+  id: string;
+  kind: string;
+  title: string;
+  latestVersion: number;
   updatedAt: string;
 };
 

@@ -130,6 +130,8 @@ export type AppId =
   | "studio"
   | "code"
   | "weather"
+  | "reporting"
+  | "leads"
   | "settings_ai"
   | "settings_os"
   | "settings_admin"
@@ -138,7 +140,18 @@ export type AppId =
   | "runs"
   | "image_studio";
 
-export type AppCategory = "work" | "build" | "settings";
+export type AppCategory =
+  | "productivity" // Kommunikation & Organisation
+  | "create"       // Erstellen & Präsentieren
+  | "marketing"    // Marketing Tools
+  | "develop"      // Entwicklung & Automatisierung
+  | "insights"     // Wissen & KI-Aktivität
+  | "governance"   // Freigaben & Kontrolle
+  | "utility"      // Alltag & Tools
+  | "settings"
+  // legacy values still used by older components
+  | "work"
+  | "build";
 
 export type WindowRecord = {
   id: string;

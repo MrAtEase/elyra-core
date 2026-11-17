@@ -1,5 +1,8 @@
 "use client";
 
+import { setActiveThreadHistory } from "@/lib/chat/activeThreadHistory";
+import ChatMarkdown from "@/components/agent/ChatMarkdown";
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -550,6 +553,24 @@ export default function AIDock({
     };
   }, [chatHistoryLoaded, chatServiceUrl, dock.panelOpen.chat, workspaceId]);
 
+  // Kernel messages are one global stream per workspace. Only NEW messages are
+  // appended to the currently selected thread — otherwise "+ New" would get the
+  // whole old conversation copied into it again.
+  const selectedThreadIdRef = useRef(selectedThreadId);
+  useEffect(() => {
+    selectedThreadIdRef.current = selectedThreadId;
+  }, [selectedThreadId]);
+  const processedMessageCountRef = useRef<number | null>(null);
+
+  // Publish the open thread's history so the kernel sends only this thread's context to Elli.
+  useEffect(() => {
+    const thread = chatThreads.find((t) => t.id === selectedThreadId);
+    setActiveThreadHistory(
+      selectedThreadId,
+      (thread?.messages ?? []).map((m) => ({ role: m.role, content: m.content })),
+    );
+  }, [chatThreads, selectedThreadId]);
+
   useEffect(() => {
     const nextMessages: ChatMessage[] = messages
       .filter((message) => typeof message.text === "string" && message.text.trim().length > 0)
@@ -559,28 +580,45 @@ export default function AIDock({
         createdAt: message.createdAt,
       }));
 
+    // Wait for the first non-empty stream (server hydration) before establishing a baseline.
+    if (processedMessageCountRef.current === null && nextMessages.length === 0) return;
+    const isFirstRun = processedMessageCountRef.current === null;
+    let processed = processedMessageCountRef.current ?? 0;
+    if (nextMessages.length < processed) processed = 0; // stream was cleared/reset
+    const fresh = nextMessages.slice(processed);
+    processedMessageCountRef.current = nextMessages.length;
+    if (fresh.length === 0) return;
+
     setChatThreads((current) => {
-      const currentThread = current.find((thread) => thread.id === selectedThreadId) ?? current[0] ?? null;
+      const currentThread =
+        current.find((thread) => thread.id === selectedThreadIdRef.current) ?? current[0] ?? null;
       if (!currentThread) return current;
+      // On first mount, don't duplicate into a thread that was already restored from history.
+      if (isFirstRun && currentThread.messages.length > 0) return current;
 
-      const sameLength = currentThread.messages.length === nextMessages.length;
-      const sameContent =
-        sameLength &&
-        currentThread.messages.every(
-          (message, index) =>
-            message.role === nextMessages[index]?.role &&
-            message.content === nextMessages[index]?.content &&
-            message.createdAt === nextMessages[index]?.createdAt,
-        );
+      // A thread created via "+ New" only takes messages written after it was created
+      // (server hydration replays older ones with their original timestamps).
+      const createdMatch = /^thread-(\d+)$/.exec(currentThread.id);
+      const threadCreatedAt = createdMatch ? Number(createdMatch[1]) : 0;
+      const toAppend = fresh.filter(
+        (message) =>
+          (message.createdAt ?? 0) >= threadCreatedAt &&
+          !currentThread.messages.some(
+            (existing) =>
+              existing.role === message.role &&
+              existing.content === message.content &&
+              Math.abs((existing.createdAt ?? 0) - (message.createdAt ?? 0)) < 120_000,
+          ),
+      );
+      if (toAppend.length === 0) return current;
 
-      if (sameContent) return current;
-
-      const updatedAt = nextMessages[nextMessages.length - 1]?.createdAt ?? Date.now();
+      const merged = [...currentThread.messages, ...toAppend].slice(-50);
+      const updatedAt = toAppend[toAppend.length - 1]?.createdAt ?? Date.now();
       return current.map((thread) =>
-        thread.id === currentThread.id ? { ...thread, messages: nextMessages.slice(-50), updatedAt } : thread,
+        thread.id === currentThread.id ? { ...thread, messages: merged, updatedAt } : thread,
       );
     });
-  }, [messages, selectedThreadId]);
+  }, [messages]);
 
   const copyText = useCallback(async (content: string) => {
     if (!content) return;
@@ -926,9 +964,15 @@ export default function AIDock({
                           <Copy size={10} />
                         </button>
                       </div>
-                      <p className="whitespace-pre-wrap text-[12px] leading-relaxed" style={{ color: "var(--text-primary)" }}>
-                        {message.text}
-                      </p>
+                      {isAssistant ? (
+                        <div className="text-[12px] leading-relaxed" style={{ color: "var(--text-primary)" }}>
+                          <ChatMarkdown text={message.text} />
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap text-[12px] leading-relaxed" style={{ color: "var(--text-primary)" }}>
+                          {message.text}
+                        </p>
+                      )}
                     </div>
                   );
                 })}

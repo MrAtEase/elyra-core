@@ -27,6 +27,12 @@ const intentBody = z.object({
     sizeBytes: z.number().optional(),
     dataBase64: z.string(),
   })).max(4).optional(),
+  // Conversation history of the open chat thread (frontend sends only this thread).
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(4000),
+  })).max(20).optional(),
+  threadId: z.string().max(120).nullable().optional(),
 });
 
 export async function intentRoutes(app: FastifyInstance) {
@@ -52,6 +58,7 @@ export async function intentRoutes(app: FastifyInstance) {
       workspaceId,
       userId,
       intentText: parsed.data.prompt,
+      openApps,
       activeView,
       intentDomain: domain,
       attachments,
@@ -86,8 +93,11 @@ export async function intentRoutes(app: FastifyInstance) {
       completionTokens = 0;
       model = "mock";
     } else {
-      const plannerPrompt = `${parsed.data.prompt}\n\nWorkspace context (compact JSON):\n${contextSummary}`;
-      const parsedPlan = await parseIntent(plannerPrompt, contextSummary, attachments);
+      // Pass the raw user prompt: the domain classifier runs on it, and the workspace
+      // context JSON (which contains words like "mail"/"calendar") must not leak into
+      // classification — that pushed plain questions into the multi-step planner.
+      // buildSystemPrompt() already injects contextSummary for the planner.
+      const parsedPlan = await parseIntent(parsed.data.prompt, contextSummary, attachments, parsed.data.history ?? []);
       plan = parsedPlan.plan;
       promptTokens = parsedPlan.promptTokens;
       completionTokens = parsedPlan.completionTokens;

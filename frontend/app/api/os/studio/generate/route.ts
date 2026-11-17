@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToWorkerOs, WorkerProxyError } from "@/lib/orb-os/runtime/workerProxy";
+import { callGeminiText, geminiConfigured } from "@/lib/ai/geminiDirect";
 import { resolveWorkerAuthorizationHeader, resolveWorkerCookieHeader } from "@/lib/auth/workerSessionHeaders";
 import {
   getProviderStatuses,
@@ -230,6 +231,60 @@ export async function POST(request: NextRequest) {
   const useReasoning = body.useReasoning === true;
   const providerStatuses = getProviderStatuses();
   const providerStatus = providerStatuses[provider];
+
+  // Direct Gemini path: the worker has no /v1/os/generate/studio route locally, and
+  // Vertex/Claude is not configured in this setup. Gemini fills the module's template
+  // structure with real content; the local template stays the fallback.
+  if (geminiConfigured() && (provider === "gemini" || !providerStatus.configured)) {
+    const template = buildLocalArtifact(meta.id as StudioModuleId, inputs, meta);
+    try {
+      const { text, model } = await callGeminiText({
+        system: `Du bist ein Studio-Agent in Elyra OS und erstellst das Artefakt "${meta.name}" (${meta.description}).
+Antworte NUR mit JSON, das GENAU dieselbe Struktur (dieselben Schlüssel und Verschachtelung) hat wie dieses Beispiel:
+${JSON.stringify(template)}
+Ersetze die Beispielinhalte durch konkrete, hochwertige Inhalte passend zu den Eingaben des Users.
+Arrays dürfen länger oder kürzer sein (3–8 Einträge). Sprache: Deutsch, außer Code/CSS/Konfiguration.`,
+        prompt: `Eingaben: ${JSON.stringify(inputs)}`,
+        json: true,
+        maxOutputTokens: 6000,
+      });
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      const sameShape =
+        parsed && typeof parsed === "object" && Object.keys(template).every((key) => key in parsed);
+      if (!sameShape) throw new Error("Gemini output did not match the module structure");
+      return NextResponse.json({
+        ok: true,
+        source: "ai",
+        moduleId: meta.id,
+        moduleName: meta.name,
+        outputType: meta.outputType,
+        provider: "gemini",
+        providerLabel: `Gemini (${model})`,
+        useReasoning: false,
+        artifact: parsed,
+      });
+    } catch (error) {
+      console.warn("[api/os/studio/generate] direct Gemini failed, using template", {
+        moduleId: meta.id,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+      return NextResponse.json({
+        ok: true,
+        source: "local",
+        moduleId: meta.id,
+        moduleName: meta.name,
+        outputType: meta.outputType,
+        provider: "gemini",
+        providerLabel: "Local template",
+        useReasoning: false,
+        warning: "Gemini war nicht erreichbar – es wurde eine Vorlage erstellt.",
+        ...(process.env.NODE_ENV !== "production"
+          ? { debugReason: error instanceof Error ? error.message : String(error) }
+          : {}),
+        artifact: template,
+      });
+    }
+  }
 
   if (!providerStatus.configured) {
     return NextResponse.json(

@@ -34,6 +34,8 @@ type SSEHandler = {
 };
 
 type SubmitIntentOptions = {
+  history?: Array<{ role: "user" | "assistant"; content: string }>;
+  threadId?: string | null;
   token?: string;
   openApps?: string[];
   activeView?: string | null;
@@ -214,6 +216,8 @@ export async function submitIntent(
       openApps: options.openApps ?? [],
       activeView: options.activeView ?? null,
       attachments: options.attachments,
+      ...(options.history && options.history.length > 0 ? { history: options.history } : {}),
+      ...(options.threadId ? { threadId: options.threadId } : {}),
     }),
   });
 
@@ -267,11 +271,20 @@ export function streamRun(
     handlers.onOrbState?.(JSON.parse((event as MessageEvent).data));
   });
 
+  let finished = false;
+  eventSource.addEventListener("run.completed", () => { finished = true; });
+  eventSource.addEventListener("run.failed", () => { finished = true; });
+
   eventSource.onerror = () => {
     eventSource.close();
+    // Previously this closed silently and the UI spun forever. Surface it instead.
+    if (!finished) {
+      finished = true;
+      handlers.onRunFailed?.({ runId, error: "Verbindung zum KI-Dienst (Stream) unterbrochen." });
+    }
   };
 
-  return () => eventSource.close();
+  return () => { finished = true; eventSource.close(); };
 }
 
 export async function approveStep(
@@ -575,4 +588,112 @@ export async function chatWithGemini(
     throw new Error(err.error ?? `Gemini route: HTTP ${resp.status}`);
   }
   return resp.json() as Promise<{ text: string; model?: string }>;
+}
+
+// ── Reporting app (prototype with sample data) ────────────────────────────────
+
+export type ReportingCampaign = {
+  channel: string;
+  campaign: string;
+  type: string;
+  spend: number;
+  revenue: number;
+  conversions: number;
+  ctr: number;
+  cvr: number;
+  cpc: number;
+  cpa: number;
+  roas: number;
+  prevRoas: number;
+  roasChangePct: number;
+  spendChangePct: number;
+  budgetLimited: boolean;
+  flags: string[];
+};
+
+export type ReportingAnalysisResponse = {
+  account: { client: string; period: string; previousPeriod: string; currency: string; targetRoas: number; isSampleData: boolean };
+  analysis: {
+    totals: { spend: number; revenue: number; conversions: number; roas: number; cpa: number;
+              prevSpend: number; prevRevenue: number; prevRoas: number; roasChangePct: number };
+    channels: Array<{ channel: string; spend: number; revenue: number; conversions: number; roas: number; cpa: number; shareOfSpendPct: number }>;
+    campaigns: ReportingCampaign[];
+    budgetShift: { from: string; to: string; amount: number; estimatedRevenueDelta: number } | null;
+  };
+};
+
+async function reportingRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = await resolveToken();
+  const res = await fetch(`${AI_SERVICE_URL}${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(init.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+    throw new Error((err as { message?: string }).message ?? `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export function fetchReportingAnalysis(targetRoas?: number): Promise<ReportingAnalysisResponse> {
+  const query = typeof targetRoas === "number" ? `?targetRoas=${encodeURIComponent(String(targetRoas))}` : "";
+  return reportingRequest<ReportingAnalysisResponse>(`/v1/reporting/analysis${query}`);
+}
+
+export function fetchReportingRecommendations(input: { targetRoas?: number; focus?: string } = {}): Promise<{
+  markdown: string;
+  source: "model" | "rules";
+  model?: string;
+}> {
+  return reportingRequest(`/v1/reporting/recommendations`, { method: "POST", body: JSON.stringify(input) });
+}
+
+// ── Leads app (prototype with fictional sample data) ─────────────────────────
+
+export type LeadTier = "A" | "B" | "C";
+
+export type LeadItem = {
+  id: string;
+  company: string;
+  industry: string;
+  city: string;
+  region: string;
+  contactRole: string;
+  employees: number;
+  website: string | null;
+  websiteMobile: boolean;
+  websiteLastUpdate: number | null;
+  onlineBooking: boolean;
+  googleRating: number | null;
+  googleReviews: number;
+  runsGoogleAds: boolean;
+  runsSocialAds: boolean;
+  note: string;
+  score: number;
+  tier: LeadTier;
+  reasons: string[];
+  opportunities: string[];
+};
+
+export type LeadSearchResponse = {
+  sampleData: boolean;
+  industries: string[];
+  regions: string[];
+  leads: LeadItem[];
+  summary: { total: number; tierA: number; tierB: number; tierC: number };
+};
+
+export type LeadDraft = { leadId: string; subject: string; body: string; source: "model" | "template"; model?: string };
+
+export function fetchLeads(params: { industry?: string; region?: string; minScore?: number } = {}): Promise<LeadSearchResponse> {
+  const q = new URLSearchParams();
+  if (params.industry) q.set("industry", params.industry);
+  if (params.region) q.set("region", params.region);
+  if (typeof params.minScore === "number") q.set("minScore", String(params.minScore));
+  const qs = q.toString();
+  return reportingRequest<LeadSearchResponse>(`/v1/leads/search${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchLeadDraft(input: { leadId: string; sender?: { name?: string; company?: string; offer?: string } }): Promise<LeadDraft> {
+  return reportingRequest<LeadDraft>(`/v1/leads/draft`, { method: "POST", body: JSON.stringify(input) });
 }

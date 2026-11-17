@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AppWindow,
   ArrowRight,
   Brain,
   CalendarDays,
   CheckSquare,
+  BarChart3,
   Cloud,
+  Image as ImageIcon,
   Code2,
   CloudSun,
   FileText,
@@ -27,7 +29,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
-import { listAppsForWorkspace } from "@/components/os/kernel/appRegistry";
+import { APP_CATEGORY_ORDER, listAppsForWorkspace } from "@/components/os/kernel/appRegistry";
 import type { AppManifest as KernelAppManifest } from "@/components/os/kernel/types";
 import type {
   DashboardConnectedApp,
@@ -304,6 +306,9 @@ function nativeAppIcon(appId: string) {
   if (appId === "studio") return Wand2;
   if (appId === "code") return Code2;
   if (appId === "weather") return Cloud;
+  if (appId === "reporting") return BarChart3;
+  if (appId === "leads") return Target;
+  if (appId === "image_studio") return ImageIcon;
   return Sparkles;
 }
 
@@ -364,10 +369,23 @@ export default function DesktopSurface({
     return () => window.clearInterval(id);
   }, []);
 
+  // Guards against out-of-order responses: when switching workspaces, a slower response
+  // for the previous workspace must never overwrite the current one (that showed the
+  // personal inbox inside "Fish Delish").
+  const latestDashboardTargetRef = useRef<string | null>(null);
+
   const loadDashboard = async (targetScope?: string) => {
     const target = targetScope ?? scopeWorkspaceId;
     if (target === "all") return; // aggregate view — no single fetch
-    setState((current) => ({ ...current, loading: true, error: null }));
+    const switchedWorkspace = latestDashboardTargetRef.current !== target;
+    latestDashboardTargetRef.current = target;
+    setState((current) => ({
+      ...current,
+      loading: true,
+      error: null,
+      // never keep showing another workspace's data while loading
+      ...(switchedWorkspace ? { payload: null } : {}),
+    }));
     try {
       const headers = await withSupabaseAuthorization({
         "x-workspace-id": target,
@@ -378,11 +396,13 @@ export default function DesktopSurface({
         headers,
       });
       const payload = (await response.json()) as { ok: boolean; dashboard?: DashboardPayload; error?: string };
+      if (latestDashboardTargetRef.current !== target) return; // stale response
       if (!response.ok || !payload.ok || !payload.dashboard) {
         throw new Error(payload.error ?? "Unable to load dashboard");
       }
       setState({ loading: false, error: null, payload: payload.dashboard });
     } catch (error) {
+      if (latestDashboardTargetRef.current !== target) return; // stale response
       setState({ loading: false, error: error instanceof Error ? error.message : "Dashboard request failed", payload: null });
     }
   };
@@ -1532,10 +1552,14 @@ export default function DesktopSurface({
             </article>
 
             {/* ── Native OS Apps ─────────────────────────────────────────── */}
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">Native Apps</p>
+            {APP_CATEGORY_ORDER.map((group) => {
+              const groupApps = nativeApps.filter((app) => app.category === group.id);
+              if (groupApps.length === 0) return null;
+              return (
+            <div key={group.id}>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">{group.label}</p>
               <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 xl:grid-cols-6">
-                {nativeApps.map((app) => {
+                {groupApps.map((app) => {
                   const Icon = nativeAppIcon(app.id);
                   return (
                     <button
@@ -1548,12 +1572,13 @@ export default function DesktopSurface({
                         <Icon size={22} className="text-[color:var(--text-secondary)]" />
                       </div>
                       <span className="text-[13px] font-semibold text-[color:var(--text-primary)]">{app.name}</span>
-                      <span className="text-[11px] text-[color:var(--text-muted)] capitalize">{app.category}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
+              );
+            })}
 
             {/* ── Connected Integrations (bootstrap contract) ────────────── */}
             {launcherApps.length > 0 && (

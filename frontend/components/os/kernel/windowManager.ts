@@ -65,6 +65,8 @@ const APP_DEFAULTS: Record<AppId, { width: number; height: number; x: number; y:
   studio: { width: 1100, height: 720, x: 104, y: 92 },
   code:   { width: 1280, height: 800, x: 64,  y: 72  },
   weather: { width: 1320, height: 760, x: 64, y: 84 },
+  reporting: { width: 1240, height: 780, x: 80, y: 80 },
+  leads: { width: 1240, height: 800, x: 100, y: 70 },
   settings_ai: { width: 600, height: 400, x: 214, y: 146 },
   settings_os: { width: 600, height: 400, x: 244, y: 164 },
   settings_admin: { width: 640, height: 440, x: 158, y: 138 },

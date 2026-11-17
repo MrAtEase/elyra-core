@@ -1,5 +1,7 @@
 "use client";
 
+import { getActiveThreadHistory } from "@/lib/chat/activeThreadHistory";
+
 import {
   createContext,
   useCallback,
@@ -597,11 +599,17 @@ export function KernelProvider({ children }: { children: ReactNode }) {
         try {
           const token = await ensureSupabaseToken();
           const openApps = activeWindows.map((window) => window.appId);
+          const threadContext = getActiveThreadHistory();
           const { runId, intentId, foundationRunId } = await apiSubmitIntent(trimmed, workspaceId, {
             token,
             openApps,
             activeView: state.overlayOpen ? "launcher" : "desktop",
             attachments,
+            // History of the open chat thread only (excluding the message just sent).
+            history: threadContext.messages.filter(
+              (m, i, all) => !(i === all.length - 1 && m.role === "user" && m.content === trimmed),
+            ),
+            threadId: threadContext.threadId,
           });
 
           updateIntentState(workspaceId, (previous) => ({

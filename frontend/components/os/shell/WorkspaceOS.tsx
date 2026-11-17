@@ -69,6 +69,8 @@ const AiSettingsWindow = lazy(() => import("@/components/os/apps/settings/AiSett
 const OsSettingsWindow = lazy(() => import("@/components/os/apps/settings/OsSettingsWindow"));
 const TasksWindow = lazy(() => import("@/components/os/apps/tasks/TasksWindow"));
 const WeatherWindow = lazy(() => import("@/components/os/apps/weather/WeatherWindow"));
+const ReportingWindow = lazy(() => import("@/components/os/apps/reporting/ReportingWindow"));
+const LeadsWindow = lazy(() => import("@/components/os/apps/leads/LeadsWindow"));
 const ImageStudioWindow = lazy(() => import("@/components/os/apps/studio/ImageStudioWindow"));
 
 type OverlayRole = "owner" | "admin" | "member";
@@ -112,6 +114,8 @@ function renderAppWindow(appId: AppId, windowId: string, workspaceId: string, ac
   else if (appId === "studio") content = <StudioWindow />;
   else if (appId === "code") content = <CodingAgentWindow />;
   else if (appId === "weather") content = <WeatherWindow />;
+  else if (appId === "reporting") content = <ReportingWindow />;
+  else if (appId === "leads") content = <LeadsWindow />;
   else if (appId === "settings_ai") content = <AiSettingsWindow />;
   else if (appId === "settings_os") content = <OsSettingsWindow />;
   else if (appId === "settings_admin") content = <AdminSettingsWindow />;
@@ -186,6 +190,8 @@ function parseRoutedApp(pathname: string): AppId | null {
   if (pathname.startsWith("/os/studio")) return "studio";
   if (pathname.startsWith("/os/code")) return "code";
   if (pathname.startsWith("/os/weather")) return "weather";
+  if (pathname.startsWith("/os/reporting")) return "reporting";
+  if (pathname.startsWith("/os/leads")) return "leads";
   return null;
 }
 
@@ -265,9 +271,28 @@ const ROUTED_APP_LABELS: Partial<Record<AppId, string>> = {
   slides:   "Slides",
   studio:   "Studio",
   weather:  "Weather",
+  reporting: "Marketing Tools · Reporting",
+  leads: "Marketing Tools · Leads",
 };
 
 // Apps that have their own route — openApp navigates there instead of creating a floating window
+// Remember a dismissed/completed onboarding per workspace so it doesn't pop up on every page load.
+const ONBOARDING_DISMISSED_PREFIX = "elyra:onboarding-dismissed:";
+function isOnboardingDismissed(workspaceId: string): boolean {
+  try {
+    return typeof window !== "undefined" && window.localStorage.getItem(ONBOARDING_DISMISSED_PREFIX + workspaceId) === "1";
+  } catch {
+    return false;
+  }
+}
+function markOnboardingDismissed(workspaceId: string): void {
+  try {
+    window.localStorage.setItem(ONBOARDING_DISMISSED_PREFIX + workspaceId, "1");
+  } catch {
+    // storage unavailable — ignore
+  }
+}
+
 const ROUTED_APP_PATHS: Partial<Record<AppId, string>> = {
   code:     "/os/code",
   mail:     "/os/mail",
@@ -278,6 +303,8 @@ const ROUTED_APP_PATHS: Partial<Record<AppId, string>> = {
   slides:   "/os/slides",
   studio:   "/os/studio",
   weather:  "/os/weather",
+  reporting: "/os/reporting",
+  leads: "/os/leads",
 };
 
 type WorkspaceOSInnerProps = {
@@ -619,9 +646,11 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
       return;
     }
     if (needsOnboarding) {
+      markOnboardingDismissed(normalizedActiveWorkspaceId);
+      onboardingCacheRef.current[normalizedActiveWorkspaceId] = false;
       setNeedsOnboarding(false);
     }
-  }, [needsOnboarding, shortcutsOpen]);
+  }, [needsOnboarding, shortcutsOpen, normalizedActiveWorkspaceId]);
   const closeAllOverlays = useCallback(() => {
     setOverlayOpen(false);
     closeAppLauncher();
@@ -811,17 +840,22 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
   // Reset the "ever open" tracker when workspace switches so the close-detection effect below
   // doesn't falsely navigate back to /os when the new workspace has no window yet.
   useEffect(() => { routedWindowEverOpenRef.current = false; }, [normalizedActiveWorkspaceId]);
+  // Remembers WHICH routed app was open, so navigating from one routed app to another
+  // (e.g. Reporting → Slides) isn't mistaken for "the window was closed".
+  const routedWindowOpenAppRef = useRef<string | null>(null);
   useEffect(() => {
     const currentRoutedApp = parseRoutedApp(pathname);
-    if (!currentRoutedApp) { routedWindowEverOpenRef.current = false; return; }
+    if (!currentRoutedApp) { routedWindowEverOpenRef.current = false; routedWindowOpenAppRef.current = null; return; }
     const routedWindowOpen = activeWindows.some((w) => w.appId === currentRoutedApp);
     if (routedWindowOpen) {
       routedWindowEverOpenRef.current = true;
+      routedWindowOpenAppRef.current = currentRoutedApp;
       return;
     }
-    // Navigate back to /os only when the window was previously open (i.e. explicitly closed)
-    if (routedWindowEverOpenRef.current) {
+    // Navigate back to /os only when THIS app's window was previously open (i.e. explicitly closed)
+    if (routedWindowEverOpenRef.current && routedWindowOpenAppRef.current === currentRoutedApp) {
       routedWindowEverOpenRef.current = false;
+      routedWindowOpenAppRef.current = null;
       router.replace(
         `/os?workspaceId=${encodeURIComponent(normalizedActiveWorkspaceId)}`,
         { scroll: false },
@@ -834,22 +868,47 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
   // on URL changes — NOT on workspace-state changes caused by tab clicks. Without the ref,
   // a tab click updates state before the URL is updated, which causes Effect B below to
   // re-read the OLD URL and revert the click.
+  // Loop guards (fix 2026-11-16): the two sync effects used to ping-pong forever when a URL
+  // change and a state change landed in the same commit (A: URL→state, B: state→URL, swap, repeat).
+  // Now A only reacts when the URL *value* changes and ignores echoes of B's own replace();
+  // B only reacts when the state *value* changes and yields when A just took the URL value.
+  const lastUrlWorkspaceRef = useRef<string | null>(null);
+  const pendingUrlWorkspaceRef = useRef<string | null>(null);
+  const urlJustWonRef = useRef(false);
+  const lastSyncedStateWorkspaceRef = useRef(normalizedActiveWorkspaceId);
+
   useEffect(() => {
     const requestedWorkspaceIdRaw = searchParams.get("workspace_id") || searchParams.get("workspaceId");
     const requestedWorkspaceId = normalizeWorkspaceId(requestedWorkspaceIdRaw) ?? requestedWorkspaceIdRaw;
+    if (requestedWorkspaceId === lastUrlWorkspaceRef.current) return; // URL value unchanged
+    lastUrlWorkspaceRef.current = requestedWorkspaceId;
+    if (pendingUrlWorkspaceRef.current !== null) {
+      // Echo of our own router.replace() from Effect B — not a user navigation.
+      if (requestedWorkspaceId === pendingUrlWorkspaceRef.current) pendingUrlWorkspaceRef.current = null;
+      return;
+    }
     if (!requestedWorkspaceId || requestedWorkspaceId === normalizedActiveWorkspaceIdRef.current) return;
     const requested = WORKSPACES.find((workspace) => workspace.id === requestedWorkspaceId);
     if (!requested) return;
+    urlJustWonRef.current = true;
     setActiveWorkspace(requested.id);
   }, [searchParams, setActiveWorkspace]);
 
   // Keep workspaceId URL param in sync when the active workspace changes (e.g. tab click).
   useEffect(() => {
     if (!urlSyncInitializedRef.current) return;
+    if (lastSyncedStateWorkspaceRef.current === normalizedActiveWorkspaceId) return; // state value unchanged
+    lastSyncedStateWorkspaceRef.current = normalizedActiveWorkspaceId;
+    if (urlJustWonRef.current) {
+      // This state change came from the URL (Effect A) — URL is already correct.
+      urlJustWonRef.current = false;
+      return;
+    }
     const currentId = normalizeWorkspaceId(
       searchParams.get("workspaceId") || searchParams.get("workspace_id"),
     );
     if (currentId === normalizedActiveWorkspaceId) return;
+    pendingUrlWorkspaceRef.current = normalizedActiveWorkspaceId;
     const next = new URLSearchParams(searchParams.toString());
     next.delete("workspace_id");
     next.set("workspaceId", normalizedActiveWorkspaceId);
@@ -977,7 +1036,7 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
         const purpose = typeof payload?.profile?.purpose === "string"
           ? payload.profile.purpose.trim()
           : "";
-        const nextNeedsOnboarding = !purpose;
+        const nextNeedsOnboarding = !purpose && !isOnboardingDismissed(normalizedActiveWorkspaceId);
         onboardingCacheRef.current[normalizedActiveWorkspaceId] = nextNeedsOnboarding;
         setNeedsOnboarding(nextNeedsOnboarding);
       } else {
@@ -1735,7 +1794,11 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
           workspaceKind={activeWorkspace.kind}
           workspaceName={activeWorkspace.label}
           accent={activeWorkspace.accent}
-          onComplete={() => setNeedsOnboarding(false)}
+          onComplete={() => {
+            markOnboardingDismissed(normalizedActiveWorkspaceId);
+            onboardingCacheRef.current[normalizedActiveWorkspaceId] = false;
+            setNeedsOnboarding(false);
+          }}
         />
       ) : null}
 

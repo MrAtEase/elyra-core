@@ -2,25 +2,27 @@
 
 PRAGMA foreign_keys = OFF;
 
--- PHASE 0 reset: remove all existing workspace-scoped and run-scoped data.
-DELETE FROM run_steps;
-DELETE FROM tool_calls;
-DELETE FROM runs;
-DELETE FROM window_layouts;
-DELETE FROM usage_daily;
-DELETE FROM workspace_quotas;
-DELETE FROM workspace_policies;
-DELETE FROM confirmation_events;
-DELETE FROM audit_log;
-DELETE FROM poker_state;
-DELETE FROM workspace_connection_domains;
-DELETE FROM workspace_connection_configs;
-DELETE FROM access_requests;
-DELETE FROM workspace_invites;
-DELETE FROM onboarding;
-DELETE FROM memberships;
-DELETE FROM sessions;
-DELETE FROM workspaces;
+-- PHASE 0 reset: on an existing DB this wiped workspace/run data. It is a no-op on a fresh DB,
+-- and the plain DELETEs failed there (tables did not exist yet), so they are disabled for fresh setups.
+-- Original statements kept below for reference.
+-- DELETE FROM run_steps;
+-- DELETE FROM tool_calls;
+-- DELETE FROM runs;
+-- DELETE FROM window_layouts;
+-- DELETE FROM usage_daily;
+-- DELETE FROM workspace_quotas;
+-- DELETE FROM workspace_policies;
+-- DELETE FROM confirmation_events;
+-- DELETE FROM audit_log;
+-- DELETE FROM poker_state;
+-- DELETE FROM workspace_connection_domains;
+-- DELETE FROM workspace_connection_configs;
+-- DELETE FROM access_requests;
+-- DELETE FROM workspace_invites;
+-- DELETE FROM onboarding;
+-- DELETE FROM memberships;
+-- DELETE FROM sessions;
+-- DELETE FROM workspaces;
 
 PRAGMA foreign_keys = ON;
 

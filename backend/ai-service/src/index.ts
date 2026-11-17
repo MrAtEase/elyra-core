@@ -13,6 +13,8 @@ import { brainFoundationRoutes } from "./routes/brain-foundation.js";
 import { assistantAuthRoutes } from "./routes/assistant-auth.js";
 import { googleStatusRoutes } from "./routes/google-status.js";
 import { chatRoutes } from "./routes/chat.js";
+import { reportingRoutes } from "./routes/reporting.js";
+import { leadRoutes } from "./routes/leads.js";
 import { graphRoutes } from "./routes/graph.js";
 import { workspaceSummaryRoutes } from "./routes/workspace-summary.js";
 import { authPlugin } from "./middleware/auth.js";
@@ -66,6 +68,8 @@ async function main() {
   await app.register(googleOAuthRoutes);
   await app.register(googleStatusRoutes);
   await app.register(chatRoutes);
+  await app.register(reportingRoutes);
+  await app.register(leadRoutes);
   await app.register(graphRoutes);
   await app.register(workspaceSummaryRoutes);
   await app.register(gmailRoutes);

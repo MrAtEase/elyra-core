@@ -14,13 +14,9 @@ type GoogleRefreshResponse = {
 const INTEGRATION_TOKEN_PREFIX = "enc:v1";
 const INTEGRATION_TOKEN_ALGORITHM = "aes-256-gcm";
 const INTEGRATION_TOKEN_IV_LENGTH = 12;
-const TOKEN_KEY = process.env.TOKEN_ENCRYPTION_KEY;
-
-if (!TOKEN_KEY) {
-  logger.error("TOKEN_ENCRYPTION_KEY is not set — Google tools will NOT work");
-} else {
-  logger.info("TOKEN_ENCRYPTION_KEY present (%d chars)", TOKEN_KEY.length);
-}
+// Note: the key is read lazily via config() (which loads .env). A module-level
+// process.env check here ran before .env was loaded and logged a false
+// "TOKEN_ENCRYPTION_KEY is not set" error on every start.
 
 type IntegrationTokenRow = {
   id: string;

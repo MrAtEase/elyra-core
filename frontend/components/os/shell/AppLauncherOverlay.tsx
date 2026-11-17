@@ -6,6 +6,7 @@ import {
   AppWindow,
   CalendarDays,
   CheckSquare,
+  BarChart3,
   CloudSun,
   Compass,
   FileText,
@@ -18,6 +19,7 @@ import {
   Settings,
   Sparkles,
   Workflow,
+  Target,
 } from "lucide-react";
 import type { AppId } from "@/components/os/kernel/types";
 import {
@@ -41,6 +43,8 @@ const APP_ICONS_BY_NAME: Record<string, ComponentType<{ size?: number; className
   globe: Globe,
   "cloud-sun": CloudSun,
   languages: Languages,
+  chart: BarChart3,
+  target: Target,
 };
 
 type LauncherItem = {

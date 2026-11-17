@@ -34,7 +34,7 @@ export type ResolvedAppsSurfaceEntry = {
   name: string;
   category: string;
   icon_name: string;
-  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | null;
+  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | "reporting" | "leads" | null;
   status: "connected" | "needs_auth" | "needs_scope" | "degraded" | "policy_blocked";
   scope_hints: string[];
 };
@@ -175,6 +175,33 @@ export function resolveAppsSurfaceEntries(input: ResolveAppsSurfaceInput): Resol
     }
     seenIndex.set(entry.app_id, deduped.length);
     deduped.push(entry);
+  }
+
+  // Built-in native app (no manifest/install needed): Marketing Tools › Reporting.
+  if (!seenIndex.has("reporting")) {
+    deduped.push({
+      app_id: "reporting",
+      source_app_id: "elyra_native",
+      name: "Reporting",
+      category: "Marketing Tools",
+      icon_name: "chart",
+      launch_hint: "reporting",
+      status: "connected",
+      scope_hints: ["marketing", "ads", "performance", "roas", "kampagnen"],
+    });
+  }
+
+  if (!seenIndex.has("leads")) {
+    deduped.push({
+      app_id: "leads",
+      source_app_id: "elyra_native",
+      name: "Leads",
+      category: "Marketing Tools",
+      icon_name: "target",
+      launch_hint: "leads",
+      status: "connected",
+      scope_hints: ["marketing", "leads", "akquise", "neukunden", "vertrieb"],
+    });
   }
 
   return deduped;

@@ -3,14 +3,16 @@ import { logger } from "../lib/logger.js";
 import { callVertexAI, type ModelResponse } from "./vertex-ai.js";
 import { callAnthropic } from "./anthropic.js";
 import { callOpenAI } from "./openai.js";
+import { callGemini } from "./gemini.js";
 
-type Provider = "vertex" | "anthropic" | "openai";
+type Provider = "gemini" | "vertex" | "anthropic" | "openai";
 
 type CallFn = (system: string, user: string, opts?: { json?: boolean; attachments?: any[] }) => Promise<ModelResponse>;
 
 function getProviderChain(): Array<{ name: Provider; call: CallFn; available: boolean }> {
   const env = config();
   return [
+    { name: "gemini", call: callGemini, available: !!env.GEMINI_API_KEY },
     { name: "vertex", call: callVertexAI, available: !!env.GCP_PROJECT_ID },
     { name: "anthropic", call: callAnthropic, available: !!env.ANTHROPIC_API_KEY },
     { name: "openai", call: callOpenAI, available: !!env.OPENAI_API_KEY },

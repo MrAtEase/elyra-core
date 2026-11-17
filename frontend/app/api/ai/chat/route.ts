@@ -35,7 +35,7 @@ import path from "node:path";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const CHAT_TIMEOUT_MS = 60_000;
+const CHAT_TIMEOUT_MS = 30_000;
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
@@ -767,8 +767,9 @@ async function callGeminiChat(opts: {
   enableVibeCode: boolean;
   origin: string;
   repoUrl: string;
+  model?: string;
 }): Promise<string> {
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = opts.model || process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${opts.apiKey}`;
 
   // Build active tool declarations
@@ -1127,8 +1128,28 @@ export async function POST(req: Request) {
         .map((h) => ({ role: h.role as "user" | "model", parts: [{ text: h.text }] }));
       geminiHistory.push({ role: "user", parts: [{ text: message }] });
 
-      text = await callGeminiChat({ system, contents: geminiHistory, apiKey, enableSearch, enableCodeExecution, enableTools, enableVibeCode, origin, repoUrl });
-      modelLabel = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+      // Try GEMINI_MODEL first, then fallbacks when a model is overloaded (503/429) or times out.
+      const geminiModels = [
+        process.env.GEMINI_MODEL || "gemini-3.8-flash",
+        ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite")
+          .split(",").map((m) => m.trim()).filter(Boolean),
+      ].filter((m, i, a) => a.indexOf(m) === i);
+      let lastGeminiError: unknown;
+      for (const geminiModel of geminiModels) {
+        try {
+          text = await callGeminiChat({ system, contents: geminiHistory, apiKey, enableSearch, enableCodeExecution, enableTools, enableVibeCode, origin, repoUrl, model: geminiModel });
+          modelLabel = geminiModel;
+          lastGeminiError = undefined;
+          break;
+        } catch (err) {
+          lastGeminiError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          const retriable = /high demand|overloaded|unavailable|rate|quota|aborted|429|503/i.test(msg);
+          console.warn(`[/api/ai/chat] ${geminiModel} failed${retriable ? ", trying next model" : ""}: ${msg}`);
+          if (!retriable) break;
+        }
+      }
+      if (lastGeminiError) throw lastGeminiError;
     } else if (provider === "claude_direct" || provider === "claude_vertex") {
       const claudeHistory: ClaudeMessage[] = (history ?? [])
         .filter((h) => h.role === "user" || h.role === "assistant" || h.role === "model")

@@ -56,6 +56,13 @@ function resolveWorkspaceId(request: NextRequest, payload: WhoamiResponse): stri
     return normalizedRequested;
   }
 
+  // SECURITY: a specific workspace was requested but it isn't one of the user's
+  // workspaces → do not fall back to another workspace (that leaked personal data
+  // such as the Gmail inbox into e.g. "Fish Delish").
+  if (normalizedRequested) {
+    return null;
+  }
+
   const fallback =
     payload.activeWorkspace?.id ||
     payload.session?.activeWorkspaceId ||

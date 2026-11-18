@@ -3,6 +3,7 @@ import { config } from "../config.js";
 import type { OrchestratorPlan } from "../types/plan.js";
 import { logger } from "../lib/logger.js";
 import { listTools } from "../tools/index.js";
+import { ELYRA_FACTS } from "./elyra-facts.js";
 
 // ── Intent domain keywords (order matters — more specific first) ───────────────
 
@@ -171,7 +172,7 @@ async function buildDirectChatPlan(
   attachments: any[] = [],
   history: ConversationTurn[] = [],
 ): Promise<OrchestratorPlan> {
-  const CHAT_SYSTEM = `Du bist Elly, die KI-Assistentin im Elyra OS (technisch: Google Gemini, Modell ${config().GEMINI_MODEL || "unbekannt"}). Antworte direkt, präzise und hilfreich auf Deutsch (oder der Sprache des Users). Keine unnötigen Einleitungen. Sei kurz und hilfreich.`;
+  const CHAT_SYSTEM = `Du bist Elly, die KI-Assistentin im Elyra OS (technisch: Google Gemini, Modell ${config().GEMINI_MODEL || "unbekannt"}). Antworte direkt, präzise und hilfreich auf Deutsch (oder der Sprache des Users). Keine unnötigen Einleitungen. Sei kurz und hilfreich.\n\n${ELYRA_FACTS}`;
   try {
     const response = await callModel(CHAT_SYSTEM, withHistory(prompt, history), { attachments });
     return {

@@ -46,4 +46,3 @@ cookies.txt
 *.pid
 worker/backups/
 *.sql.bak
-*.bak-*

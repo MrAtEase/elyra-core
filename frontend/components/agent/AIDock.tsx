@@ -311,7 +311,6 @@ export default function AIDock({
   toggleChatSignal = 0,
   focusActionsSignal = 0,
 }: AIDockProps) {
-  const timeline = useMemo(() => [...messages].slice(-40), [messages]);
   const dock = useAIDockState(workspaceId);
   const [railHovered, setRailHovered] = useState(false);
   const railVisible = dock.pinned || railHovered;
@@ -350,6 +349,12 @@ export default function AIDock({
   const activeThread = useMemo(
     () => chatThreads.find((thread) => thread.id === selectedThreadId) ?? chatThreads[0] ?? null,
     [chatThreads, selectedThreadId],
+  );
+
+  // The chat view shows only the selected thread – "+ New" really starts empty.
+  const timeline = useMemo(
+    () => (activeThread?.messages ?? []).slice(-40).map((m) => ({ role: m.role, text: m.content, createdAt: m.createdAt })),
+    [activeThread],
   );
 
   useEffect(() => {
@@ -587,7 +592,23 @@ export default function AIDock({
     if (nextMessages.length < processed) processed = 0; // stream was cleared/reset
     const fresh = nextMessages.slice(processed);
     processedMessageCountRef.current = nextMessages.length;
-    if (fresh.length === 0) return;
+    if (fresh.length === 0) {
+      const last = nextMessages[nextMessages.length - 1];
+      if (!last) return;
+      setChatThreads((current) =>
+        current.map((thread) => {
+          if (thread.id !== selectedThreadIdRef.current) return thread;
+          const idx = thread.messages.findIndex(
+            (m) => m.role === last.role && m.createdAt === last.createdAt && m.content !== last.content,
+          );
+          if (idx < 0) return thread;
+          const messagesCopy = [...thread.messages];
+          messagesCopy[idx] = { ...thread.messages[idx]!, content: last.content };
+          return { ...thread, messages: messagesCopy };
+        }),
+      );
+      return;
+    }
 
     setChatThreads((current) => {
       const currentThread =
@@ -614,8 +635,13 @@ export default function AIDock({
 
       const merged = [...currentThread.messages, ...toAppend].slice(-50);
       const updatedAt = toAppend[toAppend.length - 1]?.createdAt ?? Date.now();
+      const firstUser = merged.find((m) => m.role === "user")?.content.trim() ?? "";
+      const title =
+        currentThread.title === "Neuer Chat" && firstUser
+          ? firstUser.length > 40 ? `${firstUser.slice(0, 40)}…` : firstUser
+          : currentThread.title;
       return current.map((thread) =>
-        thread.id === currentThread.id ? { ...thread, messages: merged, updatedAt } : thread,
+        thread.id === currentThread.id ? { ...thread, title, messages: merged, updatedAt } : thread,
       );
     });
   }, [messages]);

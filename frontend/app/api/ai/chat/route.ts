@@ -1,3 +1,4 @@
+import { ELYRA_FACTS } from "@/lib/ai/elyraFacts";
 import { NextResponse } from "next/server";
 import { execFile, ExecFileException } from "node:child_process";
 import { promises as fs } from "node:fs";
@@ -752,6 +753,7 @@ function buildSystemPrompt(opts: {
     opts.fullAccessMode
       ? "Full Access: nutze Tools maximal. Melde riskante Aktionen (Deploy, Billing) vor Ausführung."
       : "",
+    ELYRA_FACTS,
   ].filter(Boolean).join(" ");
 }
 

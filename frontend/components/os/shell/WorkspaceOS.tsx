@@ -71,6 +71,8 @@ const TasksWindow = lazy(() => import("@/components/os/apps/tasks/TasksWindow"))
 const WeatherWindow = lazy(() => import("@/components/os/apps/weather/WeatherWindow"));
 const ReportingWindow = lazy(() => import("@/components/os/apps/reporting/ReportingWindow"));
 const LeadsWindow = lazy(() => import("@/components/os/apps/leads/LeadsWindow"));
+const GuitarWindow = lazy(() => import("@/components/os/apps/guitar/GuitarWindow"));
+const LanguagesWindow = lazy(() => import("@/components/os/apps/languages/LanguagesWindow"));
 const ImageStudioWindow = lazy(() => import("@/components/os/apps/studio/ImageStudioWindow"));
 
 type OverlayRole = "owner" | "admin" | "member";
@@ -116,6 +118,8 @@ function renderAppWindow(appId: AppId, windowId: string, workspaceId: string, ac
   else if (appId === "weather") content = <WeatherWindow />;
   else if (appId === "reporting") content = <ReportingWindow />;
   else if (appId === "leads") content = <LeadsWindow />;
+  else if (appId === "guitar") content = <GuitarWindow />;
+  else if (appId === "languages") content = <LanguagesWindow />;
   else if (appId === "settings_ai") content = <AiSettingsWindow />;
   else if (appId === "settings_os") content = <OsSettingsWindow />;
   else if (appId === "settings_admin") content = <AdminSettingsWindow />;
@@ -192,6 +196,8 @@ function parseRoutedApp(pathname: string): AppId | null {
   if (pathname.startsWith("/os/weather")) return "weather";
   if (pathname.startsWith("/os/reporting")) return "reporting";
   if (pathname.startsWith("/os/leads")) return "leads";
+  if (pathname.startsWith("/os/guitar")) return "guitar";
+  if (pathname.startsWith("/os/languages")) return "languages";
   return null;
 }
 
@@ -273,6 +279,8 @@ const ROUTED_APP_LABELS: Partial<Record<AppId, string>> = {
   weather:  "Weather",
   reporting: "Marketing Tools · Reporting",
   leads: "Marketing Tools · Leads",
+  guitar: "Lernen · Gitarre",
+  languages: "Lernen · Sprachen",
 };
 
 // Apps that have their own route — openApp navigates there instead of creating a floating window
@@ -305,6 +313,8 @@ const ROUTED_APP_PATHS: Partial<Record<AppId, string>> = {
   weather:  "/os/weather",
   reporting: "/os/reporting",
   leads: "/os/leads",
+  guitar: "/os/guitar",
+  languages: "/os/languages",
 };
 
 type WorkspaceOSInnerProps = {

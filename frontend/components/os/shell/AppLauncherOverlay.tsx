@@ -20,6 +20,7 @@ import {
   Sparkles,
   Workflow,
   Target,
+  Guitar,
 } from "lucide-react";
 import type { AppId } from "@/components/os/kernel/types";
 import {
@@ -45,6 +46,7 @@ const APP_ICONS_BY_NAME: Record<string, ComponentType<{ size?: number; className
   languages: Languages,
   chart: BarChart3,
   target: Target,
+  guitar: Guitar,
 };
 
 type LauncherItem = {

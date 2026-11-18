@@ -17,6 +17,8 @@ import {
   Wrench,
   BarChart3,
   Target,
+  Guitar,
+  Languages,
 } from "lucide-react";
 import type { AppId, AppManifest } from "@/components/os/kernel/types";
 
@@ -43,6 +45,8 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     weather: "color-mix(in srgb, #0284c7 16%, var(--bg-surface))",
     reporting: "color-mix(in srgb, #7B61FF 16%, var(--bg-surface))",
     leads: "color-mix(in srgb, #16a34a 16%, var(--bg-surface))",
+    guitar: "color-mix(in srgb, #d97706 18%, var(--bg-surface))",
+    languages: "color-mix(in srgb, #0ea5e9 16%, var(--bg-surface))",
     settings_ai: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_os: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_admin: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
@@ -64,6 +68,8 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     weather: Cloud,
     reporting: BarChart3,
     leads: Target,
+    guitar: Guitar,
+    languages: Languages,
     settings_ai: Sparkles,
     settings_os: Settings,
     settings_admin: Shield,

@@ -132,6 +132,8 @@ export type AppId =
   | "weather"
   | "reporting"
   | "leads"
+  | "guitar"
+  | "languages"
   | "settings_ai"
   | "settings_os"
   | "settings_admin"
@@ -148,6 +150,7 @@ export type AppCategory =
   | "insights"     // Wissen & KI-Aktivität
   | "governance"   // Freigaben & Kontrolle
   | "utility"      // Alltag & Tools
+  | "learning"     // Lernen & Hobby
   | "settings"
   // legacy values still used by older components
   | "work"

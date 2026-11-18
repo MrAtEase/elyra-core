@@ -28,6 +28,8 @@ import {
   Wand2,
   Wrench,
   Zap,
+  Guitar,
+  Languages,
 } from "lucide-react";
 import { APP_CATEGORY_ORDER, listAppsForWorkspace } from "@/components/os/kernel/appRegistry";
 import type { AppManifest as KernelAppManifest } from "@/components/os/kernel/types";
@@ -308,6 +310,8 @@ function nativeAppIcon(appId: string) {
   if (appId === "weather") return Cloud;
   if (appId === "reporting") return BarChart3;
   if (appId === "leads") return Target;
+  if (appId === "guitar") return Guitar;
+  if (appId === "languages") return Languages;
   if (appId === "image_studio") return ImageIcon;
   return Sparkles;
 }

@@ -13,6 +13,8 @@ const REGISTRY: AppManifest[] = [
   { id: "code", name: "Code", icon: "⌥", category: "develop", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "reporting", name: "Reporting", icon: "▥", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "leads", name: "Leads", icon: "◎", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
+  { id: "guitar", name: "Gitarre", icon: "♫", category: "learning", availableIn: ["individual", "organization", "platform"], openAs: "window" },
+  { id: "languages", name: "Sprachen", icon: "文", category: "learning", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "weather", name: "Weather", icon: "◈", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_ai", name: "AI Settings", icon: "◎", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_os", name: "OS Settings", icon: "⚙", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },
@@ -32,6 +34,7 @@ export const APP_CATEGORY_ORDER: Array<{ id: AppManifest["category"]; label: str
   { id: "develop", label: "Entwicklung & Automatisierung" },
   { id: "insights", label: "Wissen & KI-Aktivität" },
   { id: "governance", label: "Freigaben & Kontrolle" },
+  { id: "learning", label: "Lernen & Hobby" },
   { id: "utility", label: "Alltag & Tools" },
 ];
 

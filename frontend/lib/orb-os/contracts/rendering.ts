@@ -34,7 +34,7 @@ export type ResolvedAppsSurfaceEntry = {
   name: string;
   category: string;
   icon_name: string;
-  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | "reporting" | "leads" | null;
+  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | "reporting" | "leads" | "guitar" | "languages" | null;
   status: "connected" | "needs_auth" | "needs_scope" | "degraded" | "policy_blocked";
   scope_hints: string[];
 };
@@ -188,6 +188,23 @@ export function resolveAppsSurfaceEntries(input: ResolveAppsSurfaceInput): Resol
       launch_hint: "reporting",
       status: "connected",
       scope_hints: ["marketing", "ads", "performance", "roas", "kampagnen"],
+    });
+  }
+
+  for (const extra of [
+    { app_id: "guitar", name: "Gitarre", icon_name: "guitar", hints: ["gitarre", "musik", "akkorde", "tabs", "stimmen"] },
+    { app_id: "languages", name: "Sprachen", icon_name: "languages", hints: ["sprachen", "lernen", "vokabeln", "übersetzen"] },
+  ] as const) {
+    if (seenIndex.has(extra.app_id)) continue;
+    deduped.push({
+      app_id: extra.app_id,
+      source_app_id: "elyra_native",
+      name: extra.name,
+      category: "Lernen & Hobby",
+      icon_name: extra.icon_name,
+      launch_hint: extra.app_id,
+      status: "connected",
+      scope_hints: [...extra.hints],
     });
   }
 

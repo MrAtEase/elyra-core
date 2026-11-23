@@ -268,6 +268,8 @@ export default function MarketplaceWindow() {
       });
       await refreshMarketplace(workspaceId);
       setDraft(null); setDescription(""); setEditingId(null);
+      // Approved: the app now lives under Apps in its category – leave the builder and open it.
+      setTab("apps");
       openMiniApp(res.miniApp.id);
       requestOpenApp("mini_apps");
     } catch (err) {
@@ -282,7 +284,7 @@ export default function MarketplaceWindow() {
     try {
       const res = await fetch(`/api/os/marketplace?workspaceId=${encodeURIComponent(workspaceId)}&miniApp=${encodeURIComponent(id)}`, { credentials: "include", cache: "no-store" });
       const data = (await res.json()) as { ok?: boolean; error?: string; miniApp?: Draft & { prompt: string } };
-      if (!data.ok || !data.miniApp) throw new Error(data.error || "Mini-App nicht gefunden");
+      if (!data.ok || !data.miniApp) throw new Error(data.error || "App nicht gefunden");
       setDescription(data.miniApp.prompt || data.miniApp.description);
       setDraft({ name: data.miniApp.name, icon: data.miniApp.icon, description: data.miniApp.description, html: data.miniApp.html });
       setEditingId(id);
@@ -314,7 +316,7 @@ export default function MarketplaceWindow() {
           <Store size={16} className="text-[color:var(--text-secondary)]" />
           <div>
             <p className="text-sm font-semibold text-[color:var(--text-primary)]">Marktplatz</p>
-            <p className="text-[10px] text-[color:var(--text-tertiary)]">{installedCount} installiert · {TEMPLATES.length} Vorlagen · {market.miniApps.length} eigene Mini-Apps</p>
+            <p className="text-[10px] text-[color:var(--text-tertiary)]">{installedCount} installiert · {TEMPLATES.length} Vorlagen · {market.miniApps.length} eigene Apps</p>
           </div>
         </div>
         <div className="flex rounded-lg p-0.5" style={card}>
@@ -352,7 +354,7 @@ export default function MarketplaceWindow() {
         {tab === "templates" ? (
           <div className="space-y-5">
             <p className="text-[11px] leading-relaxed text-[color:var(--text-tertiary)]">
-              Vorlagen sind fertige Bauanleitungen: Elly baut daraus mit einem Klick deine eigene Mini-App, die du danach anpassen kannst („füge eine Kategorie Hund hinzu“).
+              Vorlagen sind fertige Bauanleitungen: Elly baut daraus mit einem Klick deine eigene App, die du danach anpassen kannst („füge eine Kategorie Hund hinzu“).
             </p>
             {TEMPLATE_CATEGORIES.map((category) => {
               const group = templates.filter((t) => t.category === category);
@@ -410,7 +412,7 @@ export default function MarketplaceWindow() {
           <div className="grid gap-4 lg:grid-cols-[minmax(280px,380px)_1fr]">
             <div className="space-y-3">
               <div className="rounded-2xl p-3.5" style={card}>
-                <p className="text-[13px] font-semibold text-[color:var(--text-primary)]">{editingId ? "Mini-App ändern" : "Was soll deine App können?"}</p>
+                <p className="text-[13px] font-semibold text-[color:var(--text-primary)]">{editingId ? "App ändern" : "Was soll deine App können?"}</p>
                 <p className="mt-0.5 text-[11px] text-[color:var(--text-secondary)]">Elly baut daraus eine kleine App. Sie läuft abgeschottet: ohne Internet und ohne Zugriff auf deine Daten.</p>
                 <textarea
                   ref={descriptionRef}
@@ -441,7 +443,7 @@ export default function MarketplaceWindow() {
                     </button>
                     <button type="button" onClick={() => void save()} disabled={saving || building}
                       className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50" style={{ background: "#16a34a" }}>
-                      {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} {editingId ? "Änderung speichern" : "Freigeben & installieren"}
+                      {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} {editingId ? "Änderung speichern" : "Unter Apps freigeben"}
                     </button>
                     <button type="button" onClick={() => { setDraft(null); setEditingId(null); }} className="rounded-lg px-2.5 py-1.5 text-[11px] text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]">Verwerfen</button>
                   </div>
@@ -449,7 +451,7 @@ export default function MarketplaceWindow() {
               ) : null}
 
               <div className="rounded-2xl p-3.5" style={card}>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[color:var(--text-tertiary)]">Meine Mini-Apps</p>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[color:var(--text-tertiary)]">Meine Apps</p>
                 {market.miniApps.length === 0 ? (
                   <p className="text-[11px] text-[color:var(--text-secondary)]">Noch keine. Beschreibe oben deine erste App – oder sag Elly „Bau mir eine App, die …“.</p>
                 ) : (

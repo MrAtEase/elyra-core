@@ -14,10 +14,10 @@ I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2
 
 <table><tr>
 <td width="50%"><img src="docs/images/launcher.jpg" alt="App launcher with German categories"></td>
-<td width="50%"><img src="docs/images/haushaltsbuch.jpg" alt="Mini-app built from a template: household budget dashboard with sample data"></td>
+<td width="50%"><img src="docs/images/haushaltsbuch.jpg" alt="Own app built from a template: household budget dashboard with sample data"></td>
 </tr><tr>
 <td align="center"><sub>App launcher – one list, clear categories</sub></td>
-<td align="center"><sub>Mini-app from a template (sample data), running in a sandbox</sub></td>
+<td align="center"><sub>Own app built from a template (sample data), running in a sandbox</sub></td>
 </tr></table>
 
 ---
@@ -32,7 +32,7 @@ I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2
 | **Calendar** | Google Calendar and CalDAV (iCloud) – list, create, update and delete events |
 | **Tasks & docs** | Task management, Notion integration, docs and slides windows |
 | **Coding agent** | An in-app AI coding assistant that plans, writes and applies code changes with a build gate and rollback |
-| **Marketplace & mini-apps** | Optional apps, skills and templates per workspace; Elly builds small tools on request that run in a sandboxed iframe with their own data |
+| **Marketplace & own apps** | Optional apps, skills and templates per workspace; Elly builds small apps on request – once approved they appear under Apps and run in a sandboxed iframe with their own data |
 | **Governance** | User approval for destructive actions, workspace-level policies, audit log |
 
 ## Marketing tools

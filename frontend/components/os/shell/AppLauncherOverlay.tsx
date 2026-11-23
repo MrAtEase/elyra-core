@@ -39,6 +39,7 @@ import { APP_CATEGORY_ORDER, appCategoryLabel, listLauncherApps } from "@/compon
 import { usePlatformOwner, useVisibleWorkspaces } from "@/components/os/kernel/workspaceModel";
 import { OPTIONAL_APP_IDS, isItemInstalled } from "@/lib/marketplace/catalog";
 import { nativeAppIcon } from "@/components/os/shell/DesktopSurface";
+import { miniAppCategory } from "@/lib/marketplace/miniAppCategory";
 import type { AppManifest, InstalledApp, IntegrationStatus, ToolRegistryItem } from "@/lib/orb-os/contracts/types";
 import { withSupabaseAuthorization } from "@/lib/auth/clientAuthHeaders";
 import { openMiniApp, useMarketplace } from "@/lib/marketplace/client";
@@ -120,6 +121,7 @@ function AppTile({
   accent: string;
   onClick: () => void;
 }) {
+  const emoji = item.icon_name.startsWith("emoji:") ? item.icon_name.slice(6) : null;
   const Icon = lookupIcon(item.icon_name);
   return (
     <button
@@ -130,9 +132,9 @@ function AppTile({
       }`}
     >
       <div className="grid h-14 w-14 place-items-center rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] transition group-hover:-translate-y-0.5 group-hover:border-[color:var(--os-border-strong)] group-hover:bg-[color:var(--bg-surface-hover)]">
-        <Icon size={22} className="text-[color:var(--text-secondary)]" />
+        {emoji ? <span className="text-2xl leading-none">{emoji}</span> : <Icon size={22} className="text-[color:var(--text-secondary)]" />}
       </div>
-      <span className="text-[11px] font-medium text-[color:var(--text-secondary)]">{item.name}</span>
+      <span className="max-w-[88px] truncate text-[11px] font-medium text-[color:var(--text-secondary)]">{item.name}</span>
       <div className="flex items-center gap-1">
         {isOpen ? <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accent }} /> : <span className="h-1.5 w-1.5 rounded-full bg-transparent" aria-hidden />}
         <span
@@ -280,8 +282,17 @@ export default function AppLauncherOverlay({
       } as ResolvedAppsSurfaceEntry,
       isOpen: false,
     }));
-    return [...native, ...mcp];
-  }, [workspaceId, visibleWorkspaces, platformOwner, openAppIds, mcpServers, market.installed]);
+    // Mini-apps appear in their category as soon as they were approved in the builder.
+    const minis = market.miniApps.map((mini) => ({
+      app: {
+        app_id: `mini_${mini.id}`, source_app_id: "mini_app", name: mini.name,
+        category: appCategoryLabel(miniAppCategory(mini)), icon_name: `emoji:${mini.icon || "✦"}`,
+        launch_hint: "mini_apps" as const, status: "connected" as const, scope_hints: [],
+      } as ResolvedAppsSurfaceEntry,
+      isOpen: false,
+    }));
+    return [...native, ...minis, ...mcp];
+  }, [workspaceId, visibleWorkspaces, platformOwner, openAppIds, mcpServers, market.installed, market.miniApps]);
 
   const installedLauncherItems = launcherItems;
 
@@ -477,7 +488,10 @@ export default function AppLauncherOverlay({
                             isOpen={item.isOpen}
                             accent={accent}
                             onClick={() => {
-                              if (launchApp) {
+                              if (item.app.source_app_id === "mini_app") {
+                                openMiniApp(item.app.app_id.slice(5));
+                                onOpenApp("mini_apps");
+                              } else if (launchApp) {
                                 if (item.app.mcp_server_id) {
                                   try { window.sessionStorage.setItem("elyra:mcp-server", item.app.mcp_server_id); } catch { /* ignore */ }
                                   window.dispatchEvent(new CustomEvent("elyra:mcp-server", { detail: item.app.mcp_server_id }));
@@ -498,27 +512,7 @@ export default function AppLauncherOverlay({
                   })
                 ) : null}
 
-                {market.miniApps.length > 0 && !search.trim() ? (
-                  <section>
-                    <div className="mb-2.5 flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
-                      <Sparkles size={14} />
-                      Meine Mini-Apps
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 lg:grid-cols-6">
-                      {market.miniApps.map((mini) => (
-                        <button
-                          key={mini.id}
-                          type="button"
-                          onClick={() => { openMiniApp(mini.id); onOpenApp("mini_apps"); onClose(); }}
-                          className="group flex flex-col items-center gap-2 rounded-2xl p-3 transition duration-200 hover:bg-[color:var(--bg-surface-soft)]"
-                        >
-                          <div className="grid h-14 w-14 place-items-center rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] text-2xl transition group-hover:-translate-y-0.5">{mini.icon}</div>
-                          <span className="max-w-[88px] truncate text-[11px] font-medium text-[color:var(--text-secondary)]">{mini.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ) : null}
+
 
                 {showNoResults ? (
                   <section className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)]/72 px-4 py-5 text-center">

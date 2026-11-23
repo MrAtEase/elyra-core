@@ -75,7 +75,7 @@ export default function MiniAppFrame({ html, initialData, onDataChange, onAsk, o
       const msg = event.data as { __elyra?: number; id?: number; method?: string; args?: unknown[] } | null;
       if (!msg || msg.__elyra !== 1) return;
       if (msg.method === "error") {
-        const text = String(msg.args?.[0] ?? "Fehler in der Mini-App");
+        const text = String(msg.args?.[0] ?? "Fehler in der App");
         setError((prev) => prev ?? text);
         onError?.(text);
         return;
@@ -108,7 +108,7 @@ export default function MiniAppFrame({ html, initialData, onDataChange, onAsk, o
     <div className={`relative flex min-h-0 flex-1 flex-col ${className ?? ""}`}>
       <iframe
         ref={frameRef}
-        title="Mini-App"
+        title="App"
         sandbox="allow-scripts allow-forms"
         srcDoc={srcDoc}
         className="min-h-0 w-full flex-1 rounded-xl border-0"
@@ -116,7 +116,7 @@ export default function MiniAppFrame({ html, initialData, onDataChange, onAsk, o
       />
       {error ? (
         <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] text-amber-300" style={{ borderColor: "rgba(245,158,11,0.4)", background: "rgba(0,0,0,0.7)" }}>
-          <span className="min-w-0 flex-1">Fehler in der Mini-App: {error}</span>
+          <span className="min-w-0 flex-1">Fehler in der App: {error}</span>
           {errorAction}
         </div>
       ) : null}

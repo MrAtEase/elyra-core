@@ -45,7 +45,8 @@ import {
 } from "lucide-react";
 import { APP_CATEGORY_ORDER, listLauncherApps } from "@/components/os/kernel/appRegistry";
 import { OPTIONAL_APP_IDS, isItemInstalled } from "@/lib/marketplace/catalog";
-import { useMarketplace } from "@/lib/marketplace/client";
+import { miniAppCategory } from "@/lib/marketplace/miniAppCategory";
+import { openMiniApp, useMarketplace } from "@/lib/marketplace/client";
 import type { AppManifest as KernelAppManifest } from "@/components/os/kernel/types";
 import type {
   DashboardConnectedApp,
@@ -1681,7 +1682,8 @@ export default function DesktopSurface({
             {/* ── Native OS Apps ─────────────────────────────────────────── */}
             {APP_CATEGORY_ORDER.map((group) => {
               const groupApps = nativeApps.filter((app) => app.category === group.id);
-              if (groupApps.length === 0) return null;
+              const groupOwn = market.miniApps.filter((mini) => miniAppCategory(mini) === group.id);
+              if (groupApps.length === 0 && groupOwn.length === 0) return null;
               return (
             <div key={group.id}>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">{group.label}</p>
@@ -1702,6 +1704,17 @@ export default function DesktopSurface({
                     </button>
                   );
                 })}
+                {groupOwn.map((mini) => (
+                  <button
+                    key={mini.id}
+                    type="button"
+                    onClick={() => { openMiniApp(mini.id); onOpenApp("mini_apps"); }}
+                    className="flex flex-col items-center gap-2 rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4 text-center transition hover:bg-[color:var(--bg-surface-soft)] hover:border-[color:var(--os-border-strong)]"
+                  >
+                    <div className="grid h-12 w-12 place-items-center rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] text-2xl">{mini.icon || "✦"}</div>
+                    <span className="max-w-full truncate text-[13px] font-semibold text-[color:var(--text-primary)]">{mini.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
               );

@@ -70,7 +70,7 @@ export default function InstallPrompt({ workspaceId, rightInset = 0 }: { workspa
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-semibold text-[color:var(--text-primary)]">Elly</p>
             <p className="text-[12px] text-[color:var(--text-secondary)]">
-              {request.items.length === 0 && request.templates.length === 0 ? "Dafür habe ich im Marktplatz nichts Passendes gefunden. Soll ich dir eine eigene Mini-App bauen?" : "Dafür passt aus dem Marktplatz:"}
+              {request.items.length === 0 && request.templates.length === 0 ? "Dafür habe ich im Marktplatz nichts Passendes gefunden. Soll ich dir eine eigene App bauen?" : "Dafür passt aus dem Marktplatz:"}
             </p>
           </div>
           <button type="button" onClick={() => setRequest(null)} className="rounded p-1 text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]" aria-label="Schließen"><X size={14} /></button>
@@ -131,7 +131,7 @@ export default function InstallPrompt({ workspaceId, rightInset = 0 }: { workspa
             <Store size={11} /> Marktplatz öffnen
           </button>
           <button type="button" onClick={() => { openMarketplace({ tab: "build", buildDescription: request.query }); requestOpenApp("marketplace"); setRequest(null); }} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]" style={{ borderColor: "var(--os-border-soft)" }}>
-            <Sparkles size={11} /> Eigene Mini-App bauen lassen
+            <Sparkles size={11} /> Eigene App bauen lassen
           </button>
         </div>
       </div>

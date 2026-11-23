@@ -25,7 +25,7 @@ const REGISTRY: AppManifest[] = [
   { id: "languages", name: "Sprachen", icon: "文", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "magic", name: "Kartenmagie", icon: "♠", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "marketplace", name: "Marktplatz", icon: "▦", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "mini_apps", name: "Mini-Apps", icon: "✦", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
+  { id: "mini_apps", name: "Meine Apps", icon: "✦", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "weather", name: "Wetter", icon: "◈", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_ai", name: "KI-Einstellungen", icon: "◎", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_os", name: "Einstellungen", icon: "⚙", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },

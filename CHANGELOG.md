@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Eigene Apps: Nach der Freigabe im Builder erscheint eine App direkt unter Apps in ihrer Kategorie (Launcher und Apps-Tab) statt in einer eigenen „Mini-Apps“-Liste; der Builder wechselt danach zurück und öffnet die App. Das Fenster zeigt nur noch die App selbst. Überall „Apps“ statt „Mini-Apps“; Freigabe-Knopf heißt „Unter Apps freigeben“.
 - Apps: Launcher und Apps-Tab nutzen eine gemeinsame Liste mit festen deutschen Kategorien (Organisation, Erstellen, Marketing, Wissen & Recherche, Alltag & Freizeit, Entwicklung, Verwaltung) und deutschen Namen. Doppelte Einträge aus alten App-Manifesten und das Integrations-Raster entfernt; Code und Builder nur für den Plattform-Owner. Launcher scrollt bei vielen Apps.
 - Vorlagen von 33 auf 16 zusammengeführt (z. B. Reiseplaner mit Plan/Budget/Packliste, Jobsuche mit Bewerbungen/Interview/Gehalt); Kategorien gestrafft.
 - Haushaltsbuch: neue Tabs „Abos“ (erkennt wiederkehrende Abbuchungen und feste Kosten, manuell ergänzen, als gekündigt markieren, ausblenden) und „Sparziele“ (Ziele mit Datum, Einzahlungen, nötige Sparrate pro Monat). Abo-Finder, Monatsbudget und Sparziel als eigene Vorlagen entfallen.

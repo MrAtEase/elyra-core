@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     accessToken = token.accessToken;
   } catch (error) {
     if (error instanceof GoogleTokenError) {
+      console.warn("[api/os/files] google token", error.code, error.message);
       const state = error.code === "not_connected" ? "not_connected" : error.code === "missing_scope" ? "missing_scope" : "expired";
       return NextResponse.json({ ok: true, connected: false, state, files: [] });
     }
@@ -72,8 +73,12 @@ export async function GET(request: NextRequest) {
       }));
     return NextResponse.json({ ok: true, connected: true, files });
   } catch (error) {
+    if (error instanceof GoogleApiError) console.warn("[api/os/files] drive api", error.status, error.code, error.message);
+    if (error instanceof GoogleApiError && /has not been used|is disabled|accessNotConfigured|SERVICE_DISABLED/i.test(`${error.code ?? ""} ${error.message}`)) {
+      return NextResponse.json({ ok: true, connected: false, state: "api_disabled", files: [], detail: error.message.slice(0, 300) });
+    }
     if (error instanceof GoogleApiError && (error.status === 401 || error.status === 403)) {
-      return NextResponse.json({ ok: true, connected: false, state: "expired", files: [] });
+      return NextResponse.json({ ok: true, connected: false, state: "expired", files: [], detail: error.message.slice(0, 300) });
     }
     return NextResponse.json({ ok: false, error: "drive_error" }, { status: 502 });
   }

@@ -24,6 +24,7 @@ type LoadState =
   | { kind: "loading" }
   | { kind: "ready"; files: DriveFile[] }
   | { kind: "disconnected"; reason: "not_connected" | "expired" | "missing_scope" }
+  | { kind: "api_disabled"; enableUrl: string | null }
   | { kind: "error" };
 
 type Filter = "all" | "docs" | "sheets" | "slides" | "pdf" | "images" | "starred" | "shared";
@@ -112,9 +113,13 @@ export default function FilesWindow() {
       if (search) url.searchParams.set("q", search);
       const response = await fetch(url, { credentials: "include", cache: "no-store" });
       const data = (await response.json().catch(() => null)) as
-        | { connected?: boolean; state?: "not_connected" | "expired" | "missing_scope"; files?: DriveFile[] }
+        | { connected?: boolean; state?: "not_connected" | "expired" | "missing_scope" | "api_disabled"; detail?: string; files?: DriveFile[] }
         | null;
       if (!response.ok || !data) return setState({ kind: "error" });
+      if (data.state === "api_disabled") {
+        const enableUrl = data.detail?.match(/https:\/\/console\.developers\.google\.com\/\S+?(?=\s|$)/)?.[0]?.replace(/[.,]$/, "") ?? null;
+        return setState({ kind: "api_disabled", enableUrl });
+      }
       if (!data.connected) return setState({ kind: "disconnected", reason: data.state ?? "not_connected" });
       setState({ kind: "ready", files: data.files ?? [] });
     } catch {
@@ -155,6 +160,8 @@ export default function FilesWindow() {
                 ? "Wird geladen …"
                 : state.kind === "disconnected"
                   ? "Nicht verbunden"
+                  : state.kind === "api_disabled"
+                  ? "Drive API nicht aktiviert"
                   : "Nicht erreichbar"}
           </p>
         </div>
@@ -166,7 +173,7 @@ export default function FilesWindow() {
             placeholder="In Drive suchen"
             className="w-full rounded-xl border bg-transparent py-1.5 pl-8 pr-3 text-sm outline-none"
             style={{ borderColor: "var(--os-border-soft)", color: "var(--text-primary)" }}
-            disabled={state.kind === "disconnected"}
+            disabled={state.kind === "disconnected" || state.kind === "api_disabled"}
           />
         </div>
         <button
@@ -201,6 +208,32 @@ export default function FilesWindow() {
           >
             {state.reason === "not_connected" ? "Google verbinden" : "Neu verbinden"}
           </button>
+        </div>
+      )}
+
+      {state.kind === "api_disabled" && (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+          <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Die Google Drive API ist nicht aktiviert</p>
+          <p className="max-w-md text-sm" style={{ color: "var(--text-secondary)" }}>
+            Dein Google-Konto ist verbunden, aber im Google-Cloud-Projekt dieser Elyra-Instanz ist die Drive API ausgeschaltet.
+            Aktiviere sie einmal in der Google Cloud Console. Danach erscheinen deine Dateien nach ein, zwei Minuten.
+          </p>
+          <div className="mt-1 flex gap-2">
+            {state.enableUrl && (
+              <a
+                href={state.enableUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+                style={{ background: "var(--os-accent)" }}
+              >
+                Drive API aktivieren
+              </a>
+            )}
+            <button type="button" onClick={() => void load()} className="rounded-xl border px-4 py-2 text-sm" style={{ borderColor: "var(--os-border-soft)", color: "var(--text-primary)" }}>
+              Erneut prüfen
+            </button>
+          </div>
         </div>
       )}
 

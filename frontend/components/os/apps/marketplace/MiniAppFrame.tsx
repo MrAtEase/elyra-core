@@ -4,7 +4,7 @@
  * Runs a mini-app in a locked-down iframe:
  *  - sandbox without allow-same-origin → own opaque origin, no access to Elyra's cookies, storage or DOM
  *  - CSP default-src 'none' → no network at all (no fetch, no external scripts or images)
- *  - the only way out is a small postMessage bridge: elyra.get / elyra.set / elyra.ask
+ *  - the only way out is a small postMessage bridge: elyra.get / elyra.set / elyra.ask / elyra.jobs / elyra.open
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { KIT_CSS, KIT_JS } from "@/lib/marketplace/kit";
@@ -12,7 +12,7 @@ import { KIT_CSS, KIT_JS } from "@/lib/marketplace/kit";
 const BRIDGE = `(function(){var seq=0,pending={};
 window.addEventListener('message',function(e){var m=e.data;if(!m||m.__elyra!==1||!pending[m.id])return;var p=pending[m.id];delete pending[m.id];if(m.error)p.reject(new Error(m.error));else p.resolve(m.result);});
 function call(method,args){return new Promise(function(resolve,reject){var id=++seq;pending[id]={resolve:resolve,reject:reject};parent.postMessage({__elyra:1,id:id,method:method,args:args},'*');});}
-window.elyra={get:function(k){return call('get',[String(k)]);},set:function(k,v){return call('set',[String(k),v]);},ask:function(p){return call('ask',[String(p)]);}};
+window.elyra={get:function(k){return call('get',[String(k)]);},set:function(k,v){return call('set',[String(k),v]);},ask:function(p){return call('ask',[String(p)]);},jobs:function(o){o=o||{};return call('jobs',[{q:String(o.q||''),where:String(o.where||''),remote:!!o.remote,days:Number(o.days)||14}]);},open:function(u){return call('open',[String(u)]);}};
 window.addEventListener('error',function(e){parent.postMessage({__elyra:1,method:'error',args:[String(e.message||e)]},'*');});
 window.addEventListener('unhandledrejection',function(e){parent.postMessage({__elyra:1,method:'error',args:[String((e.reason&&e.reason.message)||e.reason)]},'*');});
 document.addEventListener('submit',function(e){e.preventDefault();},true);})();`;
@@ -122,6 +122,27 @@ export default function MiniAppFrame({ html, initialData, onDataChange, onAsk, o
           reply({ result: true });
         } else if (msg.method === "ask") {
           reply({ result: await onAsk(String(msg.args?.[0] ?? "")) });
+        } else if (msg.method === "open") {
+          // Apps cannot open windows themselves (sandbox); the host opens plain web links in a new tab.
+          const target = String(msg.args?.[0] ?? "");
+          let url: URL | null = null;
+          try { url = new URL(target); } catch { url = null; }
+          if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) throw new Error("Ungültiger Link");
+          window.open(url.toString(), "_blank", "noopener,noreferrer");
+          reply({ result: true });
+        } else if (msg.method === "jobs") {
+          // Live job search (read-only, public job boards) – the app itself has no network access.
+          const opts = (msg.args?.[0] ?? {}) as { q?: string; where?: string; remote?: boolean; days?: number };
+          const params = new URLSearchParams({
+            q: String(opts.q ?? "").slice(0, 80),
+            where: String(opts.where ?? "").slice(0, 60),
+            remote: opts.remote ? "1" : "0",
+            days: String(Math.min(60, Math.max(1, Number(opts.days) || 14))),
+          });
+          const response = await fetch(`/api/os/jobs?${params.toString()}`, { credentials: "include", cache: "no-store" });
+          const data = (await response.json().catch(() => null)) as { jobs?: unknown[]; sources?: unknown[] } | null;
+          if (!response.ok || !data) throw new Error("Jobsuche gerade nicht erreichbar");
+          reply({ result: { jobs: data.jobs ?? [], sources: data.sources ?? [] } });
         } else {
           reply({ error: "Unbekannte Funktion" });
         }

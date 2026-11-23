@@ -295,14 +295,23 @@ function mapActionToApp(action: DashboardSuggestedAction): AppId | null {
   return null;
 }
 
+function roleDisplayName(role: string | null | undefined): string {
+  const value = (role ?? "").toLowerCase();
+  if (value === "system_owner") return "Plattform-Owner";
+  if (value === "owner" || value === "workspace_owner") return "Owner";
+  if (value === "admin" || value === "workspace_admin") return "Admin";
+  if (value === "viewer" || value === "workspace_viewer") return "Gast";
+  return "Mitglied";
+}
+
 function surfaceLabel(surface: SurfaceId): string {
-  if (surface === "dashboard") return "Home";
-  if (surface === "assistant") return "Agent";
-  if (surface === "goals") return "Goals";
+  if (surface === "dashboard") return "Start";
+  if (surface === "assistant") return "Elly";
+  if (surface === "goals") return "Ziele";
   if (surface === "apps") return "Apps";
   if (surface === "settings") return "Workspace Admin";
   if (surface === "builder") return "Builder";
-  return "Marketplace";
+  return "Marktplatz";
 }
 
 function appIcon(iconName: string) {
@@ -881,7 +890,7 @@ export default function DesktopSurface({
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-muted)]">{surfaceLabel(activeSurface)}</p>
             <div className="mt-1 flex items-center gap-2">
               <h2 className="text-[18px] font-semibold text-[color:var(--text-primary)]">
-                {scopeWorkspaceId === "all" ? "All Workspaces" : (visibleWorkspaces.find((ws) => ws.id === scopeWorkspaceId)?.label ?? workspaceLabel)} Control Center
+                {scopeWorkspaceId === "all" ? "Alle Workspaces" : (visibleWorkspaces.find((ws) => ws.id === scopeWorkspaceId)?.label ?? workspaceLabel)}
               </h2>
               {/* Scope selector */}
               <div className="relative">
@@ -889,13 +898,13 @@ export default function DesktopSurface({
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setShowScopeDrop((v) => !v); }}
                   className="flex items-center gap-1 rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2.5 py-1 text-[10px] font-medium text-[color:var(--text-secondary)] transition hover:border-[color:var(--os-border-strong)] hover:text-[color:var(--text-primary)]"
-                  title="Switch scope"
+                  title="Workspace wechseln"
                 >
                   <span
                     className="inline-block h-1.5 w-1.5 rounded-full"
                     style={{ background: visibleWorkspaces.find((ws) => ws.id === scopeWorkspaceId)?.accent ?? "var(--os-accent-color)" }}
                   />
-                  {scopeWorkspaceId === "all" ? "All" : (visibleWorkspaces.find((ws) => ws.id === scopeWorkspaceId)?.label ?? "—")}
+                  {scopeWorkspaceId === "all" ? "Alle" : (visibleWorkspaces.find((ws) => ws.id === scopeWorkspaceId)?.label ?? "—")}
                   <span className="opacity-50">▾</span>
                 </button>
                 {showScopeDrop && (
@@ -925,7 +934,7 @@ export default function DesktopSurface({
                         style={{ color: scopeWorkspaceId === "all" ? "var(--text-primary)" : "var(--text-muted)" }}
                       >
                         <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[color:var(--text-muted)]" />
-                        All workspaces
+                        Alle Workspaces
                         {scopeWorkspaceId === "all" && <span className="ml-auto text-[10px] opacity-50">●</span>}
                       </button>
                     </div>
@@ -973,7 +982,7 @@ export default function DesktopSurface({
           <div className="flex flex-shrink-0 items-center gap-2">
             {showGeminiBadge ? (
               <span className="rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
-                Gemini active
+                Gemini aktiv
               </span>
             ) : null}
             <button
@@ -981,7 +990,7 @@ export default function DesktopSurface({
               onClick={() => void loadDashboard()}
               className="inline-flex items-center gap-1 rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-1 text-[11px] font-medium text-[color:var(--text-secondary)] transition hover:text-[color:var(--text-primary)]"
             >
-              <RefreshCw size={12} /> Refresh
+              <RefreshCw size={12} /> Aktualisieren
             </button>
           </div>
         </header>
@@ -991,62 +1000,71 @@ export default function DesktopSurface({
         {activeSurface === "dashboard" ? (
           <>
             <section className="mb-5 rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Workspace Context</p>
-                  <h3 className="mt-1 text-[15px] font-semibold text-[color:var(--text-primary)]">{workspaceLabel}</h3>
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
+                    {new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(now)}
+                  </p>
+                  <h3 className="mt-1 text-[15px] font-semibold text-[color:var(--text-primary)]">
+                    {now.getHours() < 11 ? "Guten Morgen" : now.getHours() < 18 ? "Guten Tag" : "Guten Abend"}
+                  </h3>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
-                    {new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(now)}
+                  <span className="rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2 py-0.5 text-[10px] text-[color:var(--text-muted)]">
+                    {roleDisplayName(workspaceRole)}
                   </span>
-                  <span className="rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
-                    {workspaceRole ?? "member"}
-                  </span>
-                  <span className="rounded-full border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
-                    {launcherApps.filter((app) => app.status !== "connected").length} needs attention
-                  </span>
+                  {launcherApps.filter((app) => app.status !== "connected").length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setActiveSurface("settings")}
+                      className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-700"
+                    >
+                      {launcherApps.filter((app) => app.status !== "connected").length === 1
+                        ? "1 Verbindung fehlt"
+                        : `${launcherApps.filter((app) => app.status !== "connected").length} Verbindungen fehlen`}
+                    </button>
+                  ) : null}
                 </div>
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
                 <button
                   type="button"
                   onClick={onOpenAssistant}
-                  className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2 text-left"
+                  className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2 text-left transition hover:border-[color:var(--os-border-strong)]"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Resume</p>
-                  <p className="mt-1 text-[12px] text-[color:var(--text-primary)]">Continue last session</p>
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Elly</p>
+                  <p className="mt-1 text-[12px] text-[color:var(--text-primary)]">Frage stellen oder Aufgabe geben</p>
                 </button>
                 <button
                   type="button"
-                  onClick={onOpenAssistant}
-                  className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2 text-left"
+                  onClick={() => onOpenApp("mini_apps")}
+                  className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2 text-left transition hover:border-[color:var(--os-border-strong)]"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Artifact</p>
-                  <p className="mt-1 text-[12px] text-[color:var(--text-primary)]">Open recent artifact</p>
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Meine Apps</p>
+                  <p className="mt-1 text-[12px] text-[color:var(--text-primary)]">Eigene Apps öffnen</p>
                 </button>
-                <div className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">System State</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="rounded-full border border-[color:var(--os-border-soft)] px-2 py-0.5 text-[10px] text-[color:var(--text-secondary)]">Tools</span>
-                    <span className="rounded-full border border-[color:var(--os-border-soft)] px-2 py-0.5 text-[10px] text-[color:var(--text-secondary)]">Approvals</span>
-                    <span className="rounded-full border border-[color:var(--os-border-soft)] px-2 py-0.5 text-[10px] text-[color:var(--text-secondary)]">Sync</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenApp("files")}
+                  className="rounded-xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] px-3 py-2 text-left transition hover:border-[color:var(--os-border-strong)]"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Dateien</p>
+                  <p className="mt-1 text-[12px] text-[color:var(--text-primary)]">Google Drive durchsuchen</p>
+                </button>
               </div>
             </section>
 
             <div className="grid gap-5 lg:grid-cols-3">
               <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Today</p>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Heute</p>
                 <p className="mt-2 text-[13px] font-semibold text-[color:var(--text-primary)]">
-                  {summary?.today.next_event?.title ?? "No events today"}
+                  {summary?.today.next_event?.title ?? "Keine Termine heute"}
                 </p>
                 <p className="mt-1 text-[11px] text-[color:var(--text-muted)]">
-                  {summary?.today.next_event ? prettyDate(summary.today.next_event.at) : "No calendar event for today"}
+                  {summary?.today.next_event ? prettyDate(summary.today.next_event.at) : "Der Kalender ist frei."}
                 </p>
                 <p className="mt-3 text-[11px] text-[color:var(--text-secondary)]">
-                  Open tasks: {summary?.today.tasks_open_count ?? 0}
+                  Offene Aufgaben: {summary?.today.tasks_open_count ?? 0}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <button
@@ -1054,46 +1072,46 @@ export default function DesktopSurface({
                     onClick={() => onOpenApp("calendar")}
                     className="rounded-full border border-[color:var(--os-border-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]"
                   >
-                    Calendar
+                    Kalender
                   </button>
                   <button
                     type="button"
                     onClick={() => onOpenApp("tasks")}
                     className="rounded-full border border-[color:var(--os-border-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]"
                   >
-                    Tasks
+                    Aufgaben
                   </button>
                 </div>
               </article>
 
               <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Inbox</p>
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Posteingang</p>
                   {summary?.google?.state && summary.google.state !== "connected" && (
                     <span className="rounded-full border border-amber-300/35 bg-amber-500/12 px-2 py-0.5 text-[9px] text-amber-800">
                       {summary.google.state === "needs_auth" || summary.google.state === "disconnected"
-                        ? "Google not connected"
+                        ? "Google nicht verbunden"
                         : summary.google.state === "needs_scope"
-                          ? "Needs permissions"
-                          : "Google error"}
+                          ? "Berechtigung fehlt"
+                          : "Google neu verbinden"}
                     </span>
                   )}
                 </div>
                 <p className="mt-2 text-[13px] font-semibold text-[color:var(--text-primary)]">
-                  Unread: {summary?.inbox.unread_count ?? 0}
+                  Ungelesen: {summary?.inbox.unread_count ?? 0}
                 </p>
                 <div className="mt-2 space-y-1">
                   {(summary?.inbox.latest ?? []).slice(0, 5).map((message) => (
                     <p key={message.id} className="truncate text-[11px] text-[color:var(--text-secondary)]">
-                      {message.subject || "(no subject)"}
+                      {message.subject || "(kein Betreff)"}
                     </p>
                   ))}
                 </div>
                 {(summary?.inbox.latest.length ?? 0) === 0 ? (
                   <p className="mt-2 text-[11px] text-[color:var(--text-muted)]">
                     {summary?.google?.state === "needs_auth" || summary?.google?.state === "disconnected"
-                      ? "Connect Google in System → Integrations to see inbox."
-                      : "Inbox loaded, no recent messages."}
+                      ? "Verbinde Google unter Workspace Admin → Integrations, um hier Mails zu sehen."
+                      : "Keine neuen Nachrichten."}
                   </p>
                 ) : null}
                 <button
@@ -1101,14 +1119,14 @@ export default function DesktopSurface({
                   onClick={() => onOpenApp("mail")}
                   className="mt-3 rounded-full border border-[color:var(--os-border-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]"
                 >
-                  Open Mail
+                  Mail öffnen
                 </button>
               </article>
 
               <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Activity</p>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Aktivität</p>
                 <p className="mt-2 text-[13px] font-semibold text-[color:var(--text-primary)]">
-                  Runs: {summary?.activity.runs_count ?? filteredRuns.length}
+                  Aufträge an Elly: {summary?.activity.runs_count ?? filteredRuns.length}
                 </p>
                 <div className="mt-2 space-y-1">
                   {(summary?.activity.latest_runs ?? filteredRuns).slice(0, 5).map((run) => (
@@ -1118,30 +1136,30 @@ export default function DesktopSurface({
                   ))}
                 </div>
                 {(summary?.activity.latest_runs.length ?? 0) === 0 ? (
-                  <p className="mt-2 text-[11px] text-[color:var(--text-muted)]">No recent actions.</p>
+                  <p className="mt-2 text-[11px] text-[color:var(--text-muted)]">Noch keine Aufträge.</p>
                 ) : null}
                 <button
                   type="button"
                   onClick={onOpenAssistant}
                   className="mt-3 rounded-full border border-[color:var(--os-border-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]"
                 >
-                  Open Assistant
+                  Elly öffnen
                 </button>
               </article>
             </div>
 
-            {/* Sprint + Focus — ADHD weekly system */}
+            {/* Weekly focus */}
             <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Weekly Sprint</p>
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Wochenfokus</p>
                   <h4 className="mt-1 text-[14px] font-semibold text-[color:var(--text-primary)]">
-                    {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()]} — focus sprint
+                    {["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][now.getDay()]}: eine Sache nach der anderen
                   </h4>
                 </div>
                 {/* Day-of-week progress dots Mon–Sun */}
                 <div className="flex gap-1.5 pt-1">
-                  {(["M", "T", "W", "T", "F", "S", "S"] as const).map((d, i) => {
+                  {(["M", "D", "M", "D", "F", "S", "S"] as const).map((d, i) => {
                     const adjustedDay = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0 … Sun=6
                     const isPast = i < adjustedDay;
                     const isToday = i === adjustedDay;
@@ -1163,7 +1181,7 @@ export default function DesktopSurface({
                 </div>
               </div>
               <p className="mt-2 text-[12px] text-[color:var(--text-secondary)]">
-                One thing at a time. Micro-wins compound. Sprint, rest, repeat.
+                Kleine Schritte summieren sich. Elly hilft beim Sortieren, Planen und Zurückblicken.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
@@ -1173,9 +1191,9 @@ export default function DesktopSurface({
                       app_id: "assistant",
                       app_name: "Elly",
                       action_id: "one-thing-now",
-                      label: "One thing now",
+                      label: "Was jetzt?",
                       intent:
-                        "What is the single most important thing I should focus on right now? Consider my open tasks, calendar, and goals. Give me ONE clear action — no lists, no overwhelm. Tell me how long it takes and what the first 2-minute step is.",
+                        "Was ist gerade die eine wichtigste Sache? Berücksichtige meine offenen Aufgaben, den Kalender und meine Ziele. Nenne mir genau EINE Aufgabe, keine Liste, dazu den Zeitaufwand und den ersten Schritt, der unter 2 Minuten dauert.",
                       tool_ref: "agent.focus",
                       requires_auth: false,
                       requires_approval: false,
@@ -1185,7 +1203,7 @@ export default function DesktopSurface({
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1.5 text-[11px] font-semibold text-[color:var(--text-primary)] transition hover:bg-[color:var(--accent)]/20"
                 >
-                  <Target size={11} /> One thing now
+                  <Target size={11} /> Was jetzt?
                 </button>
                 <button
                   type="button"
@@ -1194,9 +1212,9 @@ export default function DesktopSurface({
                       app_id: "assistant",
                       app_name: "Elly",
                       action_id: "plan-my-week",
-                      label: "Plan my week",
+                      label: "Woche planen",
                       intent:
-                        "Help me plan this week as a sprint. Use my goals, open tasks, and calendar. Give me a focused week with daily themes and max 3 priorities per day. Keep it simple — I have ADHD. Start with: what is the ONE theme for this week?",
+                        "Hilf mir, diese Woche zu planen. Nutze meine Ziele, offenen Aufgaben und den Kalender. Gib jedem Tag ein Thema und höchstens 3 Prioritäten. Halte es einfach. Beginne mit dem EINEN Thema dieser Woche.",
                       tool_ref: "agent.plan",
                       requires_auth: false,
                       requires_approval: false,
@@ -1206,7 +1224,7 @@ export default function DesktopSurface({
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--os-border-strong)] bg-[color:var(--bg-surface-soft)] px-3 py-1.5 text-[11px] font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--bg-surface-hover)]"
                 >
-                  <CalendarDays size={11} /> Plan my week
+                  <CalendarDays size={11} /> Woche planen
                 </button>
                 <button
                   type="button"
@@ -1215,9 +1233,9 @@ export default function DesktopSurface({
                       app_id: "assistant",
                       app_name: "Elly",
                       action_id: "brain-dump",
-                      label: "Brain dump",
+                      label: "Kopf leeren",
                       intent:
-                        "I need to do a brain dump. I'll share everything on my mind — accept it all without judgment, then sort it into: DO NOW / DO THIS WEEK / DELEGATE / SOMEDAY / TRASH. Then surface the top 3 things I should act on.",
+                        "Ich möchte meinen Kopf leeren. Ich schreibe alles auf, was mich beschäftigt. Nimm alles ohne Wertung an und sortiere es in: JETZT / DIESE WOCHE / ABGEBEN / IRGENDWANN / STREICHEN. Nenne danach die 3 Dinge, die ich zuerst angehen sollte.",
                       tool_ref: "agent.tasks",
                       requires_auth: false,
                       requires_approval: false,
@@ -1227,7 +1245,7 @@ export default function DesktopSurface({
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--os-border-strong)] bg-[color:var(--bg-surface-soft)] px-3 py-1.5 text-[11px] font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--bg-surface-hover)]"
                 >
-                  <Brain size={11} /> Brain dump
+                  <Brain size={11} /> Kopf leeren
                 </button>
                 <button
                   type="button"
@@ -1236,9 +1254,9 @@ export default function DesktopSurface({
                       app_id: "assistant",
                       app_name: "Elly",
                       action_id: "weekly-review",
-                      label: "Weekly review",
+                      label: "Wochenrückblick",
                       intent:
-                        "Let's do a quick weekly review — under 5 minutes. Structure: ✅ Wins → 🔓 Open loops → 💡 Lessons → 🎯 Next week intention. Celebrate what moved, identify one friction point, and set Monday's first action.",
+                        "Lass uns einen kurzen Wochenrückblick machen, unter 5 Minuten. Aufbau: Erfolge, offene Punkte, Erkenntnisse, Vorsatz für nächste Woche. Benenne einen Reibungspunkt und lege die erste Aufgabe für Montag fest.",
                       tool_ref: "agent.review",
                       requires_auth: false,
                       requires_approval: false,
@@ -1248,21 +1266,21 @@ export default function DesktopSurface({
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--os-border-soft)] px-3 py-1.5 text-[11px] text-[color:var(--text-secondary)] transition hover:text-[color:var(--text-primary)]"
                 >
-                  <Sparkles size={11} /> Weekly review
+                  <Sparkles size={11} /> Wochenrückblick
                 </button>
               </div>
             </article>
 
             {state.loading ? (
               <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-[color:var(--text-muted)]">
-                <Loader2 size={12} className="animate-spin" /> Loading control center...
+                <Loader2 size={12} className="animate-spin" /> Wird geladen …
               </div>
             ) : null}
 
             {pendingApprovals.length > 0 ? (
               <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-500/8 p-3">
                 <p className="mb-2 text-xs font-medium text-amber-200">
-                  Awaiting Approval ({pendingApprovals.length})
+                  Wartet auf Freigabe ({pendingApprovals.length})
                 </p>
                 {pendingApprovals.map((step) => (
                   <div key={step.id} className="mb-2 flex items-center justify-between rounded-lg bg-black/20 px-3 py-2 last:mb-0">

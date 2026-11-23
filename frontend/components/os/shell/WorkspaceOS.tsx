@@ -1316,13 +1316,13 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
   const googleConfigReady = sessionStatus?.google.config.ready ?? true;
   const googleStatusLabel = googleConfigReady
     ? googleNeedsReauth
-      ? "Google Needs Reconnect"
+      ? "Google neu verbinden"
       : googleConnectionState === "connected"
-      ? "Google Connected"
+      ? "Google verbunden"
       : googleConnectionState === "needs_auth"
-          ? "Google Needs Auth"
-          : "Google Disconnected"
-    : "Google Config Missing";
+          ? "Google: Anmeldung nötig"
+          : "Google nicht verbunden"
+    : "Google nicht eingerichtet";
   const googleError = searchParams.get("google_error");
   const edgeRailBadgesByApp = useMemo<Partial<Record<AppId, Array<"run" | "approval" | "error" | "auth">>>>(() => {
     const result: Partial<Record<AppId, Array<"run" | "approval" | "error" | "auth">>> = {};

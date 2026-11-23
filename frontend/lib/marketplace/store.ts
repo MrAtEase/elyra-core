@@ -133,6 +133,7 @@ Die App läuft in einem abgeschotteten iframe ohne Netzwerkzugriff. Regeln:
   var(--bg) Hintergrund, var(--surface) Karten, var(--text) Text, var(--muted) Nebentext, var(--accent) Akzent, var(--border) Rahmen. So passt die App zu Hell- und Dunkelmodus.
   VERBOTEN sind feste Farben: keine #hex-Werte, kein rgb()/hsl(), keine Farbnamen (außer transparent, white auf var(--accent)-Buttons). Abstufungen nur mit color-mix(in srgb, var(--accent) 15%, transparent) o. ä.
 - Die App muss im Fenster ab 360px Breite funktionieren (responsive).
+- Zusätzliche Funktionen (nur falls die App sie braucht): elyra.jobs({q, where, remote, days}) liefert echte, aktuelle Stellenanzeigen ({jobs:[{id, source, title, company, location, remote, url, postedAt, salary, tags, snippet}], sources}); elyra.open(url) öffnet einen Link in einem neuen Tab (normale <a target>-Links funktionieren in der App nicht).
 - Beispieldaten: nie feste Jahreszahlen oder Daten (kein "2024-11-01", kein new Date(2025, 4, 1)). Daten immer relativ zu heute berechnen, z. B. mit einer Hilfsfunktion, die heute ± n Tage als JJJJ-MM-TT liefert. Kalender- und Monatsansichten starten im aktuellen Monat.
 - Oberfläche auf Deutsch, außer der Nutzer will es anders.
 - Verfügbare Schnittstelle (global, asynchron):

@@ -110,9 +110,10 @@ Alles mit elyra.set speichern (Buchungen, Regeln, Budgets, Kategorien). ${NO_FIN
   },
   // ── Arbeit ──
   {
-    id: "tpl-jobsuche", name: "Jobsuche", icon: "📨", category: "Arbeit",
-    description: "Bewerbungen verfolgen, Interviews üben und Gehälter vergleichen.",
-    prompt: `Eine App mit Tabs (Bewerbungen / Interview-Training / Gehalt). Tab „Bewerbungen“: Ein Bewerbungs-Tracker als Board. Bewerbung mit Firma, Rolle, Ort/Remote, Gehalt (Text), Ansprechperson, Frist, Notizen. Spalten: Interessant, Beworben, Gespräch, Angebot, Absage. Verschieben per Knopf, Datum der letzten Änderung. Erinnerung „nachfassen“ nach 10 Tagen ohne Antwort. Statistik oben (Anzahl je Status). Tab „Interview-Training“: Ein Interview-Trainer. Eingabe: Rolle und Firma (optional Stellentext). Elly erzeugt per elyra.ask 8 typische Fragen (JSON-Liste). Frage für Frage: Antwort eintippen, „Feedback“ holt per elyra.ask kurzes Feedback (Stärken, 1 Verbesserung, Beispiel-Formulierung nach STAR). Sitzungen speichern mit elyra.set. Tab „Gehalt“: Ein Angebotsvergleich für Jobs. Kriterien mit Gewichtung (Gehalt, Benefits, Pendelzeit, Remote-Anteil, Entwicklung, Team) anlegen. Angebote eintragen und je Kriterium 1–5 bewerten. Gewichtete Punkte und Rangliste, Gewinner hervorgehoben. Alles speichern mit elyra.set.`,
+    id: "tpl-jobsuche", name: "Karriere-Hub", icon: "💼", category: "Arbeit",
+    prebuilt: "/mini-app-templates/jobsuche.html",
+    description: "Live-Stellen aus Arbeitsagentur, Arbeitnow und Remotive, Bewerbungs-Board mit Nachfass-Erinnerung, Interview-Training mit Elly und gewichteter Angebotsvergleich.",
+    prompt: `Ein Karriere-Hub mit Tabs Live-Jobs · Bewerbungen · Interview-Training · Angebote. Live-Jobs: Suche (Was, Wo, Remote, Zeitraum) über elyra.jobs, Ergebnisse mit Quelle und Datum, „Merken“ legt die Stelle ins Board, „Passt das?“ vergleicht per elyra.ask mit dem eigenen Profil, Links öffnen mit elyra.open. Bewerbungen als Board (Interessant, Beworben, Gespräch, Angebot, Absage) mit Erinnerung nach 10 Tagen. Interview-Training mit 8 Fragen und STAR-Feedback. Angebote mit gewichteten Kriterien. Speichern mit elyra.set.`,
   },
   {
     id: "tpl-projekte", name: "Projekt-Board", icon: "🗂️", category: "Arbeit",

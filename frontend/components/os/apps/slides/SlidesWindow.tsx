@@ -39,42 +39,49 @@ type PublishedDeckLink = {
 const SAMPLE_DECKS: Deck[] = [
   {
     id: "sample-q3",
-    title: "Q3 Strategy Review",
+    title: "Quartalsplanung",
     source: "sample",
     theme: "executive",
     slides: [
-      { title: "Q3 Strategy Review", body: "Where we stand, where we are going – and what we need to decide today.", layout: "title",
-        bullets: ["Leadership offsite", "Q3 2026", "Confidential"] },
+      { title: "Quartalsplanung", body: "Wo wir stehen, wohin wir wollen – und was wir heute entscheiden.", layout: "title",
+        notes: "Kurz begrüßen, Ziel des Termins nennen: drei Entscheidungen bis 11 Uhr." },
       { title: "Agenda", body: "", layout: "agenda",
-        bullets: ["Results at a glance", "Market opportunity", "Where we win", "Roadmap", "Decisions needed"] },
-      { title: "Growth is ahead of plan – margin is the next lever", body: "Revenue beat the target, while acquisition costs keep falling.", layout: "stats",
-        stats: [{ value: "+23%", label: "Revenue vs. last year" }, { value: "−32%", label: "Customer acquisition cost" }, { value: "58", label: "NPS (up from 42)" }] },
-      { title: "We win where speed and automation matter", body: "Our edge is strongest with lean teams that need results without agencies.", layout: "comparison",
+        bullets: ["Ergebnisse auf einen Blick", "Marktchance", "Wo wir gewinnen", "Fahrplan", "Entscheidungen"] },
+      { title: "Wachstum über Plan – die Marge ist der nächste Hebel", body: "Der Umsatz liegt über Ziel, die Akquisekosten sinken weiter.", layout: "stats",
+        stats: [{ value: "+23 %", label: "Umsatz ggü. Vorjahr" }, { value: "−32 %", label: "Kosten pro Neukunde" }, { value: "58", label: "NPS (vorher 42)" }],
+        source: "Beispieldaten" },
+      { title: "Wir gewinnen, wo Tempo und Automatisierung zählen", body: "Am stärksten sind wir bei kleinen Teams, die Ergebnisse ohne Agentur brauchen.", layout: "comparison",
         columns: [
-          { heading: "Typical agency", points: ["Weeks until the first campaign", "Manual reporting", "Opaque fees"] },
-          { heading: "Our platform", points: ["Live in 48 hours", "Automated, real-time reporting", "Transparent monthly price"] },
+          { heading: "Klassische Agentur", points: ["Wochen bis zur ersten Kampagne", "Reporting per Hand", "Undurchsichtige Gebühren"] },
+          { heading: "Unsere Plattform", points: ["Live in 48 Stunden", "Automatisches Echtzeit-Reporting", "Transparenter Monatspreis"] },
         ] },
-      { title: "Three phases to enterprise readiness", body: "Each phase ends with a clear go / no-go review.", layout: "timeline",
+      { title: "Drei Phasen bis zur Enterprise-Reife", body: "Jede Phase endet mit einem klaren Go / No-Go.", layout: "timeline",
         steps: [
-          { label: "Foundation", detail: "Product parity and onboarding in 30 days" },
-          { label: "Growth engine", detail: "Self-serve funnel and partner channel in 60 days" },
-          { label: "Enterprise", detail: "SSO, audit log and SLAs in 90 days" },
+          { label: "Fundament", detail: "Produkt-Parität und Onboarding in 30 Tagen" },
+          { label: "Wachstum", detail: "Self-Service-Funnel und Partnerkanal in 60 Tagen" },
+          { label: "Enterprise", detail: "SSO, Audit-Log und SLAs in 90 Tagen" },
         ] },
-      { title: "Decisions we need today", body: "With these, Q3 kicks off on schedule.", layout: "closing",
-        bullets: ["Approve the Q3 budget", "Open two account executive roles", "Confirm the July kickoff", "Weekly steering on Thursdays"] },
+      { title: "Was wir heute entscheiden", body: "Damit startet das Quartal planmäßig.", layout: "closing",
+        bullets: ["Budget freigeben", "Zwei Vertriebsstellen ausschreiben", "Kick-off bestätigen"] },
     ],
   },
   {
     id: "sample-brand",
-    title: "Brand Refresh",
+    title: "Markenauftritt",
     source: "sample",
     theme: "editorial",
     slides: [
-      { title: "Brand Refresh", body: "Vision, identity and rollout.", layout: "title" },
-      { title: "A brand is a promise kept, again and again.", body: "", layout: "quote",
-        quote: { text: "A brand is a promise kept, again and again – in every touchpoint, not just in the logo.", author: "Design principle" } },
-      { title: "Visual direction", body: "Four anchors guide every design decision.", layout: "bullets",
-        bullets: ["Fluid, organic shapes", "Deep navy with one electric accent", "A variable type system", "Motion-first interactions"] },
+      { title: "Markenauftritt", body: "Haltung, Gestaltung und Einführung.", layout: "title" },
+      { title: "Eine Marke ist ein Versprechen", body: "", layout: "quote",
+        quote: { text: "Eine Marke ist ein Versprechen, das man immer wieder hält – an jedem Kontaktpunkt, nicht nur im Logo.", author: "Gestaltungsprinzip" } },
+      { title: "Visuelle Richtung", body: "Vier Anker für jede Gestaltungsentscheidung.", layout: "bullets",
+        bullets: ["Ruhige, organische Formen", "Tiefes Blau mit genau einem Akzent", "Ein variables Schriftsystem", "Bewegung mit Absicht"] },
+      { title: "Einführung in drei Schritten", body: "", layout: "timeline",
+        steps: [
+          { label: "Intern", detail: "Team und Vorlagen umstellen" },
+          { label: "Digital", detail: "Website, Social, Newsletter" },
+          { label: "Überall", detail: "Print, Messe, Verpackung" },
+        ] },
     ],
   },
 ];
@@ -132,6 +139,13 @@ type RemoteProviderStatus = {
 const GB_TONES = ["Inspiring", "Professional", "Conversational", "Authoritative", "Playful"];
 const GB_AUDIENCES = ["Executive", "Technical", "General", "Sales", "Investors", "Team"];
 const STYLES = ["pitchdeck", "professional", "creative", "minimal", "bold", "narrative"];
+const STYLE_LABELS: Record<string, string> = {
+  pitchdeck: "Pitch-Deck", professional: "Professionell", creative: "Kreativ", minimal: "Minimal", bold: "Plakativ", narrative: "Erzählend",
+};
+const GB_LABELS: Record<string, string> = {
+  Inspiring: "Inspirierend", Professional: "Professionell", Conversational: "Locker", Authoritative: "Souverän", Playful: "Verspielt",
+  Executive: "Geschäftsführung", Technical: "Technik", General: "Allgemein", Sales: "Vertrieb", Investors: "Investoren", Team: "Team",
+};
 
 function GenerateModal({
   onGenerate,
@@ -191,8 +205,8 @@ function GenerateModal({
   const [warning, setWarning] = useState("");
 
   const providerOptions: { value: "gemini" | "claude_vertex"; label: string; description: string; reasoningSupported: boolean }[] = [
-    { value: "gemini", label: "Gemini", description: "Default — via worker backbone", reasoningSupported: true },
-    { value: "claude_vertex", label: "Claude via Vertex", description: "Requires Vertex credentials", reasoningSupported: true },
+    { value: "gemini", label: "Gemini", description: "Standard – über den Worker", reasoningSupported: true },
+    { value: "claude_vertex", label: "Claude via Vertex", description: "Benötigt Vertex-Zugangsdaten", reasoningSupported: true },
   ];
   const selectedProvider = providerOptions.find((o) => o.value === provider) ?? providerOptions[0]!;
 
@@ -227,7 +241,7 @@ function GenerateModal({
       };
       if (!data.ok || !data.deck) {
         const detailText = Array.isArray(data.details) && data.details.length > 0 ? ` ${data.details.join(" ")}` : "";
-        throw new Error(`${data.error ?? "Generation failed."}${detailText}`.trim());
+        throw new Error(`${data.error ?? "Erstellung fehlgeschlagen."}${detailText}`.trim());
       }
       const deck: Deck = {
         id: `gen-${Date.now()}`,
@@ -241,7 +255,7 @@ function GenerateModal({
       onGenerate(deck);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : "Etwas ist schiefgelaufen.");
     } finally {
       setLoading(false);
     }
@@ -265,12 +279,12 @@ function GenerateModal({
   );
 
   function handleQuickGenerate() {
-    if (!topic.trim()) { setError("Please enter a topic."); return; }
+    if (!topic.trim()) { setError("Bitte gib ein Thema ein."); return; }
     void runGenerate({ topic: topic.trim(), slideCount, style, theme, provider, useReasoning });
   }
 
   function handleGraphicsbookGenerate() {
-    if (!gbTopic.trim()) { setError("Please enter a topic."); return; }
+    if (!gbTopic.trim()) { setError("Bitte gib ein Thema ein."); return; }
     void runGenerate({
       topic: gbTopic.trim(),
       slideCount: gbSlideCount,
@@ -284,11 +298,11 @@ function GenerateModal({
 
   // ── Provider status badge ─────────────────────────────────────────────────
   function ProviderBadge({ id }: { id: "gemini" | "claude_vertex" }) {
-    if (!providerStatuses) return <span className="text-[9px] text-white/25">checking…</span>;
+    if (!providerStatuses) return <span className="text-[9px] text-white/25">prüfe…</span>;
     const st = providerStatuses[id];
     return st.configured
-      ? <span className="text-[9px] text-emerald-400">✓ Ready</span>
-      : <span className="text-[9px] text-red-400">✗ Not configured</span>;
+      ? <span className="text-[9px] text-emerald-400">✓ Bereit</span>
+      : <span className="text-[9px] text-red-400">✗ Nicht eingerichtet</span>;
   }
 
   // ── Theme grid ────────────────────────────────────────────────────────────
@@ -336,9 +350,9 @@ function GenerateModal({
               <Sparkles size={15} style={{ color: "#5cf" }} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white/90">Generate Slides</p>
+              <p className="text-sm font-semibold text-white/90">Präsentation erstellen</p>
               <p className="text-[11px] text-white/45">
-                {isGraphicsbook ? `Graphicsbook · Step ${gbStep} of ${totalSteps}` : "Quick generate with AI"}
+                {isGraphicsbook ? `Ausführlich · Schritt ${gbStep} von ${totalSteps}` : "Schnell mit KI erstellen"}
               </p>
             </div>
           </div>
@@ -356,7 +370,7 @@ function GenerateModal({
                     color: mode === m ? "#5cf" : "rgba(255,255,255,0.4)",
                   }}
                 >
-                  {m === "quick" ? "Quick" : "Graphicsbook"}
+                  {m === "quick" ? "Schnell" : "Ausführlich"}
                 </button>
               ))}
             </div>
@@ -372,11 +386,11 @@ function GenerateModal({
             /* ── Quick Mode ────────────────────────────────────────────────── */
             <div className="space-y-5">
               <div>
-                <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Topic or prompt</label>
+                <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Thema oder Auftrag</label>
                 <textarea
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Q4 Revenue Strategy, Product Roadmap 2025, Brand Identity Refresh…"
+                  placeholder="z. B. Produktvorstellung, Quartalsplanung, Pitch für Investoren…"
                   rows={3}
                   autoFocus
                   className="w-full resize-none rounded-xl border px-4 py-3 text-sm text-white/90 placeholder-white/25 outline-none transition focus:border-[#5cf]/50"
@@ -387,16 +401,16 @@ function GenerateModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Slides</label>
+                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Folien</label>
                   <div className="flex items-center gap-2">
                     <input type="range" min={3} max={12} value={slideCount} onChange={(e) => setSlideCount(Number(e.target.value))} className="flex-1" />
                     <span className="w-6 text-center text-sm font-medium text-white/75">{slideCount}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Style</label>
+                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Stil</label>
                   <select value={style} onChange={(e) => setStyle(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm text-white/85 outline-none" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}>
-                    {STYLES.map((s) => <option key={s} value={s} style={{ background: "#0d1117" }}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                    {STYLES.map((s) => <option key={s} value={s} style={{ background: "#0d1117" }}>{STYLE_LABELS[s] ?? s}</option>)}
                   </select>
                 </div>
               </div>
@@ -404,7 +418,7 @@ function GenerateModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-2 flex items-center justify-between text-xs font-medium tracking-wide text-white/55">
-                    <span>Provider</span>
+                    <span>KI-Modell</span>
                   </label>
                   <div className="space-y-1.5">
                     {providerOptions.map((opt) => (
@@ -429,7 +443,7 @@ function GenerateModal({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Reasoning</label>
+                  <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Denktiefe</label>
                   <button
                     type="button"
                     onClick={() => selectedProvider.reasoningSupported && setUseReasoning((c) => !c)}
@@ -437,19 +451,19 @@ function GenerateModal({
                     className="relative flex h-[42px] w-full items-center rounded-xl border px-3 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
                     style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }}
                   >
-                    <span className="pr-12 text-xs">{useReasoning ? "Deeper planning" : "Fast default"}</span>
+                    <span className="pr-12 text-xs">{useReasoning ? "Gründlicher planen" : "Schnell"}</span>
                     <span className="absolute right-3 top-1/2 h-5 w-9 -translate-y-1/2 rounded-full transition-colors" style={{ background: useReasoning ? "#5cf" : "rgba(255,255,255,0.12)" }}>
                       <span className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform" style={{ transform: useReasoning ? "translateX(18px)" : "translateX(2px)" }} />
                     </span>
                   </button>
-                  <p className="mt-1.5 text-[10px] text-white/35">{selectedProvider.reasoningSupported ? "Enabled for this provider." : "Not supported."}</p>
+                  <p className="mt-1.5 text-[10px] text-white/35">{selectedProvider.reasoningSupported ? "Für dieses Modell verfügbar." : "Nicht unterstützt."}</p>
                 </div>
               </div>
 
               {researchToggle}
 
               <div>
-                <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Visual theme</label>
+                <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Design</label>
                 <ThemeGrid value={theme} onChange={setTheme} />
               </div>
             </div>
@@ -474,7 +488,7 @@ function GenerateModal({
                   </div>
                 ))}
                 <span className="ml-2 text-[10px] text-white/35">
-                  {gbStep === 1 ? "Topic & Context" : gbStep === 2 ? "Audience & Objectives" : "Visual & Generate"}
+                  {gbStep === 1 ? "Thema & Kontext" : gbStep === 2 ? "Publikum & Ziel" : "Design & Erstellen"}
                 </span>
               </div>
 
@@ -482,11 +496,11 @@ function GenerateModal({
               {gbStep === 1 && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">What is this deck about?</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Worum geht es?</label>
                     <textarea
                       value={gbTopic}
                       onChange={(e) => setGbTopic(e.target.value)}
-                      placeholder="e.g. Launching our AI product in the European market…"
+                      placeholder="z. B. Einführung unseres KI-Produkts in Portugal…"
                       rows={3}
                       autoFocus
                       className="w-full resize-none rounded-xl border px-4 py-3 text-sm text-white/90 placeholder-white/25 outline-none transition focus:border-[#5cf]/50"
@@ -494,18 +508,18 @@ function GenerateModal({
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Additional context <span className="text-white/25">(optional)</span></label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Zusätzlicher Kontext <span className="text-white/25">(optional)</span></label>
                     <textarea
                       value={gbContext}
                       onChange={(e) => setGbContext(e.target.value)}
-                      placeholder="Background information, key data points, constraints…"
+                      placeholder="Hintergrund, wichtige Zahlen, Rahmenbedingungen…"
                       rows={2}
                       className="w-full resize-none rounded-xl border px-4 py-3 text-sm text-white/90 placeholder-white/25 outline-none transition focus:border-[#5cf]/50"
                       style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Slide count</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Anzahl Folien</label>
                     <div className="flex items-center gap-3">
                       <input type="range" min={4} max={16} value={gbSlideCount} onChange={(e) => setGbSlideCount(Number(e.target.value))} className="flex-1" />
                       <span className="w-8 text-center text-sm font-medium text-white/75">{gbSlideCount}</span>
@@ -518,37 +532,37 @@ function GenerateModal({
               {gbStep === 2 && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Target audience</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Zielgruppe</label>
                     <div className="flex flex-wrap gap-2">
                       {GB_AUDIENCES.map((a) => (
                         <button key={a} type="button" onClick={() => setGbAudience(a)}
                           className="rounded-xl border px-3 py-1.5 text-xs font-medium transition"
                           style={{ background: gbAudience === a ? "rgba(92,204,255,0.15)" : "rgba(255,255,255,0.04)", borderColor: gbAudience === a ? "rgba(92,204,255,0.4)" : "rgba(255,255,255,0.08)", color: gbAudience === a ? "#5cf" : "rgba(255,255,255,0.65)" }}
                         >
-                          {a}
+                          {GB_LABELS[a] ?? a}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Primary objective</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Hauptziel</label>
                     <input
                       value={gbObjective}
                       onChange={(e) => setGbObjective(e.target.value)}
-                      placeholder="e.g. Secure board approval, educate the team, close the deal…"
+                      placeholder="z. B. Budget freigeben lassen, Team informieren, Auftrag gewinnen…"
                       className="w-full rounded-xl border px-4 py-2.5 text-sm text-white/90 placeholder-white/25 outline-none transition focus:border-[#5cf]/50"
                       style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Tone</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Tonfall</label>
                     <div className="flex flex-wrap gap-2">
                       {GB_TONES.map((t) => (
                         <button key={t} type="button" onClick={() => setGbTone(t)}
                           className="rounded-xl border px-3 py-1.5 text-xs font-medium transition"
                           style={{ background: gbTone === t ? "rgba(92,204,255,0.15)" : "rgba(255,255,255,0.04)", borderColor: gbTone === t ? "rgba(92,204,255,0.4)" : "rgba(255,255,255,0.08)", color: gbTone === t ? "#5cf" : "rgba(255,255,255,0.65)" }}
                         >
-                          {t}
+                          {GB_LABELS[t] ?? t}
                         </button>
                       ))}
                     </div>
@@ -561,12 +575,12 @@ function GenerateModal({
                 <div className="space-y-5">
                   {researchToggle}
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Visual theme</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">Design</label>
                     <ThemeGrid value={gbTheme} onChange={setGbTheme} />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">AI Provider</label>
+                    <label className="mb-2 block text-xs font-medium tracking-wide text-white/55">KI-Modell</label>
                     <div className="space-y-1.5">
                       {providerOptions.map((opt) => (
                         <button key={opt.value} type="button" onClick={() => setProvider(opt.value)}
@@ -584,10 +598,10 @@ function GenerateModal({
                   </div>
 
                   <div className="rounded-xl border p-3" style={{ borderColor: "rgba(92,204,255,0.12)", background: "rgba(92,204,255,0.04)" }}>
-                    <p className="mb-1 text-[11px] font-medium text-white/55">Summary</p>
+                    <p className="mb-1 text-[11px] font-medium text-white/55">Zusammenfassung</p>
                     <p className="text-xs text-white/75">{gbTopic}</p>
                     <p className="mt-1 text-[10px] text-white/40">
-                      {gbAudience} audience · {gbTone} tone · {gbSlideCount} slides · Reasoning on
+                      {GB_LABELS[gbAudience] ?? gbAudience} · {GB_LABELS[gbTone] ?? gbTone} · {gbSlideCount} Folien · gründlich
                     </p>
                   </div>
                 </div>
@@ -607,27 +621,27 @@ function GenerateModal({
         <div className="flex items-center justify-between border-t px-6 py-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
           {!isGraphicsbook ? (
             <>
-              <p className="text-[11px] text-white/35">{selectedProvider.label}{useReasoning ? " · Reasoning on" : ""} · ⌘↩</p>
+              <p className="text-[11px] text-white/35">{selectedProvider.label}{useReasoning ? " · gründlich" : ""} · ⌘↩</p>
               <div className="flex gap-2">
-                <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs text-white/55 transition hover:bg-white/8">Cancel</button>
+                <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs text-white/55 transition hover:bg-white/8">Abbrechen</button>
                 <button type="button" onClick={handleQuickGenerate} disabled={loading || !topic.trim()}
                   className="flex items-center gap-2 rounded-xl px-5 py-2 text-xs font-medium text-black transition disabled:opacity-40"
                   style={{ background: loading ? "rgba(92,204,255,0.5)" : "#5cf" }}
                 >
                   {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  {loading ? (research ? "Recherchiere & erstelle…" : "Generating…") : "Generate"}
+                  {loading ? (research ? "Recherchiere & erstelle…" : "Erstelle…") : "Erstellen"}
                 </button>
               </div>
             </>
           ) : (
             <>
               <button type="button" onClick={() => gbStep > 1 ? setGbStep((s) => s - 1) : onClose()} className="rounded-xl px-4 py-2 text-xs text-white/55 transition hover:bg-white/8">
-                {gbStep === 1 ? "Cancel" : "← Back"}
+                {gbStep === 1 ? "Abbrechen" : "← Zurück"}
               </button>
               {gbStep < totalSteps ? (
                 <button
                   type="button"
-                  onClick={() => { if (gbStep === 1 && !gbTopic.trim()) { setError("Please enter a topic."); return; } setError(""); setGbStep((s) => s + 1); }}
+                  onClick={() => { if (gbStep === 1 && !gbTopic.trim()) { setError("Bitte gib ein Thema ein."); return; } setError(""); setGbStep((s) => s + 1); }}
                   className="flex items-center gap-2 rounded-xl px-5 py-2 text-xs font-medium text-black transition"
                   style={{ background: "#5cf" }}
                 >
@@ -642,7 +656,7 @@ function GenerateModal({
                   style={{ background: loading ? "rgba(92,204,255,0.5)" : "#5cf" }}
                 >
                   {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  {loading ? (research ? "Recherchiere & erstelle…" : "Generating…") : "Generate Graphicsbook"}
+                  {loading ? (research ? "Recherchiere & erstelle…" : "Erstelle…") : "Präsentation erstellen"}
                 </button>
               )}
             </>
@@ -666,6 +680,7 @@ export default function SlidesWindow() {
   const [pendingGeneratePrompt, setPendingGeneratePrompt] = useState("");
   const [publishingDeckId, setPublishingDeckId] = useState<string | null>(null);
   const [publishError, setPublishError] = useState("");
+  const [publishEnableUrl, setPublishEnableUrl] = useState("");
   const [publishedDeckLinks, setPublishedDeckLinks] = useState<Record<string, PublishedDeckLink>>({});
   const [showProperties, setShowProperties] = useState(true);
   const [presentMode, setPresentMode] = useState(false);
@@ -788,7 +803,7 @@ export default function SlidesWindow() {
 
   function addSlide() {
     if (!activeDeck) return;
-    const newSlide: DeckSlide = { title: "New Slide", body: "", bullets: ["Point one", "Point two"] };
+    const newSlide: DeckSlide = { title: "Neue Folie", body: "", bullets: ["Erster Punkt", "Zweiter Punkt"] };
     setEditedDecks((prev) => {
       const base = prev[activeDeck.id] ?? activeDeck;
       const slides = [...base.slides];
@@ -873,6 +888,7 @@ export default function SlidesWindow() {
     if (!activeDeck) return;
     setPublishingDeckId(activeDeck.id);
     setPublishError("");
+    setPublishEnableUrl("");
     try {
       const response = await fetch("/api/os/slides/publish", {
         method: "POST",
@@ -880,6 +896,7 @@ export default function SlidesWindow() {
         body: JSON.stringify({
           workspaceId: activeWorkspace.id,
           title: activeDeck.title,
+          theme: activeTheme,
           slides: activeDeck.slides,
         }),
       });
@@ -888,9 +905,12 @@ export default function SlidesWindow() {
         error?: string;
         presentationId?: string;
         openUrl?: string;
+        code?: string;
+        enableUrl?: string;
       } | null;
+      if (payload?.code === "api_disabled" && payload.enableUrl) setPublishEnableUrl(payload.enableUrl);
       if (!response.ok || !payload?.ok || !payload.presentationId || !payload.openUrl) {
-        throw new Error(payload?.error ?? "Failed to publish Google Slides deck.");
+        throw new Error(payload?.error ?? "Export nach Google Slides fehlgeschlagen.");
       }
       const publishedLink: PublishedDeckLink = {
         presentationId: payload.presentationId,
@@ -902,7 +922,7 @@ export default function SlidesWindow() {
       }));
       window.open(publishedLink.openUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
-      setPublishError(error instanceof Error ? error.message : "Failed to publish Google Slides deck.");
+      setPublishError(error instanceof Error ? error.message : "Export nach Google Slides fehlgeschlagen.");
     } finally {
       setPublishingDeckId(null);
     }
@@ -956,16 +976,16 @@ export default function SlidesWindow() {
       <aside className="flex w-48 flex-shrink-0 flex-col border-r" style={{ borderColor: "var(--os-border-soft)" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-3 border-b" style={{ borderColor: "var(--os-border-soft)" }}>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-tertiary)]">Decks</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-tertiary)]">Präsentationen</span>
           <button
             type="button"
             onClick={() => setShowGenerate(true)}
-            title="Generate new deck"
+            title="Neue Präsentation erstellen"
             className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition hover:bg-[color:var(--bg-surface-hover)]"
             style={{ color: theme.accent }}
           >
             <Sparkles size={10} />
-            New
+            Neu
           </button>
         </div>
 
@@ -991,9 +1011,9 @@ export default function SlidesWindow() {
                 {deck.source === "generated" ? (
                   <><Sparkles size={8} style={{ color: theme.accent }} /> AI</>
                 ) : deck.source === "artifact" ? (
-                  <><FileText size={8} /> Artifact</>
+                  <><FileText size={8} /> Artefakt</>
                 ) : (
-                  <><Layout size={8} /> Sample</>
+                  <><Layout size={8} /> Beispiel</>
                 )}
                 {deck.updatedAt && ` · ${formatArtifactDate(deck.updatedAt)}`}
                 <span className="ml-auto">{deck.slides.length}s</span>
@@ -1039,7 +1059,7 @@ export default function SlidesWindow() {
             </div>
 
             <button type="button" onClick={() => setShowGenerate(true)} className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-black transition" style={{ background: "var(--os-accent, #5cf)" }}>
-              <Sparkles size={11} /> Generate
+              <Sparkles size={11} /> Mit KI erstellen
             </button>
             <button
               type="button"
@@ -1049,7 +1069,7 @@ export default function SlidesWindow() {
               style={{ background: "var(--bg-surface)", color: "var(--text-primary)", border: "1px solid var(--os-border-soft)" }}
             >
               {publishingDeckId === activeDeck?.id ? <Loader2 size={11} className="animate-spin" /> : <Download size={11} />}
-              {publishedDeckLink ? "Open Slides" : "Publish"}
+              {publishedDeckLink ? "In Google Slides öffnen" : "Nach Google Slides"}
             </button>
             <button
               type="button"
@@ -1064,10 +1084,10 @@ export default function SlidesWindow() {
             {printing && activeDeck ? (
               <PrintDeck slides={activeDeck.slides} themeKey={activeTheme} deckTitle={activeDeck.title} onDone={() => setPrinting(false)} />
             ) : null}
-            <button type="button" onClick={() => setPresentMode(true)} title="Present (fullscreen)" className="rounded-xl p-1.5 text-[color:var(--text-tertiary)] transition hover:bg-[color:var(--bg-surface-hover)] hover:text-[color:var(--text-secondary)]">
+            <button type="button" onClick={() => setPresentMode(true)} title="Präsentieren (Vollbild)" className="rounded-xl p-1.5 text-[color:var(--text-tertiary)] transition hover:bg-[color:var(--bg-surface-hover)] hover:text-[color:var(--text-secondary)]">
               <Maximize2 size={14} />
             </button>
-            <button type="button" onClick={() => setShowProperties(!showProperties)} title="Toggle properties" className="rounded-xl p-1.5 transition hover:bg-[color:var(--bg-surface-hover)]" style={{ color: showProperties ? theme.accent : "var(--text-tertiary)" }}>
+            <button type="button" onClick={() => setShowProperties(!showProperties)} title="Eigenschaften ein/aus" className="rounded-xl p-1.5 transition hover:bg-[color:var(--bg-surface-hover)]" style={{ color: showProperties ? theme.accent : "var(--text-tertiary)" }}>
               <PanelRight size={14} />
             </button>
           </div>
@@ -1118,9 +1138,9 @@ export default function SlidesWindow() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--bg-surface)]">
                   <Layout size={24} className="text-[color:var(--text-tertiary)]" />
                 </div>
-                <p className="text-sm text-[color:var(--text-tertiary)]">No deck selected</p>
+                <p className="text-sm text-[color:var(--text-tertiary)]">Keine Präsentation ausgewählt</p>
                 <button type="button" onClick={() => setShowGenerate(true)} className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-black" style={{ background: "var(--os-accent, #5cf)" }}>
-                  <Sparkles size={14} /> Generate Slides
+                  <Sparkles size={14} /> Präsentation erstellen
                 </button>
               </div>
             )}
@@ -1131,16 +1151,16 @@ export default function SlidesWindow() {
             <aside className="flex w-60 flex-shrink-0 flex-col overflow-y-auto border-l" style={{ borderColor: "var(--os-border-soft)" }}>
               {/* Header */}
               <div className="border-b px-4 py-3" style={{ borderColor: "var(--os-border-soft)" }}>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-tertiary)]">Slide {selectedSlideIndex + 1} of {slides.length}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-tertiary)]">Folie {selectedSlideIndex + 1} von {slides.length}</p>
               </div>
 
               {/* Slide actions */}
               <div className="flex border-b px-2 py-2" style={{ borderColor: "var(--os-border-soft)" }}>
                 {[
-                  { icon: ArrowUp, label: "Move up", action: () => moveSlide("up"), disabled: selectedSlideIndex === 0 },
-                  { icon: ArrowDown, label: "Move down", action: () => moveSlide("down"), disabled: selectedSlideIndex === slides.length - 1 },
-                  { icon: Copy, label: "Duplicate", action: duplicateSlide, disabled: false },
-                  { icon: Trash2, label: "Delete", action: deleteSlide, disabled: slides.length <= 1 },
+                  { icon: ArrowUp, label: "Nach oben", action: () => moveSlide("up"), disabled: selectedSlideIndex === 0 },
+                  { icon: ArrowDown, label: "Nach unten", action: () => moveSlide("down"), disabled: selectedSlideIndex === slides.length - 1 },
+                  { icon: Copy, label: "Duplizieren", action: duplicateSlide, disabled: false },
+                  { icon: Trash2, label: "Löschen", action: deleteSlide, disabled: slides.length <= 1 },
                 ].map(({ icon: Icon, label, action, disabled }) => (
                   <button
                     key={label}
@@ -1158,7 +1178,7 @@ export default function SlidesWindow() {
               {/* Content editor */}
               <div className="flex-1 space-y-4 px-4 py-4">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Title</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Titel</label>
                   <input
                     value={activeSlide.title}
                     onChange={(e) => editActiveSlide("title", e.target.value)}
@@ -1168,7 +1188,7 @@ export default function SlidesWindow() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Body</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Text</label>
                   <textarea
                     value={activeSlide.body}
                     onChange={(e) => editActiveSlide("body", e.target.value)}
@@ -1180,7 +1200,7 @@ export default function SlidesWindow() {
 
                 {activeSlide.bullets && activeSlide.bullets.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Bullets</label>
+                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Stichpunkte</label>
                     <div className="space-y-1.5">
                       {activeSlide.bullets.map((bullet, bi) => (
                         <div key={bi} className="flex items-center gap-2">
@@ -1224,7 +1244,7 @@ export default function SlidesWindow() {
 
                 {/* Theme in properties */}
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Theme</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-tertiary)]">Design</label>
                   <div className="grid grid-cols-6 gap-1.5">
                     {(Object.keys(SLIDE_THEMES) as SlideThemeKey[]).map((key) => (
                       <button
@@ -1251,8 +1271,8 @@ export default function SlidesWindow() {
               {/* Keyboard hints */}
               <div className="border-t px-4 py-3" style={{ borderColor: "var(--os-border-soft)" }}>
                 <div className="space-y-1 text-[10px] text-[color:var(--text-tertiary)]">
-                  <div className="flex justify-between"><span>Navigate</span><span>← →</span></div>
-                  <div className="flex justify-between"><span>Present</span><span className="font-mono rounded px-1 py-0.5 text-[9px] bg-[color:var(--bg-surface-hover)]">F5</span></div>
+                  <div className="flex justify-between"><span>Blättern</span><span>← →</span></div>
+                  <div className="flex justify-between"><span>Präsentieren</span><span className="font-mono rounded px-1 py-0.5 text-[9px] bg-[color:var(--bg-surface-hover)]">F5</span></div>
                 </div>
               </div>
             </aside>
@@ -1263,10 +1283,19 @@ export default function SlidesWindow() {
         <div className="flex items-center justify-between border-t px-4 py-2" style={{ borderColor: "var(--os-border-soft)", minHeight: 40 }}>
           <div className="min-w-[220px] text-[10px] text-[color:var(--text-tertiary)]">
             {publishError ? (
-              <span className="text-red-400">{publishError}</span>
+              <span className="text-red-400">
+                {publishError}
+                {publishEnableUrl ? (
+                  <>
+                    {" "}
+                    <a href={publishEnableUrl} target="_blank" rel="noreferrer" className="underline">API aktivieren</a>
+                    {" "}und danach erneut exportieren.
+                  </>
+                ) : null}
+              </span>
             ) : publishedDeckLink ? (
               <a href={publishedDeckLink.openUrl} target="_blank" rel="noreferrer" className="text-[color:var(--os-accent)] hover:underline">
-                Open published Google Slides deck
+                In Google Slides öffnen
               </a>
             ) : null}
           </div>

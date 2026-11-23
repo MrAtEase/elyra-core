@@ -261,7 +261,7 @@ const IntentLine = forwardRef<IntentLineHandle, IntentLineProps>(function Intent
             onBlur={() => setFocused(false)}
             onKeyDown={onKeyDown}
             rows={1}
-            placeholder="Ask Elly anything..."
+            placeholder="Frag Elly oder gib eine Aufgabe …"
             aria-label="Intent input"
             className="max-h-28 min-h-[40px] flex-1 resize-none rounded-2xl border px-3 py-2 text-sm text-[color:var(--text-primary)] outline-none transition duration-500 placeholder:text-[color:var(--text-muted)]"
             style={{

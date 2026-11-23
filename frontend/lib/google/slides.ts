@@ -111,3 +111,29 @@ export async function exportSlidesPdf(input: {
     exportUrl: openUrl.replace("/edit", "/export/pdf"),
   };
 }
+
+/** Writes speaker notes for the given slides (needs the notes placeholder ids, so it reads the deck first). */
+export async function writeSpeakerNotes(input: {
+  accessToken: string;
+  presentationId: string;
+  notes: Array<{ slideId: string; text: string }>;
+}): Promise<void> {
+  if (input.notes.length === 0) return;
+  const deck = await googleApiFetch<{
+    slides?: Array<{ objectId?: string; slideProperties?: { notesPage?: { notesProperties?: { speakerNotesObjectId?: string } } } }>;
+  }>(
+    `https://slides.googleapis.com/v1/presentations/${encodeURIComponent(input.presentationId)}?fields=slides(objectId,slideProperties.notesPage.notesProperties)`,
+    input.accessToken,
+    { method: "GET" },
+  );
+  const notesIds = new Map<string, string>();
+  for (const slide of deck.slides ?? []) {
+    const notesId = slide.slideProperties?.notesPage?.notesProperties?.speakerNotesObjectId;
+    if (slide.objectId && notesId) notesIds.set(slide.objectId, notesId);
+  }
+  const requests = input.notes
+    .filter((n) => notesIds.has(n.slideId))
+    .map((n) => ({ insertText: { objectId: notesIds.get(n.slideId), insertionIndex: 0, text: n.text } }));
+  if (requests.length === 0) return;
+  await batchUpdateSlides({ accessToken: input.accessToken, presentationId: input.presentationId, requests });
+}

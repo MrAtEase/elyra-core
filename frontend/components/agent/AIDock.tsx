@@ -851,7 +851,7 @@ export default function AIDock({
             aria-label={dock.pinned ? "Elly automatisch ausblenden" : "Elly fixieren"}
           >
             <Pin size={12} />
-            <span>{dock.pinned ? "Fixed" : "Auto"}</span>
+            <span>{dock.pinned ? "Angeheftet" : "Automatisch"}</span>
           </button>
         </div>
       </div>

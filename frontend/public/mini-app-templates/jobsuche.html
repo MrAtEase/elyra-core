@@ -1,0 +1,401 @@
+<style>
+  .kh-search { display:grid; grid-template-columns: minmax(0,2fr) minmax(0,1.3fr) auto auto auto; gap:8px; align-items:end; }
+  @media (max-width: 760px) { .kh-search { grid-template-columns: 1fr 1fr; } }
+  .kh-toggle { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border:1px solid var(--border); border-radius:10px; font-size:12.5px; cursor:pointer; user-select:none; background:var(--surface); }
+  .kh-toggle input { accent-color: var(--accent); }
+  .kh-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .kh-chip { height:28px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:12px; cursor:pointer; }
+  .kh-chip:hover { color:var(--text); border-color:color-mix(in srgb,var(--text) 25%,transparent); }
+  .kh-results { display:flex; flex-direction:column; gap:8px; }
+  .kh-job { display:grid; grid-template-columns: minmax(0,1fr) auto; gap:12px; padding:14px 16px; }
+  .kh-job-title { font-size:14px; font-weight:650; line-height:1.35; margin:0; }
+  .kh-job-meta { display:flex; flex-wrap:wrap; gap:6px 12px; font-size:12px; color:var(--muted); margin-top:4px; }
+  .kh-job-snip { font-size:12.5px; color:var(--muted); margin:8px 0 0; line-height:1.5; }
+  .kh-job-actions { display:flex; flex-direction:column; gap:6px; align-items:stretch; min-width:120px; }
+  .kh-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .kh-new { color:var(--accent); font-weight:600; }
+  .kh-src { font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+  .kh-fit { margin-top:10px; padding:10px 12px; border-radius:10px; background:color-mix(in srgb,var(--accent) 8%,transparent); font-size:12.5px; line-height:1.55; white-space:pre-wrap; }
+  .kh-board { display:grid; grid-template-columns: repeat(5, minmax(200px,1fr)); gap:10px; overflow-x:auto; padding-bottom:6px; }
+  .kh-col { background:color-mix(in srgb,var(--text) 3%,transparent); border:1px solid var(--border); border-radius:14px; padding:10px; min-height:220px; display:flex; flex-direction:column; gap:8px; }
+  .kh-col-head { display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:650; padding:2px 4px 6px; }
+  .kh-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 11px; display:flex; flex-direction:column; gap:4px; }
+  .kh-card-title { font-size:13px; font-weight:650; line-height:1.3; }
+  .kh-card-meta { font-size:11.5px; color:var(--muted); }
+  .kh-card-actions { display:flex; gap:2px; margin-top:6px; justify-content:space-between; }
+  .kh-icon-btn { border:0; background:transparent; color:var(--muted); cursor:pointer; padding:4px 7px; border-radius:7px; font-size:13px; }
+  .kh-icon-btn:hover { background:color-mix(in srgb,var(--text) 7%,transparent); color:var(--text); }
+  .kh-warn { font-size:11px; font-weight:600; color:var(--critical); }
+  .kh-modal-bg { position:fixed; inset:0; background:color-mix(in srgb,#000 45%,transparent); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20; }
+  .kh-modal { width:min(560px,100%); max-height:90vh; overflow:auto; }
+  .kh-q { display:flex; flex-direction:column; gap:8px; }
+  .kh-q-text { font-size:14px; font-weight:600; line-height:1.4; }
+  .kh-feedback { font-size:12.5px; line-height:1.6; white-space:pre-wrap; padding:10px 12px; border-radius:10px; background:color-mix(in srgb,var(--accent) 7%,transparent); }
+  .kh-score { font-variant-numeric:tabular-nums; font-weight:650; }
+  .kh-win { background:color-mix(in srgb,var(--good) 10%,transparent); }
+  .kh-small { font-size:11.5px; color:var(--muted); }
+  .kh-sources { display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); }
+</style>
+
+<div class="e-app">
+  <div class="e-header">
+    <div>
+      <h1 class="e-title">Karriere-Hub</h1>
+      <p class="e-sub">Live-Stellen finden, Bewerbungen verfolgen, Gespräche üben, Angebote vergleichen</p>
+    </div>
+    <div class="e-tabs" id="tabs">
+      <button class="e-tab active" data-tab="live">Live-Jobs</button>
+      <button class="e-tab" data-tab="board">Bewerbungen</button>
+      <button class="e-tab" data-tab="interview">Interview-Training</button>
+      <button class="e-tab" data-tab="offers">Angebote</button>
+    </div>
+  </div>
+  <div id="view"></div>
+</div>
+
+<script>
+(function () {
+  var STATUSES = [
+    { id: 'interest', label: 'Interessant' },
+    { id: 'applied', label: 'Beworben' },
+    { id: 'talk', label: 'Gespräch' },
+    { id: 'offer', label: 'Angebot' },
+    { id: 'rejected', label: 'Absage' }
+  ];
+  var DEFAULT_CRITERIA = [
+    { name: 'Gehalt', weight: 5 }, { name: 'Remote-Anteil', weight: 4 }, { name: 'Entwicklung', weight: 4 },
+    { name: 'Team & Kultur', weight: 3 }, { name: 'Benefits', weight: 2 }, { name: 'Sicherheit', weight: 3 }
+  ];
+  var state = {
+    search: { q: '', where: '', remote: true, days: 14 },
+    recent: [],
+    seen: {},
+    profile: '',
+    apps: [],
+    interview: { role: '', company: '', posting: '', questions: [], idx: 0, answers: {}, feedback: {} },
+    criteria: DEFAULT_CRITERIA.slice(),
+    offers: []
+  };
+  var results = null, sources = [], loading = false, error = '', tab = 'live', filterText = '', fits = {}, editing = null;
+  var view = document.getElementById('view');
+
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function daysSince(iso) { if (!iso) return null; var d = Date.parse(iso); return isNaN(d) ? null : Math.floor((Date.now() - d) / 86400000); }
+  function ago(iso) {
+    var n = daysSince(iso);
+    if (n === null) return '';
+    if (n <= 0) return 'heute';
+    if (n === 1) return 'gestern';
+    if (n < 7) return 'vor ' + n + ' Tagen';
+    return elyra.fmt.date(iso);
+  }
+  function save() { elyra.set('state', state); }
+  function openUrl(url) { if (url) elyra.open ? elyra.open(url) : window.open(url, '_blank'); }
+
+  /* ---------------- Live-Jobs ---------------- */
+  function runSearch() {
+    var s = state.search;
+    loading = true; error = ''; fits = {}; render();
+    elyra.jobs({ q: s.q, where: s.where, remote: s.remote, days: s.days }).then(function (res) {
+      results = res.jobs || []; sources = res.sources || [];
+      var key = [s.q, s.where, s.remote ? 'remote' : ''].join('|');
+      state.recent = [{ q: s.q, where: s.where, remote: s.remote, days: s.days, key: key }].concat(state.recent.filter(function (r) { return r.key !== key; })).slice(0, 6);
+      var seenBefore = state.seen[key] || [];
+      results.forEach(function (j) { j._new = seenBefore.length > 0 && seenBefore.indexOf(j.id) === -1; });
+      state.seen[key] = results.map(function (j) { return j.id; }).slice(0, 200);
+      save();
+    }).catch(function (e) { error = e && e.message ? e.message : 'Suche fehlgeschlagen'; results = []; })
+      .then(function () { loading = false; render(); });
+  }
+
+  function isSaved(job) { return state.apps.some(function (a) { return a.jobId === job.id; }); }
+
+  function saveJob(job) {
+    if (isSaved(job)) return;
+    state.apps.unshift({
+      id: uid(), jobId: job.id, title: job.title, company: job.company, location: job.location,
+      url: job.url, source: job.source, salary: job.salary || '', contact: '', deadline: '', notes: '',
+      status: 'interest', updated: today(), created: today()
+    });
+    save(); render();
+  }
+
+  function checkFit(job) {
+    if (!state.profile.trim()) { fits[job.id] = 'Trag zuerst unten bei „Mein Profil“ ein paar Sätze über dich ein (Erfahrung, Stärken, Wunsch-Rolle, Ort/Remote). Dann kann Elly die Passung einschätzen.'; render(); return; }
+    fits[job.id] = 'Elly prüft …'; render();
+    var prompt = 'Bewerte kurz und ehrlich, wie gut diese Stelle zu meinem Profil passt. Antworte auf Deutsch in genau diesem Format:\n' +
+      'Passung: X/10\nPro: (2 Stichpunkte)\nContra: (1–2 Stichpunkte)\nTipp fürs Anschreiben: (1 Satz)\n\n' +
+      'MEIN PROFIL:\n' + state.profile + '\n\nSTELLE:\n' + job.title + ' bei ' + job.company + ' (' + job.location + ')\n' + (job.tags || []).join(', ') + '\n' + (job.snippet || '');
+    elyra.ask(prompt).then(function (txt) { fits[job.id] = String(txt || '').trim(); }).catch(function () { fits[job.id] = 'Elly ist gerade nicht erreichbar.'; }).then(render);
+  }
+
+  function renderLive() {
+    var s = state.search;
+    var list = (results || []).filter(function (j) {
+      if (!filterText) return true;
+      var hay = (j.title + ' ' + j.company + ' ' + j.location + ' ' + (j.tags || []).join(' ')).toLowerCase();
+      return filterText.toLowerCase().split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+    });
+    var newCount = (results || []).filter(function (j) { return j._new; }).length;
+    var html = '';
+    html += '<div class="e-card"><div class="kh-search">' +
+      '<div class="e-field"><label class="e-label">Was</label><input class="e-input" id="q" placeholder="z. B. Business Development, Marketing, Customer Success" value="' + esc(s.q) + '"></div>' +
+      '<div class="e-field"><label class="e-label">Wo</label><input class="e-input" id="where" placeholder="Stadt, Land oder leer" value="' + esc(s.where) + '"></div>' +
+      '<label class="kh-toggle"><input type="checkbox" id="remote"' + (s.remote ? ' checked' : '') + '> Remote / Homeoffice</label>' +
+      '<select class="e-select" id="days" style="height:34px"><option value="3"' + (s.days === 3 ? ' selected' : '') + '>letzte 3 Tage</option><option value="7"' + (s.days === 7 ? ' selected' : '') + '>letzte 7 Tage</option><option value="14"' + (s.days === 14 ? ' selected' : '') + '>letzte 14 Tage</option><option value="30"' + (s.days === 30 ? ' selected' : '') + '>letzte 30 Tage</option></select>' +
+      '<button class="e-btn primary" id="go">' + (loading ? 'Sucht …' : 'Suchen') + '</button>' +
+      '</div>';
+    if (state.recent.length) {
+      html += '<div class="e-row" style="margin-top:10px"><span class="kh-small">Zuletzt:</span><div class="kh-chips">' + state.recent.map(function (r, i) {
+        return '<button class="kh-chip" data-recent="' + i + '">' + esc(r.q || 'alle') + (r.where ? ' · ' + esc(r.where) : '') + (r.remote ? ' · remote' : '') + '</button>';
+      }).join('') + '</div></div>';
+    }
+    html += '</div>';
+
+    if (loading) {
+      html += '<div class="e-card"><p class="e-muted">Durchsucht Arbeitsagentur, Arbeitnow und Remotive …</p></div>';
+    } else if (error) {
+      html += '<div class="e-card"><p class="e-neg">' + esc(error) + '</p></div>';
+    } else if (results === null) {
+      html += '<div class="e-card e-empty"><div class="e-empty-icon">🔎</div><p><b>Live-Stellen aus drei Quellen</b></p><p class="e-muted">Bundesagentur für Arbeit (Deutschland), Arbeitnow (Europa &amp; Remote) und Remotive (Remote weltweit). Gib oben eine Rolle ein und starte die Suche.</p></div>';
+    } else {
+      html += '<div class="e-row" style="justify-content:space-between">' +
+        '<div class="kh-sources">' + sources.map(function (src) { return '<span>' + esc(src.source) + ': ' + (src.ok ? src.count : 'nicht erreichbar') + '</span>'; }).join('') + (newCount ? '<span class="kh-new">' + newCount + ' neu seit der letzten Suche</span>' : '') + '</div>' +
+        '<input class="e-input" id="filter" placeholder="Ergebnisse filtern" value="' + esc(filterText) + '" style="max-width:240px;height:32px">' +
+        '</div>';
+      if (!list.length) {
+        html += '<div class="e-card e-empty"><div class="e-empty-icon">🫥</div><p class="e-muted">Keine passenden Stellen. Versuch einen allgemeineren Begriff, einen größeren Zeitraum oder schalte „Remote“ aus.</p></div>';
+      } else {
+        html += '<div class="kh-results">' + list.slice(0, 80).map(function (j) {
+          var saved = isSaved(j);
+          return '<div class="e-card kh-job"><div>' +
+            '<p class="kh-job-title">' + esc(j.title) + (j._new ? ' <span class="kh-new">· neu</span>' : '') + '</p>' +
+            '<div class="kh-job-meta"><span>🏢 ' + esc(j.company) + '</span><span>📍 ' + esc(j.location) + '</span>' + (j.salary ? '<span>💶 ' + esc(j.salary) + '</span>' : '') + '<span>' + esc(ago(j.postedAt)) + '</span><span class="kh-src">' + esc(j.source) + '</span></div>' +
+            (j.snippet ? '<p class="kh-job-snip">' + esc(j.snippet) + '</p>' : '') +
+            ((j.tags || []).length ? '<div class="kh-tags">' + j.tags.map(function (t) { return '<span class="e-badge">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+            (fits[j.id] ? '<div class="kh-fit">' + esc(fits[j.id]) + '</div>' : '') +
+            '</div><div class="kh-job-actions">' +
+            '<button class="e-btn sm primary" data-open="' + esc(j.id) + '">Stelle ansehen</button>' +
+            '<button class="e-btn sm" data-save="' + esc(j.id) + '"' + (saved ? ' disabled' : '') + '>' + (saved ? '✓ Gemerkt' : 'Merken') + '</button>' +
+            '<button class="e-btn sm ghost" data-fit="' + esc(j.id) + '">Passt das?</button>' +
+            '</div></div>';
+        }).join('') + '</div>';
+      }
+    }
+
+    html += '<div class="e-card"><div class="e-card-head"><div><p class="e-card-title">Mein Profil</p><p class="e-card-sub">Für „Passt das?“: Elly vergleicht Stellen mit diesen Angaben. Bleibt in dieser App gespeichert.</p></div></div>' +
+      '<textarea class="e-textarea" id="profile" rows="4" placeholder="z. B. 10+ Jahre Vertrieb & Business Development im Online-Marketing für KMU, Produkt-Erfahrung, Deutsch/Englisch fließend, suche Remote-Rolle im DACH-Markt.">' + esc(state.profile) + '</textarea></div>';
+    return html;
+  }
+
+  /* ---------------- Bewerbungen ---------------- */
+  function renderBoard() {
+    var counts = {};
+    STATUSES.forEach(function (s) { counts[s.id] = state.apps.filter(function (a) { return a.status === s.id; }).length; });
+    var html = '<div class="e-grid" style="--min:150px">' + STATUSES.slice(0, 4).map(function (s) {
+      return '<div class="e-card e-kpi"><span class="e-kpi-label">' + s.label + '</span><span class="e-kpi-value">' + counts[s.id] + '</span></div>';
+    }).join('') + '</div>';
+    html += '<div class="e-row" style="justify-content:space-between"><p class="kh-small">Gemerkte Live-Stellen landen in „Interessant“. Nach 10 Tagen ohne Bewegung erinnert die Karte ans Nachfassen.</p><button class="e-btn primary sm" id="add-app">+ Bewerbung</button></div>';
+    html += '<div class="kh-board">' + STATUSES.map(function (s, si) {
+      var cards = state.apps.filter(function (a) { return a.status === s.id; });
+      return '<div class="kh-col"><div class="kh-col-head"><span>' + s.label + '</span><span class="e-badge">' + cards.length + '</span></div>' +
+        (cards.length ? cards.map(function (a) {
+          var idle = daysSince(a.updated);
+          var follow = s.id === 'applied' && idle !== null && idle > 10;
+          return '<div class="kh-card">' + (follow ? '<span class="kh-warn">⚠ Nachfassen (' + idle + ' Tage)</span>' : '') +
+            '<span class="kh-card-title">' + esc(a.title) + '</span>' +
+            '<span class="kh-card-meta">' + esc(a.company) + (a.location ? ' · ' + esc(a.location) : '') + '</span>' +
+            (a.salary ? '<span class="kh-card-meta">💶 ' + esc(a.salary) + '</span>' : '') +
+            (a.deadline ? '<span class="kh-card-meta">⏰ Frist ' + esc(elyra.fmt.date(a.deadline)) + '</span>' : '') +
+            '<span class="kh-card-meta">Geändert ' + esc(ago(a.updated)) + '</span>' +
+            '<div class="kh-card-actions">' +
+            '<button class="kh-icon-btn" title="Zurück" data-move="' + a.id + '" data-dir="-1"' + (si === 0 ? ' disabled' : '') + '>◀</button>' +
+            (a.url ? '<button class="kh-icon-btn" title="Stelle öffnen" data-openapp="' + a.id + '">↗</button>' : '') +
+            '<button class="kh-icon-btn" title="Bearbeiten" data-edit="' + a.id + '">✎</button>' +
+            '<button class="kh-icon-btn" title="Löschen" data-del="' + a.id + '">✕</button>' +
+            '<button class="kh-icon-btn" title="Weiter" data-move="' + a.id + '" data-dir="1"' + (si === STATUSES.length - 1 ? ' disabled' : '') + '>▶</button>' +
+            '</div></div>';
+        }).join('') : '<p class="kh-small" style="padding:4px">Leer</p>') + '</div>';
+    }).join('') + '</div>';
+    if (editing) html += renderEditModal();
+    return html;
+  }
+
+  function renderEditModal() {
+    var a = editing;
+    function f(id, label, val, type) { return '<div class="e-field"><label class="e-label">' + label + '</label><input class="e-input" id="ed-' + id + '" type="' + (type || 'text') + '" value="' + esc(val) + '"></div>'; }
+    return '<div class="kh-modal-bg" id="modal-bg"><div class="e-card kh-modal"><div class="e-card-head"><p class="e-card-title">' + (a._new ? 'Neue Bewerbung' : 'Bewerbung bearbeiten') + '</p></div>' +
+      '<div class="e-form">' + f('title', 'Rolle', a.title) + f('company', 'Firma', a.company) + f('location', 'Ort / Remote', a.location) + f('salary', 'Gehalt', a.salary) +
+      f('contact', 'Ansprechperson', a.contact) + f('deadline', 'Frist', a.deadline, 'date') + f('url', 'Link zur Stelle', a.url) +
+      '<div class="e-field" style="grid-column:1/-1"><label class="e-label">Notizen</label><textarea class="e-textarea" id="ed-notes" rows="3">' + esc(a.notes) + '</textarea></div></div>' +
+      '<div class="e-row" style="justify-content:flex-end;margin-top:12px"><button class="e-btn ghost" id="ed-cancel">Abbrechen</button><button class="e-btn primary" id="ed-save">Speichern</button></div></div></div>';
+  }
+
+  /* ---------------- Interview ---------------- */
+  function renderInterview() {
+    var iv = state.interview;
+    var html = '<div class="e-card"><div class="e-card-head"><div><p class="e-card-title">Gespräch vorbereiten</p><p class="e-card-sub">Elly stellt 8 typische Fragen und gibt Feedback nach der STAR-Methode.</p></div></div>' +
+      '<div class="e-form"><div class="e-field"><label class="e-label">Rolle</label><input class="e-input" id="iv-role" value="' + esc(iv.role) + '" placeholder="z. B. Business Innovation Manager"></div>' +
+      '<div class="e-field"><label class="e-label">Firma</label><input class="e-input" id="iv-company" value="' + esc(iv.company) + '"></div>' +
+      '<div class="e-field" style="grid-column:1/-1"><label class="e-label">Stellentext (optional)</label><textarea class="e-textarea" id="iv-posting" rows="3">' + esc(iv.posting) + '</textarea></div></div>' +
+      '<div class="e-row" style="margin-top:10px"><button class="e-btn primary" id="iv-gen">Fragen erzeugen</button>' +
+      (state.apps.length ? '<select class="e-select" id="iv-from" style="max-width:280px"><option value="">… oder aus Bewerbungen übernehmen</option>' + state.apps.map(function (a) { return '<option value="' + a.id + '">' + esc(a.title + ' · ' + a.company) + '</option>'; }).join('') + '</select>' : '') +
+      '</div></div>';
+    if (iv.questions.length) {
+      var q = iv.questions[iv.idx] || '';
+      html += '<div class="e-card kh-q"><div class="e-row" style="justify-content:space-between"><span class="kh-small">Frage ' + (iv.idx + 1) + ' von ' + iv.questions.length + '</span>' +
+        '<div class="e-row"><button class="e-btn sm" id="iv-prev"' + (iv.idx === 0 ? ' disabled' : '') + '>◀</button><button class="e-btn sm" id="iv-next"' + (iv.idx >= iv.questions.length - 1 ? ' disabled' : '') + '>▶</button></div></div>' +
+        '<p class="kh-q-text">' + esc(q) + '</p>' +
+        '<textarea class="e-textarea" id="iv-answer" rows="5" placeholder="Deine Antwort …">' + esc(iv.answers[iv.idx] || '') + '</textarea>' +
+        '<div class="e-row"><button class="e-btn primary" id="iv-feedback">Feedback holen</button></div>' +
+        (iv.feedback[iv.idx] ? '<div class="kh-feedback">' + esc(iv.feedback[iv.idx]) + '</div>' : '') + '</div>';
+    }
+    return html;
+  }
+
+  function generateQuestions() {
+    var iv = state.interview;
+    iv.role = document.getElementById('iv-role').value.trim();
+    iv.company = document.getElementById('iv-company').value.trim();
+    iv.posting = document.getElementById('iv-posting').value.trim();
+    if (!iv.role) return;
+    var btn = document.getElementById('iv-gen'); btn.disabled = true; btn.textContent = 'Elly denkt …';
+    var prompt = 'Erzeuge 8 typische, anspruchsvolle Fragen für ein Vorstellungsgespräch als "' + iv.role + '"' + (iv.company ? ' bei ' + iv.company : '') + '. ' +
+      (iv.posting ? 'Stellentext:\n' + iv.posting.slice(0, 2500) + '\n' : '') +
+      (state.profile ? 'Profil des Kandidaten:\n' + state.profile + '\n' : '') +
+      'Mische Motivation, Erfahrung, Fall-/Praxisfragen und eine Frage zur Firma. Antworte NUR als JSON-Array mit 8 Strings auf Deutsch.';
+    elyra.ask(prompt).then(function (txt) {
+      var m = String(txt).match(/\[[\s\S]*\]/);
+      var list = m ? JSON.parse(m[0]) : [];
+      iv.questions = list.filter(function (x) { return typeof x === 'string'; }).slice(0, 8);
+      iv.idx = 0; iv.answers = {}; iv.feedback = {};
+      save();
+    }).catch(function () { iv.questions = []; }).then(render);
+  }
+
+  function getFeedback() {
+    var iv = state.interview;
+    iv.answers[iv.idx] = document.getElementById('iv-answer').value;
+    save();
+    if (!iv.answers[iv.idx].trim()) return;
+    iv.feedback[iv.idx] = 'Elly liest deine Antwort …'; render();
+    var prompt = 'Du bist ein erfahrener Interview-Coach. Rolle: ' + iv.role + (iv.company ? ' bei ' + iv.company : '') + '.\nFrage: ' + iv.questions[iv.idx] + '\nAntwort: ' + iv.answers[iv.idx] +
+      '\n\nGib knappes Feedback auf Deutsch: 1) Was gut ist (2 Punkte) 2) Eine konkrete Verbesserung 3) Eine bessere Beispiel-Formulierung nach STAR (max. 5 Sätze). Kein Markdown-Fettdruck.';
+    elyra.ask(prompt).then(function (txt) { iv.feedback[iv.idx] = String(txt || '').trim(); save(); }).catch(function () { iv.feedback[iv.idx] = 'Elly ist gerade nicht erreichbar.'; }).then(render);
+  }
+
+  /* ---------------- Angebote ---------------- */
+  function scoreOf(o) {
+    var total = 0, max = 0;
+    state.criteria.forEach(function (c, i) { total += (Number(o.scores[i]) || 0) * c.weight; max += 5 * c.weight; });
+    return max ? Math.round(total / max * 100) : 0;
+  }
+  function renderOffers() {
+    var ranked = state.offers.slice().sort(function (a, b) { return scoreOf(b) - scoreOf(a); });
+    var best = ranked[0];
+    var html = '<div class="e-card"><div class="e-card-head"><div><p class="e-card-title">Angebote vergleichen</p><p class="e-card-sub">Bewerte jedes Angebot je Kriterium von 1 bis 5. Gewichtung 1–5 passt du an, was dir wichtig ist.</p></div><button class="e-btn sm primary" id="of-add">+ Angebot</button></div>';
+    if (!state.offers.length) {
+      html += '<div class="e-empty"><div class="e-empty-icon">⚖️</div><p class="e-muted">Noch keine Angebote. Leg eins an, sobald es konkret wird – auch aus der Spalte „Angebot“ deiner Bewerbungen.</p></div></div>';
+      return html;
+    }
+    html += '<div class="e-table-wrap"><table class="e-table"><thead><tr><th>Kriterium</th><th class="num">Gewicht</th>' +
+      state.offers.map(function (o, oi) { return '<th><input class="e-input" style="height:30px;min-width:120px" data-ofname="' + oi + '" value="' + esc(o.name) + '"></th>'; }).join('') + '</tr></thead><tbody>' +
+      state.criteria.map(function (c, ci) {
+        return '<tr><td>' + esc(c.name) + '</td><td class="num"><input class="e-input" type="number" min="1" max="5" style="width:60px;height:30px" data-weight="' + ci + '" value="' + c.weight + '"></td>' +
+          state.offers.map(function (o, oi) { return '<td><input class="e-input" type="number" min="1" max="5" style="width:70px;height:30px" data-score="' + oi + ':' + ci + '" value="' + esc(o.scores[ci] || '') + '"></td>'; }).join('') + '</tr>';
+      }).join('') +
+      '<tr><td><b>Ergebnis</b></td><td></td>' + state.offers.map(function (o, oi) {
+        return '<td class="' + (best === o ? 'kh-win' : '') + '"><span class="kh-score">' + scoreOf(o) + ' %</span>' + (best === o ? ' 🏆' : '') + ' <button class="kh-icon-btn" data-ofdel="' + oi + '" title="Entfernen">✕</button></td>';
+      }).join('') + '</tr></tbody></table></div></div>';
+    return html;
+  }
+
+  /* ---------------- Render & events ---------------- */
+  function render() {
+    document.querySelectorAll('#tabs .e-tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
+    view.innerHTML = tab === 'live' ? renderLive() : tab === 'board' ? renderBoard() : tab === 'interview' ? renderInterview() : renderOffers();
+  }
+
+  function readSearch() {
+    state.search.q = document.getElementById('q').value.trim();
+    state.search.where = document.getElementById('where').value.trim();
+    state.search.remote = document.getElementById('remote').checked;
+    state.search.days = Number(document.getElementById('days').value) || 14;
+  }
+
+  function findJob(id) { return (results || []).filter(function (j) { return j.id === id; })[0]; }
+  function findApp(id) { return state.apps.filter(function (a) { return a.id === id; })[0]; }
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tab]'); if (!t) return; tab = t.getAttribute('data-tab'); render();
+  });
+
+  view.addEventListener('click', function (e) {
+    var el = e.target.closest('button'); if (!el) return;
+    if (el.id === 'go') { readSearch(); runSearch(); return; }
+    if (el.hasAttribute('data-recent')) { var r = state.recent[Number(el.getAttribute('data-recent'))]; state.search = { q: r.q, where: r.where, remote: r.remote, days: r.days || 14 }; runSearch(); return; }
+    if (el.hasAttribute('data-open')) { var j = findJob(el.getAttribute('data-open')); if (j) openUrl(j.url); return; }
+    if (el.hasAttribute('data-save')) { var js = findJob(el.getAttribute('data-save')); if (js) saveJob(js); return; }
+    if (el.hasAttribute('data-fit')) { var jf = findJob(el.getAttribute('data-fit')); if (jf) checkFit(jf); return; }
+    if (el.id === 'add-app') { editing = { id: uid(), _new: true, title: '', company: '', location: '', salary: '', contact: '', deadline: '', url: '', notes: '', status: 'interest' }; render(); return; }
+    if (el.hasAttribute('data-move')) {
+      var a = findApp(el.getAttribute('data-move')); if (!a) return;
+      var idx = STATUSES.map(function (s) { return s.id; }).indexOf(a.status) + Number(el.getAttribute('data-dir'));
+      if (idx < 0 || idx >= STATUSES.length) return;
+      a.status = STATUSES[idx].id; a.updated = today(); save(); render(); return;
+    }
+    if (el.hasAttribute('data-openapp')) { var ao = findApp(el.getAttribute('data-openapp')); if (ao) openUrl(ao.url); return; }
+    if (el.hasAttribute('data-edit')) { editing = JSON.parse(JSON.stringify(findApp(el.getAttribute('data-edit')))); render(); return; }
+    if (el.hasAttribute('data-del')) { var id = el.getAttribute('data-del'); state.apps = state.apps.filter(function (x) { return x.id !== id; }); save(); render(); return; }
+    if (el.id === 'ed-cancel') { editing = null; render(); return; }
+    if (el.id === 'ed-save') {
+      ['title', 'company', 'location', 'salary', 'contact', 'deadline', 'url', 'notes'].forEach(function (k) { editing[k] = document.getElementById('ed-' + k).value.trim(); });
+      if (!editing.title) return;
+      var isNew = editing._new; delete editing._new; editing.updated = today();
+      if (isNew) { editing.created = today(); state.apps.unshift(editing); }
+      else state.apps = state.apps.map(function (x) { return x.id === editing.id ? editing : x; });
+      editing = null; save(); render(); return;
+    }
+    if (el.id === 'iv-gen') { generateQuestions(); return; }
+    if (el.id === 'iv-prev' || el.id === 'iv-next') { var iv = state.interview; iv.answers[iv.idx] = document.getElementById('iv-answer').value; iv.idx += el.id === 'iv-next' ? 1 : -1; save(); render(); return; }
+    if (el.id === 'iv-feedback') { getFeedback(); return; }
+    if (el.id === 'of-add') { state.offers.push({ name: 'Angebot ' + (state.offers.length + 1), scores: {} }); save(); render(); return; }
+    if (el.hasAttribute('data-ofdel')) { state.offers.splice(Number(el.getAttribute('data-ofdel')), 1); save(); render(); return; }
+  });
+
+  view.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.target.id === 'q' || e.target.id === 'where')) { readSearch(); runSearch(); }
+  });
+
+  view.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.id === 'filter') { filterText = t.value; var pos = t.selectionStart; render(); var nf = document.getElementById('filter'); nf.focus(); nf.setSelectionRange(pos, pos); return; }
+    if (t.id === 'profile') { state.profile = t.value; save(); return; }
+    if (t.hasAttribute('data-ofname')) { state.offers[Number(t.getAttribute('data-ofname'))].name = t.value; save(); return; }
+  });
+
+  view.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 'iv-from' && t.value) {
+      var a = findApp(t.value); if (!a) return;
+      state.interview.role = a.title; state.interview.company = a.company; save(); render(); return;
+    }
+    if (t.hasAttribute('data-weight')) { state.criteria[Number(t.getAttribute('data-weight'))].weight = Math.min(5, Math.max(1, Number(t.value) || 1)); save(); render(); return; }
+    if (t.hasAttribute('data-score')) {
+      var p = t.getAttribute('data-score').split(':');
+      state.offers[Number(p[0])].scores[Number(p[1])] = Math.min(5, Math.max(1, Number(t.value) || 1)); save(); render(); return;
+    }
+  });
+
+  view.addEventListener('click', function (e) { if (e.target.id === 'modal-bg') { editing = null; render(); } });
+
+  elyra.get('state').then(function (saved) {
+    if (saved && typeof saved === 'object') {
+      Object.keys(state).forEach(function (k) { if (saved[k] !== undefined) state[k] = saved[k]; });
+    }
+    render();
+  }).catch(render);
+})();
+</script>

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useKernel } from "@/components/os/kernel/KernelProvider";
 import { startGoogleConnect } from "@/components/os/apps/liveGoogleClient";
+import { GOOGLE_DRIVE_READONLY_SCOPE } from "@/lib/google/scopes";
 
 type DriveFile = {
   id: string;
@@ -138,7 +139,7 @@ export default function FilesWindow() {
   const selected = files.find((f) => f.id === selectedId) ?? null;
 
   const connect = () => {
-    void startGoogleConnect(workspaceId, "/os/files");
+    void startGoogleConnect(workspaceId, "/os/files", [GOOGLE_DRIVE_READONLY_SCOPE]);
   };
 
   return (

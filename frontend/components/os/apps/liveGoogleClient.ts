@@ -506,7 +506,9 @@ export function buildGoogleConnectUrl(workspaceId?: string, next = "/os"): strin
 
 export async function startGoogleConnect(
   workspaceId?: string,
-  next = "/os"
+  next = "/os",
+  /** Extra Google scopes this feature needs on top of the default set (e.g. Drive read access). */
+  extraScopes: readonly string[] = []
 ): Promise<void> {
   const url = new URL("/api/google/connect", window.location.origin);
   const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId);
@@ -514,6 +516,9 @@ export async function startGoogleConnect(
     url.searchParams.set("workspaceId", normalizedWorkspaceId);
   }
   url.searchParams.set("next", next);
+  if (extraScopes.length > 0) {
+    url.searchParams.set("scopes", extraScopes.join(" "));
+  }
   const token = await ensureSupabaseToken();
   const payload = await requestJson<{ ok: boolean; url?: string }>(url, {
     method: "POST",

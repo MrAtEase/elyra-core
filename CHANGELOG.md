@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Automations-Endpoint (`/api/hooks/elyra`): Unerwartete Fehler kommen als 500 mit Klartext-Grund (`message`), statt als „502 Bad gateway“ – n8n, Make und Zapier zeigen so die eigentliche Ursache.
 - Präsentationen: Export nach Google Slides übernimmt jetzt Design und Layout statt nackter Textfelder – Theme-Farben und Hintergründe, Titel-/Kapitel-/Abschlussfolien, Kennzahl-Karten, Vergleichsspalten, Zeitstrahl, Zitat, Team, Agenda, Fußzeile mit Seitenzahl und Sprechernotizen. Ist die Slides API im Google-Projekt aus, zeigt das Fenster einen Link zum Aktivieren. Fenster und Beispiel-Decks auf Deutsch.
 - Fix: Export nach Google Slides scheiterte mit „Workspace scope mismatch“, weil die Route den Workspace-Alias nicht auflöste; sie nutzt jetzt `requireWorkspace` wie die übrigen Routen.
 - Karriere-Hub (vorher „Jobsuche“): echte Stellen live aus Bundesagentur für Arbeit, Arbeitnow und Remotive (`/api/os/jobs`, 30 Min. Cache), Suche nach Was/Wo/Remote/Zeitraum, „neu seit der letzten Suche“, Merken aufs Bewerbungs-Board, „Passt das?“ gegen das eigene Profil, Interview-Training und Angebotsvergleich. Eigene Apps können über `elyra.jobs()` Stellen suchen und über `elyra.open()` Links öffnen.

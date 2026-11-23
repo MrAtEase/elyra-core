@@ -72,7 +72,13 @@ export async function POST(request: NextRequest) {
     }
   } catch (err) {
     const known = err instanceof DigestError || err instanceof VisibilityError || err instanceof AutomationError;
-    return NextResponse.json({ ok: false, error: (err as Error).message }, { status: known ? 400 : 502 });
+    const message = (err as Error).message || "Unbekannter Fehler.";
+    if (!known) console.error(`[hooks/elyra] ${action} failed`, err);
+    // `message` as well as `error`: n8n, Make and Zapier show the `message` field in their error details.
+    return NextResponse.json(
+      { ok: false, action, error: message, message: `Elyra (${action}): ${message}` },
+      { status: known ? 400 : 500 },
+    );
   }
 }
 

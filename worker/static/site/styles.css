@@ -1,0 +1,72 @@
+/* Simple, modern styling inspired by maritime restaurant sites */
+:root{
+  --bg: #ffffff;
+  --page-bg: #fbfcfd;
+  --accent: #0b97a8; /* cyan/teal accent */
+  --muted: #6b7280;
+  --card:#ffffff;
+  --text:#0f1724;
+  --radius:12px;
+  --max-width:1100px;
+  --container-padding:24px;
+  --shadow: 0 8px 28px rgba(2,6,23,0.06);
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#ffffff,#fbfcfd);
+  color:var(--text);
+  font-family:var(--font-sans);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.55;
+}
+
+/* layout */
+.container{max-width:var(--max-width);margin:0 auto;padding:0 var(--container-padding)}
+.site-header{border-bottom:1px solid rgba(15,23,36,0.04);background:transparent}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:46px;height:46px;border-radius:8px;background:linear-gradient(90deg,#0ea5a4,#06b6d4);display:inline-block}
+.title{font-weight:700;font-size:18px;color:var(--accent)}
+.nav{display:flex;gap:14px;align-items:center}
+.nav-link{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:8px}
+.nav-link.active{color:var(--text);font-weight:600}
+.nav-cta{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:600}
+
+/* hero */
+.hero{padding:44px 0}
+.hero-grid{display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:center}
+.hero-text h1{font-size:36px;margin:0 0 12px}
+.lead{color:var(--muted);font-size:18px;margin:0 0 12px}
+.actions{margin-top:18px;display:flex;gap:12px}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid rgba(2,6,23,0.06);text-decoration:none;color:var(--text)}
+.btn.primary{background:var(--accent);color:white;border:0}
+
+/* decorative image */
+.hero-image{display:flex;align-items:center;justify-content:center}
+.fish-illustration{font-size:80px}
+
+/* values */
+.values{padding:30px 0}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);padding:18px;border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* about */
+.wrap{padding:28px 0}
+.about-card{background:var(--card);padding:28px;border-radius:12px;box-shadow:var(--shadow)}
+
+/* footer */
+.site-footer{border-top:1px solid rgba(15,23,36,0.04);padding:18px 0;margin-top:36px;color:var(--muted);font-size:14px}
+.footer-inner{display:flex;justify-content:space-between;align-items:center}
+
+/* responsive */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:20px}
+  .values-grid{grid-template-columns:1fr}
+  .logo{width:40px;height:40px}
+  .hero-text h1{font-size:26px}
+}

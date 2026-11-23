@@ -1,0 +1,76 @@
+name = "elyra-api"
+main = "src/index.ts"
+compatibility_date = "2026-02-05"
+# account_id is set via CLOUDFLARE_ACCOUNT_ID env var or wrangler login
+workers_dev = true
+
+# ---------------------------------------------------------------------------
+# Non-secret vars. Set secrets via:
+#   wrangler secret put ELYRA_INTERNAL_SECRET
+#   wrangler secret put INTERNAL_API_SECRET
+# ---------------------------------------------------------------------------
+[vars]
+# URL of the Next.js app for the token bridge (override per environment)
+APP_ORIGIN = "http://localhost:3000"
+
+[[kv_namespaces]]
+binding = "ASSISTANT_KV"
+id = "e82e2c32de9a4cd181f164d158ea2b11"
+
+[[d1_databases]]
+binding = "ASSISTANT_DB"
+database_name = "assistant-db"
+database_id = "711011f5-2f31-461b-b083-89a3fa593c0c"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+# ------------------------------------------------------------------
+# PRODUCTION
+# ------------------------------------------------------------------
+[env.production]
+name = "elyra-core-production"
+
+[env.production.vars]
+APP_ORIGIN = "https://app.elyra-core.app"
+ENVIRONMENT = "production"
+SESSION_COOKIE_DOMAIN = ".elyra-core.app"
+
+[[env.production.kv_namespaces]]
+binding = "ASSISTANT_KV"
+id = "e82e2c32de9a4cd181f164d158ea2b11"
+
+[[env.production.d1_databases]]
+binding = "ASSISTANT_DB"
+database_name = "assistant-db"
+database_id = "711011f5-2f31-461b-b083-89a3fa593c0c"
+
+# ------------------------------------------------------------------
+# DEV (local)
+# ------------------------------------------------------------------
+[env.dev]
+name = "elyra-core-dev"
+
+[env.dev.vars]
+APP_ORIGIN = "http://localhost:3000"
+
+[[env.dev.kv_namespaces]]
+binding = "ASSISTANT_KV"
+id = "0d1a2fa4a6a84652bc030e41cc97b803"
+
+[[env.dev.d1_databases]]
+binding = "ASSISTANT_DB"
+database_name = "assistant-db"
+database_id = "711011f5-2f31-461b-b083-89a3fa593c0c"

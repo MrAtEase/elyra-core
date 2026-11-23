@@ -1,0 +1,312 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ELYRA CORE — DESIGN TOKENS
+
+   Reusable design system tokens for the entire application.
+   Import this file at the root level to ensure consistency across all pages.
+
+   Usage:
+     @import './styles/tokens.css';
+
+   Or in components:
+     var(--ec-bg-base)
+     var(--ec-text-primary)
+     var(--ec-accent-violet)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ══════════════════════════════════════════════════════════════════════════
+     COLOR PALETTE
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  /* Background — Deep Charcoal (never pure black) */
+  --ec-bg-base: #0a0a0c;
+  --ec-bg-elevated: #111114;
+  --ec-bg-inset: #07070a;
+  --ec-bg-surface: rgba(255, 255, 255, 0.025);
+  --ec-bg-surface-hover: rgba(255, 255, 255, 0.045);
+  --ec-bg-surface-active: rgba(255, 255, 255, 0.06);
+  --ec-bg-surface-selected: rgba(139, 92, 246, 0.1);
+
+  /* Borders & Lines */
+  --ec-border-subtle: rgba(255, 255, 255, 0.06);
+  --ec-border-default: rgba(255, 255, 255, 0.1);
+  --ec-border-emphasis: rgba(255, 255, 255, 0.18);
+  --ec-border-strong: rgba(255, 255, 255, 0.25);
+  --ec-line-grid: rgba(255, 255, 255, 0.02);
+  --ec-line-marker: rgba(255, 255, 255, 0.07);
+
+  /* Text Hierarchy */
+  --ec-text-primary: #f4f4f5;
+  --ec-text-secondary: #a1a1aa;
+  --ec-text-muted: #71717a;
+  --ec-text-disabled: #52525b;
+  --ec-text-inverse: #0a0a0c;
+  --ec-text-link: #a78bfa;
+  --ec-text-link-hover: #c4b5fd;
+
+  /* Accent — Orb-derived */
+  --ec-accent-violet: #8b5cf6;
+  --ec-accent-violet-light: #a78bfa;
+  --ec-accent-violet-dim: rgba(139, 92, 246, 0.15);
+  --ec-accent-violet-glow: rgba(139, 92, 246, 0.4);
+
+  --ec-accent-teal: #14b8a6;
+  --ec-accent-teal-light: #2dd4bf;
+  --ec-accent-teal-dim: rgba(20, 184, 166, 0.12);
+  --ec-accent-teal-glow: rgba(20, 184, 166, 0.35);
+
+  /* Semantic Colors */
+  --ec-success: #22c55e;
+  --ec-success-dim: rgba(34, 197, 94, 0.12);
+  --ec-warning: #f59e0b;
+  --ec-warning-dim: rgba(245, 158, 11, 0.12);
+  --ec-error: #ef4444;
+  --ec-error-dim: rgba(239, 68, 68, 0.12);
+  --ec-info: #3b82f6;
+  --ec-info-dim: rgba(59, 130, 246, 0.12);
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     TYPOGRAPHY
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  /* Font Stacks */
+  --ec-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --ec-font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  --ec-font-display: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Type Scale */
+  --ec-text-2xs: 0.625rem;    /* 10px */
+  --ec-text-xs: 0.6875rem;    /* 11px */
+  --ec-text-sm: 0.8125rem;    /* 13px */
+  --ec-text-base: 0.9375rem;  /* 15px */
+  --ec-text-lg: 1.0625rem;    /* 17px */
+  --ec-text-xl: 1.25rem;      /* 20px */
+  --ec-text-2xl: 1.5rem;      /* 24px */
+  --ec-text-3xl: 2rem;        /* 32px */
+  --ec-text-4xl: 2.5rem;      /* 40px */
+  --ec-text-5xl: 3.25rem;     /* 52px */
+  --ec-text-6xl: 4rem;        /* 64px */
+
+  /* Line Heights */
+  --ec-leading-none: 1;
+  --ec-leading-tight: 1.15;
+  --ec-leading-snug: 1.3;
+  --ec-leading-normal: 1.5;
+  --ec-leading-relaxed: 1.65;
+  --ec-leading-loose: 1.8;
+
+  /* Letter Spacing */
+  --ec-tracking-tighter: -0.03em;
+  --ec-tracking-tight: -0.02em;
+  --ec-tracking-normal: 0;
+  --ec-tracking-wide: 0.025em;
+  --ec-tracking-wider: 0.06em;
+  --ec-tracking-widest: 0.1em;
+
+  /* Font Weights */
+  --ec-font-light: 300;
+  --ec-font-normal: 400;
+  --ec-font-medium: 500;
+  --ec-font-semibold: 600;
+  --ec-font-bold: 700;
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     SPACING SCALE
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  --ec-space-px: 1px;
+  --ec-space-0: 0;
+  --ec-space-0-5: 0.125rem;  /* 2px */
+  --ec-space-1: 0.25rem;     /* 4px */
+  --ec-space-1-5: 0.375rem;  /* 6px */
+  --ec-space-2: 0.5rem;      /* 8px */
+  --ec-space-2-5: 0.625rem;  /* 10px */
+  --ec-space-3: 0.75rem;     /* 12px */
+  --ec-space-3-5: 0.875rem;  /* 14px */
+  --ec-space-4: 1rem;        /* 16px */
+  --ec-space-5: 1.25rem;     /* 20px */
+  --ec-space-6: 1.5rem;      /* 24px */
+  --ec-space-7: 1.75rem;     /* 28px */
+  --ec-space-8: 2rem;        /* 32px */
+  --ec-space-9: 2.25rem;     /* 36px */
+  --ec-space-10: 2.5rem;     /* 40px */
+  --ec-space-11: 2.75rem;    /* 44px */
+  --ec-space-12: 3rem;       /* 48px */
+  --ec-space-14: 3.5rem;     /* 56px */
+  --ec-space-16: 4rem;       /* 64px */
+  --ec-space-20: 5rem;       /* 80px */
+  --ec-space-24: 6rem;       /* 96px */
+  --ec-space-28: 7rem;       /* 112px */
+  --ec-space-32: 8rem;       /* 128px */
+  --ec-space-36: 9rem;       /* 144px */
+  --ec-space-40: 10rem;      /* 160px */
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     BORDER RADIUS — Architectural (Sharp, Restrained)
+     No pills. No large curves. Precision only.
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  --ec-radius-none: 0;
+  --ec-radius-sm: 4px;
+  --ec-radius-md: 6px;
+  --ec-radius-lg: 8px;
+  --ec-radius-xl: 10px;
+  --ec-radius-full: 9999px;  /* For avatars/orbs only */
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     SHADOWS & EFFECTS
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  --ec-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ec-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --ec-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --ec-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --ec-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --ec-shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.7);
+
+  --ec-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  --ec-shadow-glow-violet: 0 0 40px var(--ec-accent-violet-glow);
+  --ec-shadow-glow-teal: 0 0 32px var(--ec-accent-teal-glow);
+  --ec-shadow-glow-success: 0 0 24px rgba(34, 197, 94, 0.3);
+  --ec-shadow-glow-error: 0 0 24px rgba(239, 68, 68, 0.3);
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     TRANSITIONS & ANIMATIONS
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  /* Easing Functions */
+  --ec-ease-linear: linear;
+  --ec-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ec-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ec-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ec-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ec-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  --ec-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Durations */
+  --ec-duration-instant: 50ms;
+  --ec-duration-fast: 120ms;
+  --ec-duration-base: 180ms;
+  --ec-duration-slow: 280ms;
+  --ec-duration-slower: 400ms;
+  --ec-duration-slowest: 600ms;
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     LAYOUT
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  --ec-grid-size: 48px;
+  --ec-container-xs: 320px;
+  --ec-container-sm: 480px;
+  --ec-container-md: 640px;
+  --ec-container-lg: 800px;
+  --ec-container-xl: 1024px;
+  --ec-container-2xl: 1280px;
+  --ec-container-max: 1120px;
+  --ec-content-max: 680px;
+
+  /* Z-Index Scale */
+  --ec-z-base: 0;
+  --ec-z-dropdown: 10;
+  --ec-z-sticky: 20;
+  --ec-z-fixed: 30;
+  --ec-z-modal-backdrop: 40;
+  --ec-z-modal: 50;
+  --ec-z-popover: 60;
+  --ec-z-tooltip: 70;
+  --ec-z-toast: 80;
+  --ec-z-max: 100;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE (default, explicit class for potential light mode toggle)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dark,
+:root {
+  color-scheme: dark;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  :root {
+    --ec-grid-size: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --ec-grid-size: 24px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT THEME TOKENS
+   Applied via html[data-theme="light-crisp"] or html[data-theme="light-classic"]
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-theme="light-crisp"],
+html[data-theme="light-classic"],
+html[data-theme="light"] {
+  color-scheme: light;
+
+  /* Background */
+  --ec-bg-base: #f7f8fc;
+  --ec-bg-elevated: #ffffff;
+  --ec-bg-inset: #eef0f5;
+  --ec-bg-surface: rgba(0, 0, 0, 0.04);
+  --ec-bg-surface-hover: rgba(0, 0, 0, 0.06);
+  --ec-bg-surface-active: rgba(0, 0, 0, 0.09);
+  --ec-bg-surface-selected: rgba(124, 58, 237, 0.08);
+
+  /* Borders */
+  --ec-border-subtle: rgba(0, 0, 0, 0.06);
+  --ec-border-default: rgba(0, 0, 0, 0.10);
+  --ec-border-emphasis: rgba(0, 0, 0, 0.16);
+  --ec-border-strong: rgba(0, 0, 0, 0.24);
+  --ec-line-grid: rgba(0, 0, 0, 0.03);
+  --ec-line-marker: rgba(0, 0, 0, 0.08);
+
+  /* Text Hierarchy */
+  --ec-text-primary: #0f1117;
+  --ec-text-secondary: #374151;
+  --ec-text-muted: #6b7280;
+  --ec-text-disabled: #9ca3af;
+  --ec-text-inverse: #f7f8fc;
+  --ec-text-link: #7c3aed;
+  --ec-text-link-hover: #6d28d9;
+
+  /* Accent — violet, deeper in light mode for contrast */
+  --ec-accent-violet: #7c3aed;
+  --ec-accent-violet-light: #8b5cf6;
+  --ec-accent-violet-dim: rgba(124, 58, 237, 0.10);
+  --ec-accent-violet-glow: rgba(124, 58, 237, 0.18);
+
+  /* Semantic */
+  --ec-success: #16a34a;
+  --ec-success-dim: rgba(22, 163, 74, 0.10);
+  --ec-warning: #d97706;
+  --ec-warning-dim: rgba(217, 119, 6, 0.10);
+  --ec-error: #dc2626;
+  --ec-error-dim: rgba(220, 38, 38, 0.10);
+  --ec-info: #2563eb;
+  --ec-info-dim: rgba(37, 99, 235, 0.10);
+
+  /* Shadows — lighter in light mode */
+  --ec-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --ec-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.07);
+  --ec-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ec-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.09);
+  --ec-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.10);
+  --ec-shadow-2xl: 0 24px 56px rgba(0, 0, 0, 0.12);
+  --ec-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  --ec-shadow-glow-violet: 0 0 28px rgba(124, 58, 237, 0.18);
+  --ec-shadow-glow-teal: 0 0 24px rgba(20, 184, 166, 0.16);
+  --ec-shadow-glow-success: 0 0 18px rgba(22, 163, 74, 0.16);
+  --ec-shadow-glow-error: 0 0 18px rgba(220, 38, 38, 0.16);
+}

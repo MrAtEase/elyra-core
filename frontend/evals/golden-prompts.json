@@ -1,0 +1,38 @@
+[
+  {
+    "id": "g-001",
+    "prompt": "Research the latest autonomous agent trends and summarize sources",
+    "expected_tool": "web.search_and_summarize",
+    "severity": "high"
+  },
+  {
+    "id": "g-002",
+    "prompt": "What's the weather forecast in Berlin for next 3 days?",
+    "expected_tool": "weather.getForecast",
+    "severity": "high"
+  },
+  {
+    "id": "g-003",
+    "prompt": "Translate this email to Spanish",
+    "expected_tool": "translate.text",
+    "severity": "high"
+  },
+  {
+    "id": "g-004",
+    "prompt": "Create a pitch deck skeleton in Google Slides",
+    "expected_tool": "slides.create_presentation",
+    "severity": "medium"
+  },
+  {
+    "id": "g-005",
+    "prompt": "Find files in drive about Q3 planning",
+    "expected_tool": "drive.search_files",
+    "severity": "medium"
+  },
+  {
+    "id": "g-006",
+    "prompt": "Book a calendar event for tomorrow 9am",
+    "expected_tool": "google_calendar.create_event",
+    "severity": "medium"
+  }
+]

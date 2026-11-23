@@ -1,0 +1,22 @@
+{
+  "id": "elyra-core-deploy-v1",
+  "projectRoot": "/Users/you/Projects/elyra-core",
+  "preDeployCommands": [
+    {
+      "id": "frontend-build",
+      "label": "Build Next.js frontend",
+      "command": "npm run build",
+      "cwd": "frontend",
+      "critical": true
+    }
+  ],
+  "deployCommands": [
+    {
+      "id": "frontend-deploy",
+      "label": "Deploy frontend to Vercel production",
+      "command": "npx vercel --prod --yes",
+      "cwd": "frontend",
+      "critical": true
+    }
+  ]
+}

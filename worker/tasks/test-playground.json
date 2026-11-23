@@ -1,0 +1,9 @@
+{
+  "id": "test-playground-001",
+  "goal": "Refaktoriere diesen Ausschnitt moderat, verbessere Lesbarkeit und Struktur, Verhalten bleibt gleich.",
+  "mode": "refactor",
+  "projectRoot": "/Users/paulodak/Projects/elyra-core",
+  "target": {
+    "file": "frontend/dev/playground.ts"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "add-allow-dirty-flag-001",
+  "goal": "Erweitere worker/src/sessionCli.ts so, dass ein optionaler CLI-Flag --allow-dirty unterstützt wird. Aktuelles Verhalten: Der Session-Runner ruft ensureCleanGitWorkingTree(projectRoot) auf und bricht mit einer klaren Fehlermeldung ab, wenn der Git-Working-Tree nicht clean ist. Neues Verhalten: Standard bleibt STRICT (also kein allow-dirty), aber wenn in process.argv ein Argument --allow-dirty vorkommt, soll allowDirty=true an ensureCleanGitWorkingTree übergeben werden. Implementiere dafür eine kleine, saubere Argument-Parsing-Logik in sessionCli.ts (z.B. parseArgs-Funktion oder minimaler Inline-Parser), die mindestens diese Fälle korrekt erkennt: (1) node dist/sessionCli.js sessions/foo.json, (2) node dist/sessionCli.js sessions/foo.json --allow-dirty. Die Pfadangabe zur Session-Datei bleibt das erste nicht-optionale Argument. Passe ensureCleanGitWorkingTree-Aufruf so an, dass er ein Options-Objekt erhält, z.B. ensureCleanGitWorkingTree(projectRoot, { allowDirty, message: <bestehende Fehlermeldung> }). Falls ensureCleanGitWorkingTree in gitService.ts derzeit noch kein Options-Objekt unterstützt, erweitere seine Signatur auf (repoRoot: string, options?: { allowDirty?: boolean; message?: string }) und implementiere die Logik dort so, dass: (a) bei allowDirty=true KEIN Fehler geworfen wird, auch wenn der Working-Tree nicht clean ist, aber eine kurze Konsolenwarnung geloggt wird, (b) bei allowDirty=false oder undefined weiterhin die bisherige Fehlermeldung geworfen wird. Achte darauf, dass alle bestehenden Aufrufer von ensureCleanGitWorkingTree weiter funktionieren und dass die Fehlertexte klar und verständlich bleiben.",
+  "mode": "refactor",
+  "projectRoot": "/Users/paulodak/Projects/elyra-core",
+  "target": {
+    "file": "worker/src/sessionCli.ts"
+  }
+}

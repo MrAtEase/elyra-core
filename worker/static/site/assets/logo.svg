@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Fish Delish logo">
+  <rect width="120" height="120" rx="20" fill="#06b6d4"/>
+  <g transform="translate(20,30)" fill="#fff">
+    <path d="M5 30c8-12 28-12 36 0 8 12 8 12 0 24-8 12-28 12-36 0-8-12-8-12 0-24z"/>
+  </g>
+</svg>

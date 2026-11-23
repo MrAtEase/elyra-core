@@ -1,5 +1,7 @@
 "use client";
 
+import { prefillIntent } from "@/lib/marketplace/client";
+
 import { useEffect, useState } from "react";
 import {
   Brain, Zap, Lock, Eye, BarChart2, Cpu, MessageSquare,
@@ -177,8 +179,8 @@ export default function AiSettingsWindow() {
     if (!action) return;
 
     if (action.target === "code") {
-      window.localStorage.setItem("elyra_ai_task_queue", JSON.stringify(action.payload));
-      window.location.assign("/os/code");
+      // Hand the task to Elly via the intent line (the coding agent was removed).
+      prefillIntent(action.payload.task);
       return;
     }
 

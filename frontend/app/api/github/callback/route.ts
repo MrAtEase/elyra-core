@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     key: env.stateKey,
   });
 
-  const fallbackPath = "/os/code";
+  const fallbackPath = "/os";
   const verifiedPath = verification.ok ? verification.payload.next : fallbackPath;
 
   if (oauthError) {

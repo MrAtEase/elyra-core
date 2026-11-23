@@ -23,7 +23,7 @@ export default function OsGithubConnectError({
             Retry
           </button>
           <a
-            href="/os/code"
+            href="/os"
             className="rounded-2xl border px-4 py-2.5 text-sm font-medium"
             style={{ borderColor: "var(--os-border-soft)", background: "var(--bg-surface)", color: "var(--text-primary)" }}
           >

@@ -32,7 +32,7 @@ function redirectWithError(request: NextRequest, nextPath: string, message: stri
 }
 
 export async function GET(request: NextRequest) {
-  const nextPath = safeNext(request.nextUrl.searchParams.get("next"), "/os/code");
+  const nextPath = safeNext(request.nextUrl.searchParams.get("next"), "/os");
   let workspaceId = normalizeWorkspaceId(request.nextUrl.searchParams.get("workspaceId")) ?? "";
   if (!workspaceId) {
     return redirectWithError(request, "/os/github/connect", "Missing workspaceId for GitHub OAuth.");

@@ -1,16 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, Code2, Mail, CalendarDays, ListTodo, Workflow, RefreshCw } from "lucide-react";
+import { ArrowRight, Bot, Mail, CalendarDays, ListTodo, Workflow, RefreshCw } from "lucide-react";
 import OrchestratorPanel from "@/components/orchestrator/OrchestratorPanel";
 import { Button, Card, Badge } from "@/components/os/primitives";
 import { useWorkspaceData } from "@/components/workspace/WorkspaceContext";
 import { listExecutorRegistry } from "@/lib/orb-os/orchestrator/executorRegistry";
-import { mapChiefCodeSteps, type ChiefCodePhase } from "@/lib/orb-os/orchestrator/chiefCode";
-import { detectChiefExecutorType, mapChiefSteps } from "@/lib/orb-os/orchestrator/chiefDelegation";
-import type { AnyTaskContract, CodeTaskContract, ExecutorType } from "@/types/taskContract";
+import { detectChiefExecutorType, mapChiefSteps, type ChiefPhase } from "@/lib/orb-os/orchestrator/chiefDelegation";
+import type { AnyTaskContract, ExecutorType } from "@/types/taskContract";
 
-type ChiefCodePlanResponse = {
+type ChiefPlanResponse = {
   ok: boolean;
   runId?: string;
   summary?: string;
@@ -64,30 +63,14 @@ type SelectedRunDetail = {
 };
 
 const EXECUTOR_ICONS = {
-  code: Code2,
   mail: Mail,
   calendar: CalendarDays,
   tasks: ListTodo,
   workflow: Workflow,
 } as const;
 
-function openCodeRun(runId: string) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem("elyra_pending_code_run_id", runId);
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new CustomEvent("elyra:open-code-run", { detail: { runId } }));
-}
-
 function openExecutorSurface(executorType: string | null | undefined, workspaceId: string, runId?: string | null) {
   if (typeof window === "undefined") return;
-  if (executorType === "code" && runId) {
-    openCodeRun(runId);
-    window.location.assign(`/os/code?workspaceId=${encodeURIComponent(workspaceId)}&openRunId=${encodeURIComponent(runId)}`);
-    return;
-  }
   if (executorType === "mail") {
     window.location.assign(`/os/mail?workspaceId=${encodeURIComponent(workspaceId)}`);
     return;
@@ -106,7 +89,7 @@ export default function ChiefOrchestratorConsole() {
   const workspaceId = data?.activeWorkspace?.id ?? "";
   const [tab, setTab] = useState<"Understand" | "Plan" | "Run">("Understand");
   const [intent, setIntent] = useState("");
-  const [phase, setPhase] = useState<ChiefCodePhase>("idle");
+  const [phase, setPhase] = useState<ChiefPhase>("idle");
   const [contract, setContract] = useState<AnyTaskContract | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
@@ -120,9 +103,7 @@ export default function ChiefOrchestratorConsole() {
 
   const steps = useMemo(
     () =>
-      contract?.executorType === "code"
-        ? mapChiefCodeSteps({ contract: contract as CodeTaskContract, phase, executorLabel, error })
-        : mapChiefSteps({ contract, phase, executorLabel, error }),
+      mapChiefSteps({ contract, phase, executorLabel, error }),
     [contract, phase, executorLabel, error],
   );
   const executors = useMemo(() => listExecutorRegistry(), []);
@@ -162,9 +143,9 @@ export default function ChiefOrchestratorConsole() {
     void loadRunDetail(selectedRunId);
   }, [loadRunDetail, selectedRunId]);
 
-  const callChiefCodeOrchestrator = useCallback(
+  const callChiefOrchestrator = useCallback(
     async (nextPhase: "plan" | "execute", nextExecutorType: ExecutorType) => {
-      const endpoint = nextExecutorType === "code" ? "/api/os/orchestrator/code" : "/api/os/orchestrator/delegate";
+      const endpoint = "/api/os/orchestrator/delegate";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -177,27 +158,12 @@ export default function ChiefOrchestratorConsole() {
           workspaceId,
           intent,
           task: intent,
-          ...(nextExecutorType === "code"
-            ? {
-                repoUrl: "",
-                branch: "main",
-                folderPath: "",
-                selectedFiles: [],
-                stage: "playground",
-                terminalAccess: true,
-                useReasoning: false,
-                executionMode: "adaptive",
-                autoCommit: false,
-                skill: "custom",
-              }
-            : {
-                executorType: nextExecutorType,
-              }),
+          executorType: nextExecutorType,
           phase: nextPhase,
           ...(runId ? { runId } : {}),
         }),
       });
-      return (await response.json().catch(() => null)) as ChiefCodePlanResponse | null;
+      return (await response.json().catch(() => null)) as ChiefPlanResponse | null;
     },
     [intent, runId, workspaceId],
   );
@@ -207,14 +173,14 @@ export default function ChiefOrchestratorConsole() {
     const nextExecutorType = detectChiefExecutorType(intent);
     if (nextExecutorType === "unknown") {
       setError("Elly could not map this intent to a supported executor.");
-      setSummary("Use a coding, mail, calendar, task, or workflow request here.");
+      setSummary("Use a mail, calendar, task, or workflow request here.");
       setPhase("failed");
       setTab("Run");
       return;
     }
 
     setError(null);
-    setSummary("Chief orchestrator is analyzing the request and creating a coding contract.");
+    setSummary("Chief orchestrator is analyzing the request and creating a task contract.");
     setPhase("planning");
     setTab("Understand");
     setContract(null);
@@ -223,7 +189,7 @@ export default function ChiefOrchestratorConsole() {
     setExecutorType(null);
     setEvidence([]);
 
-    const payload = await callChiefCodeOrchestrator("plan", nextExecutorType);
+    const payload = await callChiefOrchestrator("plan", nextExecutorType);
     if (!payload?.ok || !payload.contract) {
       const message = payload?.error || "Chief orchestrator plan failed.";
       setPhase("failed");
@@ -235,14 +201,14 @@ export default function ChiefOrchestratorConsole() {
 
     setRunId(payload.runId ?? null);
     setContract(payload.contract);
-    setExecutorLabel(payload.executor?.label ?? "Coding Agent");
+    setExecutorLabel(payload.executor?.label ?? "Executor");
     setExecutorType(payload.contract.executorType);
     setSummary(payload.summary ?? "Chief orchestrator contract created.");
     setPhase("plan_ready");
     setTab("Plan");
     setSelectedRunId(payload.runId ?? null);
     await loadRecentRuns();
-  }, [callChiefCodeOrchestrator, intent, loadRecentRuns, workspaceId]);
+  }, [callChiefOrchestrator, intent, loadRecentRuns, workspaceId]);
 
   const handleExecute = useCallback(async () => {
     if (!workspaceId || !intent.trim()) return;
@@ -257,7 +223,7 @@ export default function ChiefOrchestratorConsole() {
     setSummary(`Chief orchestrator dispatched the contract to the ${nextExecutorType} executor.`);
     setPhase("executing");
     setTab("Run");
-    const payload = await callChiefCodeOrchestrator("execute", nextExecutorType);
+    const payload = await callChiefOrchestrator("execute", nextExecutorType);
     if (!payload?.ok) {
       const message = payload?.error || "Chief orchestrator execution failed.";
       setPhase("failed");
@@ -270,9 +236,6 @@ export default function ChiefOrchestratorConsole() {
     if (payload.runId) {
       setRunId(payload.runId);
       setSelectedRunId(payload.runId);
-      if (nextExecutorType === "code") {
-        openCodeRun(payload.runId);
-      }
     }
     setEvidence((payload.artifact?.summary ? [payload.artifact.summary] : []).concat(
       payload.artifact?.executionStatus ? [`Execution status: ${payload.artifact.executionStatus}`] : [],
@@ -285,7 +248,7 @@ export default function ChiefOrchestratorConsole() {
     }
     setTab("Run");
     await loadRecentRuns();
-  }, [callChiefCodeOrchestrator, executorType, intent, loadRecentRuns, workspaceId]);
+  }, [callChiefOrchestrator, executorType, intent, loadRecentRuns, workspaceId]);
 
   const openLogs = useCallback(() => {
     if (!runId) return;
@@ -320,7 +283,7 @@ export default function ChiefOrchestratorConsole() {
           <textarea
             value={intent}
             onChange={(event) => setIntent(event.target.value)}
-            placeholder="Describe what Elly should delegate: code, mail, calendar, tasks, or workflow..."
+            placeholder="Describe what Elly should delegate: mail, calendar, tasks, or workflow..."
             className="mt-4 min-h-[140px] w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-[color:var(--text-primary)] outline-none"
           />
           <div className="mt-4 flex flex-wrap gap-3">
@@ -352,7 +315,7 @@ export default function ChiefOrchestratorConsole() {
                       <Icon size={15} />
                       <p className="text-sm font-medium text-[color:var(--text-primary)]">{executor.label}</p>
                     </div>
-                    <Badge tone={executor.executorType === "code" || executor.executorType === "mail" || executor.executorType === "calendar" || executor.executorType === "tasks" ? "accent" : "neutral"}>
+                    <Badge tone={executor.executorType === "mail" || executor.executorType === "calendar" || executor.executorType === "tasks" ? "accent" : "neutral"}>
                       {executor.executorType === "workflow" ? "next" : "active"}
                     </Badge>
                   </div>
@@ -384,10 +347,7 @@ export default function ChiefOrchestratorConsole() {
                     ? `${contract.scope.selectedFiles.length} selected file(s)`
                     : contract.scope.folderPath?.trim()
                       ? `folder: ${contract.scope.folderPath}`
-                      : contract.executorType === "code"
-                        ? "repo scope"
-                        : "workspace scope",
-                  contract.executorType === "code" ? `stage: ${contract.constraints.stage ?? "playground"}` : null,
+                      : "workspace scope",
                   executorLabel ?? "Executor",
                 ].filter(Boolean).join(" · ")
               : null
@@ -398,7 +358,7 @@ export default function ChiefOrchestratorConsole() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-[color:var(--text-primary)]">Recent orchestrator and code runs</p>
+            <p className="text-sm font-semibold text-[color:var(--text-primary)]">Recent orchestrator runs</p>
             <Badge tone="neutral">{recentRuns.length}</Badge>
           </div>
           <div className="mt-4 space-y-3">

@@ -20,7 +20,6 @@ Key frontend paths:
 | `app/os/` | App Router pages of the OS shell |
 | `components/os/shell/WorkspaceOS.tsx` | Shell: header, workspace switcher, canvas, intent line |
 | `components/os/kernel/` | Window and app state, workspace model |
-| `app/api/os/code/` | Coding agent pipeline (platform owner only) |
 | `lib/api/requireAuth.ts` | Central login / platform-owner check for API routes |
 | `lib/marketplace/` | Marketplace, templates and sandboxed mini-apps |
 
@@ -73,12 +72,6 @@ cd backend/ai-service && npx tsc --noEmit
 - Use the design tokens (`var(--os-…)`, `var(--text-primary)`, …) instead of fixed colours.
 - `try/catch` around async work in API routes; respond with `{ ok: false, error }`.
 - Wrap `localStorage` access in `try/catch`.
-
-### Coding agent workflow
-
-- Changes run in the playground first (port 3100), pass the build gate, then get promoted.
-- Agent branches use the prefix `elyra/`, agent commits the prefix `elyra:`.
-- Keep edits small and verifiable; restore the checkpoint if verification fails.
 
 ### Changes
 

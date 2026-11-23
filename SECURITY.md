@@ -35,8 +35,8 @@ You will get an answer within a few days.
 - **Platform owner** (the operator of an instance) is configured by exact email address in
   `SYSTEM_FOUNDER_ALLOWLIST` / `NEXT_PUBLIC_SYSTEM_FOUNDER_ALLOWLIST`. Whole domains are never
   trusted. The role cannot be requested by a client.
-- Only the platform owner can use the coding agent (`/api/os/code/*`), which can read and change
-  the codebase, and the diagnostic routes.
+- Only the platform owner can use the diagnostic routes. There is no in-app agent that can read
+  or change the codebase.
 
 ### Human in the loop
 

@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto";
 import type { ExecutorType, TaskContract, ToolTaskContract } from "@/types/taskContract";
 import type { OrchestratorStep } from "@/components/orchestrator/OrchestratorPanel";
-import { isCodeIntent } from "@/lib/orb-os/orchestrator/chiefCode";
 
 export type ChiefExecutorType = ExecutorType | "unknown";
+export type ChiefPhase = "idle" | "planning" | "plan_ready" | "executing" | "done" | "failed";
 
 const MAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 
@@ -28,7 +28,7 @@ function isTaskListIntent(normalized: string): boolean {
 export function detectChiefExecutorType(intent: string): ChiefExecutorType {
   const normalized = intent.trim().toLowerCase();
   if (!normalized) return "unknown";
-  if (isCodeIntent(intent)) return "code";
+  // Code changes are no longer delegated: the coding agent was removed.
   if (normalized.startsWith("/email") || normalized.startsWith("/mail") || normalized.includes("e-mail") || normalized.includes("email") || normalized.includes("mail")) return "mail";
   if (normalized.startsWith("/calendar") || normalized.includes("calendar") || normalized.includes("kalender") || normalized.includes("meeting") || normalized.includes("woche") || normalized.includes("schedule")) return "calendar";
   if (normalized.startsWith("/task") || normalized.startsWith("/tasks") || normalized.includes("task") || normalized.includes("aufgabe") || normalized.includes("todo")) return "tasks";
@@ -182,7 +182,7 @@ export function buildToolTaskContract(input: {
 
 export function mapChiefSteps(input: {
   contract: TaskContract | null;
-  phase: "idle" | "planning" | "plan_ready" | "executing" | "done" | "failed";
+  phase: ChiefPhase;
   executorLabel?: string | null;
   error?: string | null;
 }): OrchestratorStep[] {

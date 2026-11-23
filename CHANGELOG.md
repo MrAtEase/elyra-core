@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Coding-Agent komplett entfernt: Code-Fenster, `/os/code`, die Code-Routen, die Datei-/Code-Werkzeuge im Chat, die „Run in Coder“-Knöpfe im Builder und der lokale Dev-Agent im Worker. Damit gibt es keinen Weg mehr, über die App Code des Systems zu lesen oder zu ändern. GitHub-Verbindungen führen zurück auf den Desktop.
 - Fix: Beim Öffnen einer eigenen App aus Launcher oder Apps-Tab öffnete sich immer die neueste App, wenn das Fenster noch geschlossen war. Die gewählte App bleibt jetzt auch über das Neu-Laden des Fensters erhalten.
 - Vorlage „Küche & Einkauf“ als fertige, getestete App: Wochenplan mit Frühstück, Mittag und Abend; Vorlieben (Fisch, Fleisch, Geflügel, vegetarisch, vegan, Hülsenfrüchte, Lieblingsküchen, Kochniveau, Zeit werktags/Wochenende, Unverträglichkeiten); „Woche von Elly planen“ ohne doppelte Gerichte; Rezepte mit Zutaten für die eingestellte Personenzahl und präzisen Schritten von Elly ausarbeiten lassen; 12 ausgearbeitete Startrezepte (u. a. Bacalhau à Brás, Dorade aus dem Ofen, Ćevapčići, Linsen-Dal); Einkaufsliste nach Supermarkt-Bereichen.
 - Vorlagen: Bereits gebaute Vorlagen sind mit „Unter Apps“ markiert und bieten „Öffnen“, „Bearbeiten“ und (bei fertigen Vorlagen) „Aktualisieren“ auf die neueste Version – die gespeicherten Daten bleiben erhalten.

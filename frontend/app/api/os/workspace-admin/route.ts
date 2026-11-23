@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
                     entry.integration_id === "google_oauth"
                       ? `/api/google/connect?workspaceId=${encodeURIComponent(workspaceId)}&next=${encodeURIComponent("/os")}`
                       : entry.integration_id === "github"
-                        ? `/api/github/connect?workspaceId=${encodeURIComponent(workspaceId)}&next=${encodeURIComponent(`/os/code?workspaceId=${workspaceId}`)}`
+                        ? `/api/github/connect?workspaceId=${encodeURIComponent(workspaceId)}&next=${encodeURIComponent(`/os?workspaceId=${workspaceId}`)}`
                         : entry.integration_id === "figma"
                           ? `/api/workspaces/${encodeURIComponent(workspaceId)}/integrations/figma/connect`
                           : entry.integration_id === "banana2"

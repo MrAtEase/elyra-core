@@ -10,7 +10,6 @@ const REGISTRY: AppManifest[] = [
   { id: "slides", name: "Folien", icon: "▤", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "image_studio", name: "Bilder", icon: "◐", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "studio", name: "Studio", icon: "✦", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "code", name: "Code", icon: "⌥", category: "develop", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "reporting", name: "Reporting", icon: "▥", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "leads", name: "Leads", icon: "◎", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "toolbox", name: "Werkzeuge", icon: "⚒", category: "insights", availableIn: ["individual", "organization", "platform"], openAs: "window" },

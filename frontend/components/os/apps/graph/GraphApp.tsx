@@ -33,30 +33,6 @@ type GraphNodeDraft = {
 
 const AI_CONTROL_ACTIONS = [
   {
-    id: "analyze-visual",
-    label: "Analyze Screenshot",
-    detail: "Open Code with a multimodal review task.",
-    run: () => {
-      window.localStorage.setItem("elyra_ai_task_queue", JSON.stringify({
-        skill: "custom",
-        task: "Analyze the uploaded screenshots or visual assets, identify UI issues, and prepare an implementation plan with concrete fixes.",
-      }));
-      window.location.assign("/os/code");
-    },
-  },
-  {
-    id: "image-video-brief",
-    label: "Image / Video Brief",
-    detail: "Open Code with a creative generation brief workflow.",
-    run: () => {
-      window.localStorage.setItem("elyra_ai_task_queue", JSON.stringify({
-        skill: "custom",
-        task: "Create image and video generation briefs, prompts, shot lists, and asset requirements for the active project.",
-      }));
-      window.location.assign("/os/code");
-    },
-  },
-  {
     id: "build-process",
     label: "Build Process",
     detail: "Open Builder with an imported quickstart workflow.",

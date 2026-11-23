@@ -1,8 +1,8 @@
 /**
  * Regression test: LocaleProvider must NOT depend on WorkspaceProvider.
  *
- * History: CodingAgentWindow called useLocale(), which needs LocaleProvider, which
- * called useWorkspaceData() — but the OS shell layout (/os/code) never mounted
+ * History: an OS window called useLocale(), which needs LocaleProvider, which
+ * called useWorkspaceData() — but the OS shell layout never mounted
  * WorkspaceProvider, causing a runtime crash:
  *   "useLocale must be used within a LocaleProvider"
  *
@@ -55,15 +55,7 @@ test("WorkspaceOS mounts LocaleProvider so all OS shell routes have locale acces
   );
 });
 
-test("CodingAgentWindow lives under the OS shell path that now has LocaleProvider", async () => {
-  // Guard that CodingAgentWindow is still a child of the /os/code page
-  // (if it moves, the locale fix may need to be re-evaluated).
-  const pageSrc = await readSrc("app/os/code/page.tsx");
-  assert.ok(
-    pageSrc.includes("CodingAgentWindow"),
-    "app/os/code/page.tsx must still render CodingAgentWindow"
-  );
-  // Guard that the OS layout file still renders WorkspaceOS (which carries LocaleProvider)
+test("OS layout renders WorkspaceOS (which mounts LocaleProvider)", async () => {
   const layoutSrc = await readSrc("app/os/layout.tsx");
   assert.ok(
     layoutSrc.includes("WorkspaceOS"),

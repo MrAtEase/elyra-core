@@ -64,7 +64,6 @@ const AppAuditWindow = lazy(() => import("@/components/os/apps/AppAuditWindow"))
 const AppRunsWindow = lazy(() => import("@/components/os/apps/AppRunsWindow"));
 const BuilderWindow = lazy(() => import("@/components/os/apps/builder/BuilderWindow"));
 const StudioWindow = lazy(() => import("@/components/os/apps/studio/StudioWindow"));
-const CodingAgentWindow = lazy(() => import("@/components/os/apps/code/CodingAgentWindow"));
 const CalendarWindow = lazy(() => import("@/components/os/apps/calendar/CalendarWindow"));
 const FilesWindow = lazy(() => import("@/components/os/apps/files/FilesWindow"));
 const MailWindow = lazy(() => import("@/components/os/apps/mail/MailWindow"));
@@ -130,7 +129,6 @@ function renderAppWindow(appId: AppId, windowId: string, workspaceId: string, ac
   else if (appId === "builder") content = <BuilderWindow />;
   else if (appId === "slides") content = <SlidesWindow />;
   else if (appId === "studio") content = <StudioWindow />;
-  else if (appId === "code") content = <CodingAgentWindow />;
   else if (appId === "weather") content = <WeatherWindow />;
   else if (appId === "reporting") content = <ReportingWindow />;
   else if (appId === "ads_audit") content = <AdsAuditWindow />;
@@ -219,7 +217,6 @@ function parseRoutedApp(pathname: string): AppId | null {
   if (pathname.startsWith("/os/builder")) return "builder";
   if (pathname.startsWith("/os/slides")) return "slides";
   if (pathname.startsWith("/os/studio")) return "studio";
-  if (pathname.startsWith("/os/code")) return "code";
   if (pathname.startsWith("/os/weather")) return "weather";
   if (pathname.startsWith("/os/reporting")) return "reporting";
   if (pathname.startsWith("/os/ads-audit")) return "ads_audit";
@@ -351,7 +348,6 @@ function markOnboardingDismissed(workspaceId: string): void {
 }
 
 const ROUTED_APP_PATHS: Partial<Record<AppId, string>> = {
-  code:     "/os/code",
   mail:     "/os/mail",
   calendar: "/os/calendar",
   tasks:    "/os/tasks",
@@ -583,10 +579,8 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
     if (mentionsMail) return "mail";
     if (mentionsCalendar) return "calendar";
     if (mentionsTasks) return "tasks";
-    if (mentionsCode) return "code";
-    if (hasImages && /\b(ui|layout|screen|app|component|button|window|weather|chat|intent)\b/i.test(text)) {
-      return "code";
-    }
+    // The coding agent was removed: code requests go to Elly like any other request.
+    void mentionsCode;
     return "general";
   }, [looksLikeCodeIntent]);
   const guessCodeTargetFiles = useCallback((text: string) => {
@@ -695,10 +689,6 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
 
       const target = routeIntentTarget(trimmed, attachments);
 
-      if (target === "code") {
-        forwardIntentToCode(trimmed, attachments);
-        return;
-      }
       if (target === "slides") {
         forwardIntentToSlides(trimmed, attachments);
         return;
@@ -959,7 +949,7 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
   }, [normalizedActiveWorkspaceId, openApp, pathname]);
 
   // When a routed app window is explicitly closed, navigate the URL back to /os so the URL
-  // doesn't permanently show /os/code (or /os/mail etc.) after the user closes the window.
+  // doesn't permanently show /os/mail (or other app routes) after the user closes the window.
   const routedWindowEverOpenRef = useRef(false);
   // Reset the "ever open" tracker when workspace switches so the close-detection effect below
   // doesn't falsely navigate back to /os when the new workspace has no window yet.
@@ -1756,7 +1746,7 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
                   }}
                   onOpenSettings={() => openSettings("ai")}
                   onOpenRun={(runId) => {
-                    router.push(`/os/code?workspaceId=${encodeURIComponent(normalizedActiveWorkspaceId)}&openRunId=${encodeURIComponent(runId)}`);
+                    router.push(`/os/tasks?workspaceId=${encodeURIComponent(normalizedActiveWorkspaceId)}&openRunId=${encodeURIComponent(runId)}`);
                   }}
                   onConfirmStep={confirmActiveIntentStep}
                   onDenyStep={denyActiveIntentStep}
@@ -1984,7 +1974,7 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
 export default function WorkspaceOS({ whoami, children }: { whoami: WhoamiResponse | null; children?: ReactNode }) {
   return (
     <KernelProvider>
-      {/* LocaleProvider mounts here so all OS-shell routes (including /os/code) have
+      {/* LocaleProvider mounts here so all OS-shell routes  have
           access to useLocale(). It uses useWorkspaceDataOptional() and falls back to
           browser locale when WorkspaceProvider is not in the tree. */}
       <LocaleProvider>

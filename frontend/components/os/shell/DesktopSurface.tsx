@@ -1842,11 +1842,7 @@ export default function DesktopSurface({
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        if (isConnected) {
-                                          setActiveSurface("apps");
-                                          onOpenApp("code");
-                                          return;
-                                        }
+                                        if (isConnected) return;
                                         void connectGithub();
                                       }}
                                       className="rounded-full border border-[color:var(--os-border-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]"

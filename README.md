@@ -31,7 +31,6 @@ I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2
 | **Mail** | Gmail API and iCloud (IMAP/SMTP) – thread list, read, AI-drafted replies, supervised sending |
 | **Calendar** | Google Calendar and CalDAV (iCloud) – list, create, update and delete events |
 | **Tasks & docs** | Task management, Notion integration, docs and slides windows |
-| **Coding agent** | An in-app AI coding assistant that plans, writes and applies code changes with a build gate and rollback |
 | **Marketplace & own apps** | Optional apps, skills and templates per workspace; Elly builds small apps on request – once approved they appear under Apps and run in a sandboxed iframe with their own data |
 | **Governance** | User approval for destructive actions, workspace-level policies, audit log |
 
@@ -57,7 +56,7 @@ Built as prototypes with sample data – each one follows the same rule: Elly an
 - **Human-in-the-loop by design** – the assistant proposes, the user approves. Destructive actions require explicit confirmation and are written to an audit table.
 - **Connectors & auth** – OAuth 2.0 for Google, Microsoft and Apple; secure session cookies across subdomains; HMAC-signed internal APIs.
 - **Workspace isolation** – one login, several separate workspaces (personal, company). Every API route checks membership on the server; the AI service verifies it again with the worker. See [`SECURITY.md`](SECURITY.md).
-- **MCP support** – workspaces can configure Model Context Protocol (MCP) servers that the coding agent uses as tools.
+- **MCP support** – workspaces can configure Model Context Protocol (MCP) servers that Elly can use as tools.
 - **Robust patch pipeline** – AI-generated diffs are repaired and verified step by step (hunk recount → `git apply` fallbacks → AI repair → build gate) before anything is committed.
 - **Quality** – unit and end-to-end tests (Playwright), including security, auth-flow and workspace-policy checks, plus an evaluation harness for AI responses.
 
@@ -84,7 +83,7 @@ flowchart LR
 
 | Folder | Purpose |
 |---|---|
-| `frontend/` | Next.js app – OS shell, windows, API routes, coding agent |
+| `frontend/` | Next.js app – OS shell, windows, API routes |
 | `worker/` | Cloudflare Worker – OAuth, sessions, mail & calendar, orchestration |
 | `backend/ai-service/` | AI provider calls (Gemini, Claude, OpenAI) |
 | `email-io/` | Internal service for iCloud mail (IMAP/SMTP) |

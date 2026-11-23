@@ -8,7 +8,7 @@ import path from "node:path";
 /**
  * POST /api/ai/chat
  *
- * Multi-provider Elly chat endpoint with full tool-call loop + vibe coding.
+ * Multi-provider Elly chat endpoint with full tool-call loop.
  *
  * Providers:
  *  - "gemini"        — Gemini 2.5 Flash via direct API key (default)
@@ -18,19 +18,17 @@ import path from "node:path";
  *
  * Built-in Gemini tools: google_search, code_execution
  * Function-calling tools (all providers): see ELLI_TOOL_DECLARATIONS below
- * Vibe coding tools: file_read, file_search, file_write, vibe_code
  *
  * Body: {
  *   message: string
  *   provider?: "gemini" | "claude_direct" | "claude_vertex" | "openai"
  *   workspaceName?: string
- *   repoUrl?: string            // for vibe coding — defaults to ELYRA_REPO_URL env
+ *   repoUrl?: string            // optional project context — defaults to ELYRA_REPO_URL env
  *   history?: Array<{role: "user"|"model"|"assistant", text: string}>
  *   preferences?: { personalityTone?: string, autonomy?: number, fullAccessMode?: boolean }
  *   enableTools?: boolean          // default: true
  *   enableCodeExecution?: boolean  // default: true (Gemini only)
  *   enableSearch?: boolean         // default: true (Gemini only)
- *   enableVibeCode?: boolean       // default: true — enables builder/vibe-code tools
  * }
  * Response: { text: string, model: string, provider: string }
  */
@@ -279,70 +277,6 @@ const ELLI_TOOL_DECLARATIONS: ToolDeclaration[] = [
     },
   },
   // ── Vibe Coding / Builder Tools ───────────────────────────────────────────
-  {
-    name: "file_read",
-    description: "Read the content of a source file in the project. Use to understand existing code before making changes.",
-    parameters: {
-      type: "object",
-      properties: {
-        path: {
-          type: "string",
-          description: "Relative file path from project root (e.g. 'frontend/components/Button.tsx')",
-        },
-      },
-      required: ["path"],
-    },
-  },
-  {
-    name: "file_search",
-    description: "Search for code patterns or text across all project files using ripgrep. Returns matching lines with file paths.",
-    parameters: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Search term or regex pattern" },
-        glob: { type: "string", description: "File glob filter (e.g. '*.tsx', '**/*.ts'). Optional." },
-        max_results: { type: "integer", description: "Max lines to return (default 40)", default: 40 },
-      },
-      required: ["query"],
-    },
-  },
-  {
-    name: "file_write",
-    description: "Write or overwrite a file with new content. Use for creating new files or replacing small files entirely.",
-    parameters: {
-      type: "object",
-      properties: {
-        path: { type: "string", description: "Relative file path from project root" },
-        content: { type: "string", description: "Full file content to write" },
-      },
-      required: ["path", "content"],
-    },
-  },
-  {
-    name: "vibe_code",
-    description:
-      "Run the AI vibe-coding pipeline: describe a code change in natural language and Elly will generate and apply a unified diff patch. Use for refactoring, adding features, fixing bugs across multiple files. Returns a summary of what was changed.",
-    parameters: {
-      type: "object",
-      properties: {
-        task: {
-          type: "string",
-          description: "Natural language description of the code change to make (e.g. 'Add a loading spinner to the SubmitButton component')",
-        },
-        scope: {
-          type: "string",
-          description:
-            "Folder scope within the project to limit search (e.g. 'frontend/components', 'frontend/app/os'). Optional — leave empty for full project.",
-        },
-        provider: {
-          type: "string",
-          description: "AI provider for code generation: 'gemini' (default), 'claude_direct', 'openai'",
-          enum: ["gemini", "claude_direct", "openai"],
-        },
-      },
-      required: ["task"],
-    },
-  },
 ];
 
 // ── Vibe coding tool executor (inline, does not use /api/os/tools/execute) ─────
@@ -357,139 +291,6 @@ function safeResolvePath(relPath: string): string | null {
   }
   return resolved;
 }
-
-async function vibeToolFileRead(args: Record<string, unknown>): Promise<string> {
-  const relPath = typeof args.path === "string" ? args.path : null;
-  if (!relPath) return "Error: path is required";
-  const abs = safeResolvePath(relPath);
-  if (!abs) return "Error: path traversal not allowed";
-  try {
-    const content = await fs.readFile(abs, "utf-8");
-    const lines = content.split("\n");
-    if (lines.length > 300) {
-      return lines.slice(0, 300).join("\n") + `\n\n... (truncated — ${lines.length} total lines)`;
-    }
-    return content;
-  } catch (err) {
-    return `Error reading file: ${err instanceof Error ? err.message : String(err)}`;
-  }
-}
-
-async function vibeToolFileSearch(args: Record<string, unknown>): Promise<string> {
-  const query = typeof args.query === "string" ? args.query : null;
-  if (!query) return "Error: query is required";
-  const glob = typeof args.glob === "string" ? args.glob : undefined;
-  const maxResults = typeof args.max_results === "number" ? args.max_results : 40;
-
-  return new Promise<string>((resolve) => {
-    const rgArgs = [
-      "--line-number",
-      "--no-heading",
-      "--max-count", String(maxResults),
-      ...(glob ? ["--glob", glob] : []),
-      query,
-      VIBE_REPO_ROOT,
-    ];
-
-    execFile("rg", rgArgs, { timeout: 10_000, maxBuffer: 512 * 1024 }, (err, stdout, stderr) => {
-      if (err && !stdout) {
-        // Try grep fallback
-        const grepArgs = ["-r", "-n", "--include", glob ?? "*", query, VIBE_REPO_ROOT];
-        execFile("grep", grepArgs, { timeout: 10_000, maxBuffer: 512 * 1024 }, (err2, stdout2) => {
-          const lines = (stdout2 || "").split("\n").filter(Boolean).slice(0, maxResults);
-          resolve(lines.length > 0 ? lines.join("\n") : "(No matches found)");
-        });
-        return;
-      }
-      const lines = stdout.split("\n").filter(Boolean).slice(0, maxResults);
-      resolve(lines.length > 0 ? lines.join("\n") : "(No matches found)");
-    });
-  });
-}
-
-async function vibeToolFileWrite(args: Record<string, unknown>): Promise<string> {
-  const relPath = typeof args.path === "string" ? args.path : null;
-  const content = typeof args.content === "string" ? args.content : null;
-  if (!relPath || content === null) return "Error: path and content are required";
-  const abs = safeResolvePath(relPath);
-  if (!abs) return "Error: path traversal not allowed";
-  try {
-    await fs.mkdir(path.dirname(abs), { recursive: true });
-    await fs.writeFile(abs, content, "utf-8");
-    return `✓ Written ${content.split("\n").length} lines to ${relPath}`;
-  } catch (err) {
-    return `Error writing file: ${err instanceof Error ? err.message : String(err)}`;
-  }
-}
-
-async function vibeToolVibeCode(
-  args: Record<string, unknown>,
-  context: { origin: string; repoUrl: string }
-): Promise<string> {
-  const task = typeof args.task === "string" ? args.task : null;
-  if (!task) return "Error: task is required";
-  const scope = typeof args.scope === "string" ? args.scope : "";
-  const provider = typeof args.provider === "string" ? args.provider : "gemini";
-
-  try {
-    const resp = await fetch(`${context.origin}/api/os/code/run`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-key": process.env.INTERNAL_API_KEY ?? "",
-      },
-      body: JSON.stringify({
-        prompt: task,
-        repoUrl: context.repoUrl,
-        folderPath: scope || "",
-        stage: "dev",
-        role: "frontend",
-        provider,
-        agentRole: "frontend",
-        selectedFiles: [],
-        autonomy: 0.7,
-        returnDiffOnly: false,
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({ error: `HTTP ${resp.status}` })) as { error?: string };
-      return `Vibe code failed: ${err.error ?? `HTTP ${resp.status}`}`;
-    }
-
-    const result = await resp.json() as {
-      ok?: boolean;
-      summary?: string;
-      diff?: string;
-      error?: string;
-      filesChanged?: string[];
-      linesAdded?: number;
-      linesRemoved?: number;
-    };
-
-    if (!result.ok && result.error) {
-      return `Vibe code error: ${result.error}`;
-    }
-
-    const parts: string[] = [];
-    if (result.summary) parts.push(result.summary);
-    if (result.filesChanged?.length) {
-      parts.push(`Files changed: ${result.filesChanged.join(", ")}`);
-    }
-    if (result.linesAdded !== undefined) {
-      parts.push(`+${result.linesAdded} / -${result.linesRemoved ?? 0} lines`);
-    }
-    if (parts.length === 0 && result.diff) {
-      parts.push(`Patch applied:\n\`\`\`diff\n${result.diff.slice(0, 1000)}\n\`\`\``);
-    }
-    return parts.join("\n") || "✓ Code changes applied successfully";
-  } catch (err) {
-    return `Vibe code error: ${err instanceof Error ? err.message : String(err)}`;
-  }
-}
-
-// ── Vertex AI Search (Discovery Engine) ──────────────────────────────────────
 
 async function vertexSearch(args: Record<string, unknown>): Promise<string> {
   const query = typeof args.query === "string" ? args.query : null;
@@ -557,18 +358,13 @@ async function vertexSearch(args: Record<string, unknown>): Promise<string> {
   }
 }
 
-// ── Tool execution (routes to /api/os/tools/execute or inline for vibe tools) ──
+// ── Tool execution (routes to /api/os/tools/execute) ──
 
 async function executeTool(
   name: string,
   args: Record<string, unknown>,
   context: { origin: string; repoUrl: string }
 ): Promise<string> {
-  // Inline vibe coding tools (bypass /api/os/tools/execute)
-  if (name === "file_read") return vibeToolFileRead(args);
-  if (name === "file_search") return vibeToolFileSearch(args);
-  if (name === "file_write") return vibeToolFileWrite(args);
-  if (name === "vibe_code") return vibeToolVibeCode(args, context);
 
   // Inline Vertex AI Search
   if (name === "vertex_search") return vertexSearch(args);
@@ -717,7 +513,6 @@ function buildSystemPrompt(opts: {
   autonomyLevel: number;
   fullAccessMode: boolean;
   enableTools: boolean;
-  enableVibeCode: boolean;
 }): string {
   const tone =
     opts.personalityTone === "pragmatic"
@@ -736,11 +531,7 @@ function buildSystemPrompt(opts: {
           : "Autonom: plan und führe selbstständig aus, frage nur bei High-Risk.";
 
   const toolHint = opts.enableTools
-    ? "Nutze Tools aktiv: web_search für aktuelle Daten, calendar/gmail/tasks für Aktionen, slides_create für Präsentationen und Marketing-Decks, drive_search für Dokumente suchen, vibe_code für Code-Änderungen."
-    : "";
-
-  const vibeCodeHint = opts.enableVibeCode
-    ? "Vibe-Coding: nutze file_read/file_search um Code zu verstehen, vibe_code um Änderungen anzuwenden. Lies zuerst relevante Dateien, dann wende Änderungen an."
+    ? "Nutze Tools aktiv: web_search für aktuelle Daten, calendar/gmail/tasks für Aktionen, slides_create für Präsentationen und Marketing-Decks, drive_search für Dokumente suchen."
     : "";
 
   return [
@@ -750,7 +541,6 @@ function buildSystemPrompt(opts: {
     `Ton: ${tone}`,
     `Autonomie: ${autonomy}`,
     toolHint,
-    vibeCodeHint,
     opts.fullAccessMode
       ? "Full Access: nutze Tools maximal. Melde riskante Aktionen (Deploy, Billing) vor Ausführung."
       : "",
@@ -767,7 +557,6 @@ async function callGeminiChat(opts: {
   enableSearch: boolean;
   enableCodeExecution: boolean;
   enableTools: boolean;
-  enableVibeCode: boolean;
   origin: string;
   repoUrl: string;
   model?: string;
@@ -776,9 +565,7 @@ async function callGeminiChat(opts: {
   const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${opts.apiKey}`;
 
   // Build active tool declarations
-  const activeDecls = opts.enableVibeCode
-    ? ELLI_TOOL_DECLARATIONS
-    : ELLI_TOOL_DECLARATIONS.filter((t) => !["file_read", "file_search", "file_write", "vibe_code"].includes(t.name));
+  const activeDecls = ELLI_TOOL_DECLARATIONS;
 
   // Gemini constraint: built-in tools (google_search, code_execution) cannot be combined
   // with custom functionDeclarations in the same request. Must choose one mode:
@@ -875,7 +662,6 @@ async function callClaudeChat(opts: {
   system: string;
   messages: ClaudeMessage[];
   enableTools: boolean;
-  enableVibeCode: boolean;
   provider: "claude_direct" | "claude_vertex";
   origin: string;
   repoUrl: string;
@@ -902,9 +688,7 @@ async function callClaudeChat(opts: {
   }
 
   // Build active tool declarations
-  const activeDecls = opts.enableVibeCode
-    ? ELLI_TOOL_DECLARATIONS
-    : ELLI_TOOL_DECLARATIONS.filter((t) => !["file_read", "file_search", "file_write", "vibe_code"].includes(t.name));
+  const activeDecls = ELLI_TOOL_DECLARATIONS;
 
   const claudeTools = opts.enableTools
     ? activeDecls.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters }))
@@ -989,7 +773,6 @@ async function callOpenAIChat(opts: {
   system: string;
   messages: Array<{ role: string; content: string }>;
   enableTools: boolean;
-  enableVibeCode: boolean;
   origin: string;
   repoUrl: string;
 }): Promise<string> {
@@ -998,9 +781,7 @@ async function callOpenAIChat(opts: {
   const model = process.env.OPENAI_CHAT_MODEL ?? "gpt-4o";
 
   // Build active tool declarations
-  const activeDecls = opts.enableVibeCode
-    ? ELLI_TOOL_DECLARATIONS
-    : ELLI_TOOL_DECLARATIONS.filter((t) => !["file_read", "file_search", "file_write", "vibe_code"].includes(t.name));
+  const activeDecls = ELLI_TOOL_DECLARATIONS;
 
   const openAiTools = opts.enableTools
     ? activeDecls.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } }))
@@ -1071,7 +852,6 @@ export async function POST(req: Request) {
     enableTools?: boolean;
     enableCodeExecution?: boolean;
     enableSearch?: boolean;
-    enableVibeCode?: boolean;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -1113,12 +893,11 @@ export async function POST(req: Request) {
   const enableTools = body.enableTools !== false;
   const enableSearch = body.enableSearch !== false;
   const enableCodeExecution = body.enableCodeExecution !== false;
-  const enableVibeCode = body.enableVibeCode !== false;
 
-  // Repo URL for vibe coding
+  // Optional project context
   const repoUrl = body.repoUrl ?? process.env.ELYRA_REPO_URL ?? "local://elyra-core";
 
-  const system = buildSystemPrompt({ workspaceName, personalityTone, autonomyLevel, fullAccessMode, enableTools, enableVibeCode });
+  const system = buildSystemPrompt({ workspaceName, personalityTone, autonomyLevel, fullAccessMode, enableTools });
 
   // Derive request origin for tool execution
   const origin = req.headers.get("origin") ?? req.headers.get("x-forwarded-host") ?? "http://localhost:3000";
@@ -1143,7 +922,7 @@ export async function POST(req: Request) {
       let lastGeminiError: unknown;
       for (const geminiModel of geminiModels) {
         try {
-          text = await callGeminiChat({ system, contents: geminiHistory, apiKey, enableSearch, enableCodeExecution, enableTools, enableVibeCode, origin, repoUrl, model: geminiModel });
+          text = await callGeminiChat({ system, contents: geminiHistory, apiKey, enableSearch, enableCodeExecution, enableTools, origin, repoUrl, model: geminiModel });
           modelLabel = geminiModel;
           lastGeminiError = undefined;
           break;
@@ -1162,7 +941,7 @@ export async function POST(req: Request) {
         .map((h) => ({ role: (h.role === "model" ? "assistant" : h.role) as "user" | "assistant", content: h.text }));
       claudeHistory.push({ role: "user", content: message });
 
-      text = await callClaudeChat({ system, messages: claudeHistory, enableTools, enableVibeCode, provider, origin, repoUrl });
+      text = await callClaudeChat({ system, messages: claudeHistory, enableTools, provider, origin, repoUrl });
       modelLabel = provider === "claude_direct"
         ? (process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5-20250908")
         : (process.env.VERTEX_CLAUDE_MODEL ?? "claude-sonnet-4-6");
@@ -1173,7 +952,7 @@ export async function POST(req: Request) {
         .map((h) => ({ role: h.role === "model" ? "assistant" : h.role, content: h.text }));
       oaiHistory.push({ role: "user", content: message });
 
-      text = await callOpenAIChat({ system, messages: oaiHistory, enableTools, enableVibeCode, origin, repoUrl });
+      text = await callOpenAIChat({ system, messages: oaiHistory, enableTools, origin, repoUrl });
       modelLabel = process.env.OPENAI_CHAT_MODEL ?? "gpt-4o";
     }
 

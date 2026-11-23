@@ -5,7 +5,7 @@ import {
   Zap, Filter, Clock, CheckCircle, Users, Mail, Database, Webhook, GitBranch,
   Play, Pause, Plus, Trash2, ChevronRight, ChevronDown, Settings, MoreHorizontal,
   AlertCircle, ArrowRight, Link2, Layers, LayoutGrid, List, Search, Code2,
-  Bell, Globe, MessageSquare, FileText, Workflow, ExternalLink,
+  Bell, Globe, MessageSquare, FileText, Workflow,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -117,13 +117,11 @@ function BlockChip({
   selected,
   isLast,
   onClick,
-  onRunInCoder,
 }: {
   step: WorkflowStep;
   selected: boolean;
   isLast: boolean;
   onClick: () => void;
-  onRunInCoder?: () => void;
 }) {
   const def = BLOCK_MAP[step.kind];
   const Icon = def.icon;
@@ -166,20 +164,6 @@ function BlockChip({
           )}
         </button>
 
-        {/* Run in Coder button — only for action steps that have an issue */}
-        {step.kind === "action" && step.config.issue && onRunInCoder && (
-          <div className="border-t px-3 py-1.5" style={{ borderColor: "rgba(59,130,246,0.15)" }}>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onRunInCoder(); }}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg py-1 text-[10px] font-semibold transition hover:bg-blue-500/15"
-              style={{ color: "#60a5fa" }}
-            >
-              <ExternalLink size={10} />
-              Run in Coder
-            </button>
-          </div>
-        )}
       </div>
 
       {!isLast && (
@@ -382,82 +366,6 @@ export default function BuilderWindow() {
     return workflows.filter((w) => w.name.toLowerCase().includes(q) || w.description.toLowerCase().includes(q));
   }, [workflows, search]);
 
-  /** Build a clean task string from an action step's config */
-  function buildCoderTask(step: WorkflowStep): string {
-    const title = step.label.replace(/^P[123]\s+/, "").trim();
-    const file = step.config.file ?? "";
-    const issue = step.config.issue ?? "";
-    const recommendation = step.config.recommendation ?? "";
-    let task = `Fix this issue${file ? ` in ${file}` : ""}: ${title}.`;
-    if (issue) task += ` Problem: ${issue}`;
-    if (recommendation) task += ` Recommendation: ${recommendation}`;
-    return task.trim();
-  }
-
-  /** Get workspaceId from URL for the handoff link */
-  function getWorkspaceIdFromUrl(): string {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("workspaceId") ?? "";
-  }
-
-  /** Send a single action step to the Coding Agent via localStorage handoff */
-  const runStepInCoder = useCallback((step: WorkflowStep) => {
-    const task = buildCoderTask(step);
-    if (!task) return;
-    const payload = {
-      task,
-      skill: "fix-build" as const,
-      stage: "playground" as const,
-      ...(step.config.file ? { selectedFiles: [step.config.file] } : {}),
-      autoRun: false,
-    };
-    try {
-      window.localStorage.setItem("elyra_ai_task_queue", JSON.stringify(payload));
-      const wsId = getWorkspaceIdFromUrl();
-      window.location.assign(wsId ? `/os/code?workspaceId=${encodeURIComponent(wsId)}` : "/os/code");
-    } catch {
-      // ignore storage errors
-    }
-  }, []);
-
-  /** Queue ALL action steps from the current workflow into the Coding Agent */
-  const runAllInCoder = useCallback(() => {
-    if (!activeWorkflow) return;
-    const actionSteps = activeWorkflow.steps.filter((s) => s.kind === "action" && s.config.issue);
-    if (actionSteps.length === 0) return;
-
-    // Build individual QueuedAgentTask objects and store as a bulk queue
-    const tasks = actionSteps.map((step) => ({
-      id: crypto.randomUUID(),
-      task: buildCoderTask(step),
-      skill: "fix-build" as const,
-      stage: "playground" as const,
-      selectedFiles: step.config.file ? [step.config.file] : [],
-      role: "general" as const,
-      repoUrl: "",
-      branch: "main",
-      folderPath: "",
-      terminalAccess: true,
-      useReasoning: true,
-      branchPerAgent: true,
-      executionMode: "adaptive" as const,
-      vibeCoding: true,
-      teamMode: "auto" as const,
-      teamConfig: { general: 1, frontend: 1, backend: 1, ui: 1, infra: 1, qa: 1 },
-      budgetUsd: 5,
-      deadlineMinutes: 60,
-      createdAt: Date.now(),
-    }));
-
-    try {
-      window.localStorage.setItem("elyra_agent_bulk_queue", JSON.stringify(tasks));
-      const wsId = getWorkspaceIdFromUrl();
-      window.location.assign(wsId ? `/os/code?workspaceId=${encodeURIComponent(wsId)}&import=bulk` : "/os/code?import=bulk");
-    } catch {
-      // ignore storage errors
-    }
-  }, [activeWorkflow]);
-
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem("elyra_builder_review_queue");
@@ -496,7 +404,7 @@ export default function BuilderWindow() {
               config: {
                 ...(finding.file ? { file: finding.file } : {}),
                 issue: finding.issue,
-                // Store recommendation here too so "Run in Coder" can build the full task text
+                // Keep the recommendation with the step for later review
                 recommendation: finding.recommendation,
               },
               status: index === 0 ? "active" : "idle",
@@ -627,19 +535,6 @@ export default function BuilderWindow() {
             )}
           </div>
 
-          {/* Run All in Coder — shown for imported review workflows */}
-          {activeWorkflow && activeWorkflow.steps.some((s) => s.kind === "action" && s.config.issue) && (
-            <button
-              type="button"
-              onClick={runAllInCoder}
-              className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition hover:bg-blue-500/15"
-              style={{ borderColor: "rgba(59,130,246,0.3)", background: "rgba(59,130,246,0.08)", color: "#60a5fa" }}
-            >
-              <ExternalLink size={11} />
-              Run All in Coder
-            </button>
-          )}
-
           {/* Toggle enabled */}
           {activeWorkflow && (
             <button
@@ -720,7 +615,6 @@ export default function BuilderWindow() {
                     selected={selectedStepId === step.id}
                     isLast={i === activeWorkflow.steps.length - 1}
                     onClick={() => setSelectedStepId(step.id === selectedStepId ? null : step.id)}
-                    {...(step.kind === "action" && step.config.issue ? { onRunInCoder: () => runStepInCoder(step) } : {})}
                   />
                 ))}
 

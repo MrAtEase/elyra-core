@@ -9,8 +9,8 @@ export type ExecutorRegistryEntry = {
 const EXECUTOR_REGISTRY: Record<ExecutorType, ExecutorRegistryEntry> = {
   code: {
     executorType: "code",
-    label: "Coding Agent",
-    dispatchPath: "/api/os/code/run",
+    label: "Code (nicht verfügbar)",
+    dispatchPath: "",
   },
   mail: {
     executorType: "mail",
@@ -38,6 +38,11 @@ export function resolveExecutorForContract(contract: TaskContract): ExecutorRegi
   return EXECUTOR_REGISTRY[contract.executorType];
 }
 
-export function listExecutorRegistry(): ExecutorRegistryEntry[] {
-  return Object.values(EXECUTOR_REGISTRY);
+/** Executors that can actually be dispatched (code changes are not delegated). */
+export type AvailableExecutorType = Exclude<ExecutorType, "code">;
+
+export function listExecutorRegistry(): Array<ExecutorRegistryEntry & { executorType: AvailableExecutorType }> {
+  return Object.values(EXECUTOR_REGISTRY).filter(
+    (entry): entry is ExecutorRegistryEntry & { executorType: AvailableExecutorType } => entry.executorType !== "code",
+  );
 }

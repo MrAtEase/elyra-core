@@ -95,7 +95,7 @@ export async function POST(
   }
 
   if (integration === "github") {
-    const next = `/os/code?workspaceId=${encodeURIComponent(auth.workspaceId)}`;
+    const next = `/os?workspaceId=${encodeURIComponent(auth.workspaceId)}`;
     const configuredConnectUrl = trimEnv("GITHUB_CONNECT_URL", "NEXT_PUBLIC_GITHUB_CONNECT_URL");
     const connectUrl = configuredConnectUrl
       ? `${configuredConnectUrl}${configuredConnectUrl.includes("?") ? "&" : "?"}workspaceId=${encodeURIComponent(auth.workspaceId)}&next=${encodeURIComponent(next)}`

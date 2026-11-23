@@ -29,7 +29,7 @@ function ShellCard({
 export default function OsGithubConnectPage() {
   const searchParams = useSearchParams();
   const workspaceId = searchParams.get("workspaceId")?.trim() ?? "";
-  const next = searchParams.get("next")?.trim() || `/os/code?workspaceId=${encodeURIComponent(workspaceId)}`;
+  const next = searchParams.get("next")?.trim() || `/os?workspaceId=${encodeURIComponent(workspaceId)}`;
   const githubError = searchParams.get("github_error")?.trim() ?? "";
   const [attemptedRedirect, setAttemptedRedirect] = useState(false);
   const oauthUrl = useMemo(
@@ -77,7 +77,7 @@ export default function OsGithubConnectPage() {
             Continue with GitHub
           </a>
           <Link
-            href={workspaceId ? `/os/code?workspaceId=${encodeURIComponent(workspaceId)}` : "/os/code"}
+            href={workspaceId ? `/os?workspaceId=${encodeURIComponent(workspaceId)}` : "/os"}
             className="rounded-2xl border px-4 py-2.5 text-sm font-medium transition"
             style={{ borderColor: "var(--os-border-soft)", background: "var(--bg-surface)", color: "var(--text-primary)" }}
           >

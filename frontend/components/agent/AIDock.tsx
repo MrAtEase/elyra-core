@@ -212,27 +212,13 @@ function mapIntentStatus(status: ActiveIntentState["status"]): IntentListItem["s
   return "awaiting";
 }
 
-function openCodeRun(runId: string, workspaceId?: string) {
+function openRun(runId: string, workspaceId?: string) {
   if (typeof window === "undefined") return;
-  const pendingKey = "elyra_pending_code_run_id";
-  try {
-    window.localStorage.setItem(pendingKey, runId);
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new CustomEvent("elyra:open-code-run", { detail: { runId } }));
   const params = new URLSearchParams();
   const normalizedWorkspaceId = normalizeWorkspaceId(workspaceId?.trim()) ?? workspaceId?.trim();
-  if (normalizedWorkspaceId) {
-    params.set("workspaceId", normalizedWorkspaceId);
-  }
+  if (normalizedWorkspaceId) params.set("workspaceId", normalizedWorkspaceId);
   params.set("openRunId", runId);
-  const target = `/os/code?${params.toString()}`;
-  if (window.location.pathname.startsWith("/os/code")) {
-    window.history.replaceState(null, "", target);
-  } else {
-    window.location.assign(target);
-  }
+  window.location.assign(`/os/tasks?${params.toString()}`);
 }
 
 function stepStatusTone(status: IntentStep["status"]): string {
@@ -1261,7 +1247,7 @@ export default function AIDock({
                         </div>
                         <button
                           type="button"
-                          onClick={() => openCodeRun(run.id, workspaceId)}
+                          onClick={() => openRun(run.id, workspaceId)}
                           className="mt-1 inline-flex text-[10px] font-medium transition-opacity hover:opacity-80"
                           style={{ color: "var(--text-secondary)" }}
                         >

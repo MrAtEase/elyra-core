@@ -4,21 +4,11 @@
 
 **An AI operating system for running a small business – built solo by [Paul Odak](https://github.com/MrAtEase).**
 
-Elyra Core is a browser-based "AI OS": a desktop-style workspace where an AI assistant works across your mail, calendar, tasks and code – and asks for approval before it does anything that matters.
+Elyra Core is a browser-based "AI OS": a desktop-style workspace where an AI assistant works across your mail, calendar, tasks and documents – and asks for approval before it does anything that matters.
 
 I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2026) and built it in about eight months, as the operating system for the business (master franchise of a Croatian fish fast-food chain). The idea: one founder, a handful of stores, and an AI that handles the daily admin – briefings, emails, scheduling, documents – so the team can focus on the business. The franchise was stopped in 2026; Elyra Core remains as a working prototype.
 
 > **Status:** prototype / portfolio project – not deployed. Production services and accounts have been shut down.
-
-![Ads audit: Elly finds search terms that cost money without converting and proposes exclusions – nothing changes without approval](docs/images/ads-audit.jpg)
-
-<table><tr>
-<td width="50%"><img src="docs/images/launcher.jpg" alt="App launcher with German categories"></td>
-<td width="50%"><img src="docs/images/haushaltsbuch.jpg" alt="Own app built from a template: household budget dashboard with sample data"></td>
-</tr><tr>
-<td align="center"><sub>App launcher – one list, clear categories</sub></td>
-<td align="center"><sub>Own app built from a template (sample data), running in a sandbox</sub></td>
-</tr></table>
 
 ---
 

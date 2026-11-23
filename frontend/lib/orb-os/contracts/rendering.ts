@@ -1,6 +1,7 @@
 import type { AppManifest, InstalledApp, IntegrationStatus, ToolRegistryItem, UiBootstrapContract } from "./types";
 import { getAppStatus, toLaunchpadStatus } from "@/lib/orb-os/apps/status";
 import { OPTIONAL_APP_IDS, isItemInstalled, type InstalledMap } from "@/lib/marketplace/catalog";
+import { PERSONAL_APPS, PERSONAL_APP_CATEGORY, type PersonalAppId } from "@/lib/personal/personalApps";
 
 export type SurfaceId = "dashboard" | "assistant" | "goals" | "apps" | "settings" | "builder" | "marketplace";
 
@@ -35,7 +36,7 @@ export type ResolvedAppsSurfaceEntry = {
   name: string;
   category: string;
   icon_name: string;
-  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | "reporting" | "leads" | "ads_audit" | "agent_team" | "guitar" | "languages" | "magic" | "toolbox" | "visibility" | "synergy" | "feed" | "insights" | "automations" | "marketplace" | "mini_apps" | null;
+  launch_hint: "mail" | "calendar" | "tasks" | "files" | "slides" | "builder" | "reporting" | "leads" | "ads_audit" | "agent_team" | PersonalAppId | "toolbox" | "visibility" | "synergy" | "feed" | "insights" | "automations" | "marketplace" | "mini_apps" | null;
   /** for launch_hint "toolbox": which tool to show */
   tool_id?: string;
   /** connected MCP service (opens Werkzeuge › Dienste with this server) */
@@ -218,17 +219,13 @@ export function resolveAppsSurfaceEntries(input: ResolveAppsSurfaceInput): Resol
     });
   }
 
-  for (const extra of [
-    { app_id: "guitar", name: "Gitarre", icon_name: "guitar", hints: ["gitarre", "musik", "akkorde", "tabs", "stimmen"] },
-    { app_id: "languages", name: "Sprachen", icon_name: "languages", hints: ["sprachen", "lernen", "vokabeln", "übersetzen"] },
-    { app_id: "magic", name: "Kartenmagie", icon_name: "spade", hints: ["zaubern", "magie", "kartentricks", "card magic"] },
-  ] as const) {
+  for (const extra of PERSONAL_APPS.map((app) => ({ app_id: app.id, name: app.name, icon_name: app.iconName, hints: app.hints }))) {
     if (seenIndex.has(extra.app_id)) continue;
     deduped.push({
       app_id: extra.app_id,
       source_app_id: "elyra_native",
       name: extra.name,
-      category: "Lernen & Hobby",
+      category: PERSONAL_APP_CATEGORY,
       icon_name: extra.icon_name,
       launch_hint: extra.app_id,
       status: "connected",

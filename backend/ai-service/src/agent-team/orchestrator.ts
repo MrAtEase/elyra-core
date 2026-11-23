@@ -77,7 +77,7 @@ const KEYWORDS: Record<AgentId, RegExp> = {
   mail: /\b(mails?|e-mails?|posteingang|inbox|termine?|kalender)\b/i,
   authority: /\b(behörde|finanças|financas|segurança social|sns|vermieter|amt|formeller brief|brief an)/i,
   research: /\b(recherchier|recherche|finde heraus|aktuell|news|suche im web|quellen)/i,
-  coach: /\b(lernen|üben|gitarre|sprache|vokabeln|zauber|trainingsplan|übungsplan)/i,
+  coach: /\b(lernen|üben|lernplan|sprache|vokabeln|weiterbildung|schulung|trainingsplan|übungsplan)/i,
   presentation: /\b(präsentation|praesentation|pitch|slides|folien|deck|vortrag)/i,
 };
 

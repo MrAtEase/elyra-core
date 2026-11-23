@@ -24,12 +24,11 @@ import {
   Target,
   ScanSearch,
   Users,
-  Guitar,
-  Languages,
-  Spade,
-  Store,
+  Store
 } from "lucide-react";
 import type { AppId, AppManifest } from "@/components/os/kernel/types";
+import { personalRecord } from "@/lib/personal/personalApps";
+import { PERSONAL_ICONS } from "@/components/os/personal/personalWindows";
 
 type DockProps = {
   apps: AppManifest[];
@@ -64,9 +63,7 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     marketplace: "color-mix(in srgb, #6c9cfc 14%, var(--bg-surface))",
     mini_apps: "color-mix(in srgb, #a78bfa 14%, var(--bg-surface))",
     agent_team: "color-mix(in srgb, #7B61FF 20%, var(--bg-surface))",
-    guitar: "color-mix(in srgb, #d97706 18%, var(--bg-surface))",
-    languages: "color-mix(in srgb, #0ea5e9 16%, var(--bg-surface))",
-    magic: "color-mix(in srgb, #a855f7 16%, var(--bg-surface))",
+    ...personalRecord((app) => app.dockColor),
     settings_ai: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_os: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
     settings_admin: "color-mix(in srgb, #94a3b8 14%, var(--bg-surface))",
@@ -98,9 +95,7 @@ export default function Dock({ apps, activeAppIds, accent, rightInset = 0, onOpe
     marketplace: Store,
     mini_apps: Wand2,
     agent_team: Users,
-    guitar: Guitar,
-    languages: Languages,
-    magic: Spade,
+    ...PERSONAL_ICONS,
     settings_ai: Sparkles,
     settings_os: Settings,
     settings_admin: Shield,

@@ -2,9 +2,10 @@
 
 import type { ComponentType } from "react";
 import {
-  AppWindow, BarChart3, FileText, GitMerge, Guitar, Languages, Newspaper, Radar, ScanSearch, ShoppingBag, Spade,
-  Sparkles, Store, Target, Users, Wand2, Workflow,
+  AppWindow, BarChart3, FileText, GitMerge, Languages, Newspaper, Radar, ScanSearch, ShoppingBag,
+  Sparkles, Store, Target, Users, Wand2, Workflow
 } from "lucide-react";
+import { PERSONAL_ICONS_BY_NAME } from "@/components/os/personal/personalWindows";
 
 /** Icons for marketplace items (catalog `icon` keys). */
 export const MARKETPLACE_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
@@ -18,8 +19,7 @@ export const MARKETPLACE_ICONS: Record<string, ComponentType<{ size?: number; cl
   users: Users,
   target: Target,
   languages: Languages,
-  guitar: Guitar,
-  spade: Spade,
+  ...PERSONAL_ICONS_BY_NAME,
   "file-text": FileText,
   sparkles: Sparkles,
   store: Store,

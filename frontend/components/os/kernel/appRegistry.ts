@@ -1,4 +1,5 @@
 import type { AppManifest, AppId, WorkspaceKind } from "@/components/os/kernel/types";
+import { PERSONAL_APPS } from "@/lib/personal/personalApps";
 
 const REGISTRY: AppManifest[] = [
   { id: "mail", name: "Mail", icon: "✉", category: "productivity", availableIn: ["individual", "organization", "platform"], openAs: "window" },
@@ -20,9 +21,14 @@ const REGISTRY: AppManifest[] = [
   { id: "automations", name: "Automationen", icon: "◆", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "ads_audit", name: "Ads-Audit", icon: "⌕", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "agent_team", name: "Agenten-Team", icon: "⚇", category: "marketing", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "guitar", name: "Gitarre", icon: "♫", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "languages", name: "Sprachen", icon: "文", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "magic", name: "Kartenmagie", icon: "♠", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
+  ...PERSONAL_APPS.map((app): AppManifest => ({
+    id: app.id,
+    name: app.name,
+    icon: app.glyph,
+    category: "utility",
+    availableIn: ["individual", "organization", "platform"],
+    openAs: "window",
+  })),
   { id: "marketplace", name: "Marktplatz", icon: "▦", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "mini_apps", name: "Meine Apps", icon: "✦", category: "create", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "weather", name: "Wetter", icon: "◈", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },

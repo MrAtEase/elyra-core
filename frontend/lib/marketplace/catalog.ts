@@ -11,6 +11,7 @@
 export type CatalogKind = "app" | "skill" | "connector";
 
 import { TEMPLATES, type MiniAppTemplate } from "@/lib/marketplace/templates";
+import { PERSONAL_APPS, PERSONAL_APP_CATEGORY } from "@/lib/personal/personalApps";
 
 export type CatalogItem = {
   id: string;
@@ -78,16 +79,17 @@ export const CATALOG: CatalogItem[] = [
   { id: "leads", kind: "app", name: "Leads", category: "Vertrieb", icon: "target", launch: "leads",
     description: "Neukunden finden und Kontakte vorbereiten.",
     hints: ["leads", "akquise", "neukunden", "vertrieb", "sales", "kunden finden"] },
-  // ── Apps: Lernen & Hobby ──────────────────────────────────────────────────
-  { id: "languages", kind: "app", name: "Sprachen", category: "Lernen & Hobby", icon: "languages", launch: "languages",
-    description: "Vokabeln und Sätze üben, mit Aussprache.",
-    hints: ["sprache", "sprachen", "vokabeln", "lernen", "englisch", "portugiesisch", "spanisch"] },
-  { id: "guitar", kind: "app", name: "Gitarre", category: "Lernen & Hobby", icon: "guitar", launch: "guitar",
-    description: "Akkorde, Stimmgerät und Übungen für Einsteiger.",
-    hints: ["gitarre", "musik", "akkorde", "stimmen", "tabs", "guitar"] },
-  { id: "magic", kind: "app", name: "Kartenmagie", category: "Lernen & Hobby", icon: "spade", launch: "magic",
-    description: "Kartentricks lernen und üben – Schritt für Schritt.",
-    hints: ["zaubern", "zauberei", "magie", "kartentricks", "magic"] },
+  // ── Apps: personal (instance-specific, see lib/personal) ──────────────────
+  ...PERSONAL_APPS.map((app): CatalogItem => ({
+    id: app.id,
+    kind: "app",
+    name: app.name,
+    category: PERSONAL_APP_CATEGORY,
+    icon: app.iconName,
+    launch: app.id,
+    description: app.description,
+    hints: app.hints,
+  })),
 
   // ── Skills ────────────────────────────────────────────────────────────────
   { id: "skill-bewerbung", kind: "skill", name: "Bewerbung schreiben", category: "Schreiben", icon: "file-text",

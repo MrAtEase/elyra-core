@@ -1,4 +1,5 @@
 export type WorkspaceKind = "individual" | "organization" | "platform";
+import type { PersonalAppId } from "@/lib/personal/personalApps";
 
 export type BrainPreferences = {
   language?: string;
@@ -142,9 +143,7 @@ export type AppId =
   | "marketplace"
   | "mini_apps"
   | "agent_team"
-  | "guitar"
-  | "languages"
-  | "magic"
+  | PersonalAppId
   | "settings_ai"
   | "settings_os"
   | "settings_admin"

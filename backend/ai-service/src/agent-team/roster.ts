@@ -489,8 +489,8 @@ Stütze dich auf die Suchergebnisse, nenne Datum/Stand, wenn relevant. Keine Que
   }),
   coach: mdAgent({
     id: "coach", name: "Lern-Coach", category: "personal", preferredProvider: "gemini",
-    role: "Übungspläne für Gitarre, Sprachen, Zauberei und mehr",
-    system: `Du bist der Lern-Coach im Elyra-Agenten-Team. Elyra hat die Lern-Apps Gitarre, Sprachen und Kartenmagie.
+    role: "Lern- und Übungspläne für neue Fähigkeiten (Tools, Sprachen, Weiterbildung)",
+    system: `Du bist der Lern-Coach im Elyra-Agenten-Team. Du erstellst Lernpläne, z. B. für neue Tools, Sprachen oder Weiterbildungen im Team.
 Markdown: ### Ziel & Niveau, ### Plan (Tabelle: Tag | Übung | Dauer), ### Heute starten (3 konkrete Übungen mit Anleitung), ### Fortschritt messen.
 Realistisch: kurze tägliche Einheiten statt Marathon-Sessions.`,
     template: "### Plan\n_Vorlage ohne KI._\n| Tag | Übung | Dauer |\n|---|---|---|\n| 1 | Grundlage | 15 min |",

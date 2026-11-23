@@ -38,10 +38,7 @@ import {
   Newspaper,
   Workflow,
   Zap,
-  Guitar,
-  Languages,
-  Spade,
-  Store,
+  Store
 } from "lucide-react";
 import { APP_CATEGORY_ORDER, listLauncherApps } from "@/components/os/kernel/appRegistry";
 import { OPTIONAL_APP_IDS, isItemInstalled } from "@/lib/marketplace/catalog";
@@ -76,6 +73,8 @@ import CustomersPanel from "@/components/os/shell/admin/CustomersPanel";
 import ArtifactResultCard from "@/components/os/shell/cards/ArtifactResultCard";
 import { withSupabaseAuthorization } from "@/lib/auth/clientAuthHeaders";
 import { getWorkspace, usePlatformOwner, useVisibleWorkspaces } from "@/components/os/kernel/workspaceModel";
+import { isPersonalAppId } from "@/lib/personal/personalApps";
+import { PERSONAL_ICONS } from "@/components/os/personal/personalWindows";
 
 const AgentTeamWindow = lazy(() => import("@/components/os/apps/agent-team/AgentTeamWindow"));
 
@@ -347,9 +346,7 @@ export function nativeAppIcon(appId: string) {
   if (appId === "marketplace") return Store;
   if (appId === "mini_apps") return Wand2;
   if (appId === "agent_team") return Users;
-  if (appId === "guitar") return Guitar;
-  if (appId === "languages") return Languages;
-  if (appId === "magic") return Spade;
+  if (isPersonalAppId(appId)) return PERSONAL_ICONS[appId];
   if (appId === "image_studio") return ImageIcon;
   return Sparkles;
 }

@@ -98,6 +98,14 @@ Then open **http://localhost:3100/os**. Try typing *"briefing"* or *"my day"* in
 
 For the full local setup (worker, AI service, secrets), see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) and the `.env.example` files.
 
+## Known limitations & next steps
+
+- **Prototype, not in production.** No penetration test, no formal audit, no SLA.
+- **Some files are too large.** The worker entry (`worker/src/index.ts`), the desktop shell (`DesktopSurface.tsx`, `WorkspaceOS.tsx`) and the cloud runtime (`cloudOsV2.ts`) grew with the product. Next step: split them by domain (auth, mail, calendar, team; one module per shell surface) without changing behaviour, backed by the existing tests.
+- **Roles are coarse.** Team management is enforced per role; read-only access per app for guests is the next step.
+- **Support access** for the platform owner (time-limited, approved by the customer, audited) is designed but not built yet.
+- **Rate limits** exist for app AI calls; per-user limits for all AI routes are still missing.
+
 ## How it was built
 
 I built Elyra Core on my own, acting as product owner and developer. I used AI coding assistants (Gemini, Claude, OpenAI) as pair programmers – the same multi-provider approach the product itself uses. The rules for people and assistants are in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).

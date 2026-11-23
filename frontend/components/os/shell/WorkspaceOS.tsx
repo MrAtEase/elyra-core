@@ -58,6 +58,8 @@ import type { WhoamiResponse } from "@/types/whoami";
 import IdentityMenu from "@/components/os/shell/IdentityMenu";
 import type { ResolvedQuickAction, ResolvedUiModel } from "@/lib/orb-os/contracts/rendering";
 import type { ToolRegistryItem, UiBootstrapContract } from "@/lib/orb-os/contracts/types";
+import { PERSONAL_APPS, isPersonalAppId, personalRecord } from "@/lib/personal/personalApps";
+import { renderPersonalApp } from "@/components/os/personal/personalWindows";
 
 const AppApprovalsWindow = lazy(() => import("@/components/os/apps/AppApprovalsWindow"));
 const AppAuditWindow = lazy(() => import("@/components/os/apps/AppAuditWindow"));
@@ -85,9 +87,6 @@ const MarketplaceWindow = lazy(() => import("@/components/os/apps/marketplace/Ma
 const MiniAppsWindow = lazy(() => import("@/components/os/apps/marketplace/MiniAppsWindow"));
 const AgentTeamWindow = lazy(() => import("@/components/os/apps/agent-team/AgentTeamWindow"));
 const LeadsWindow = lazy(() => import("@/components/os/apps/leads/LeadsWindow"));
-const GuitarWindow = lazy(() => import("@/components/os/apps/guitar/GuitarWindow"));
-const LanguagesWindow = lazy(() => import("@/components/os/apps/languages/LanguagesWindow"));
-const MagicWindow = lazy(() => import("@/components/os/apps/magic/MagicWindow"));
 const ImageStudioWindow = lazy(() => import("@/components/os/apps/studio/ImageStudioWindow"));
 
 type OverlayRole = "owner" | "admin" | "member";
@@ -142,9 +141,7 @@ function renderAppWindow(appId: AppId, windowId: string, workspaceId: string, ac
   else if (appId === "mini_apps") content = <MiniAppsWindow />;
   else if (appId === "agent_team") content = <AgentTeamWindow />;
   else if (appId === "leads") content = <LeadsWindow />;
-  else if (appId === "guitar") content = <GuitarWindow />;
-  else if (appId === "languages") content = <LanguagesWindow />;
-  else if (appId === "magic") content = <MagicWindow />;
+  else if (isPersonalAppId(appId)) content = renderPersonalApp(appId);
   else if (appId === "settings_ai") content = <AiSettingsWindow />;
   else if (appId === "settings_os") content = <OsSettingsWindow />;
   else if (appId === "settings_admin") content = <AdminSettingsWindow workspaceId={workspaceId} />;
@@ -230,9 +227,8 @@ function parseRoutedApp(pathname: string): AppId | null {
   if (pathname.startsWith("/os/mini-apps")) return "mini_apps";
   if (pathname.startsWith("/os/agents")) return "agent_team";
   if (pathname.startsWith("/os/leads")) return "leads";
-  if (pathname.startsWith("/os/guitar")) return "guitar";
-  if (pathname.startsWith("/os/languages")) return "languages";
-  if (pathname.startsWith("/os/magic")) return "magic";
+  const personal = PERSONAL_APPS.find((app) => pathname.startsWith(app.route));
+  if (personal) return personal.id;
   return null;
 }
 
@@ -324,9 +320,7 @@ const ROUTED_APP_LABELS: Partial<Record<AppId, string>> = {
   marketplace: "Marktplatz · Apps, Vorlagen & Skills",
   mini_apps: "Meine Apps",
   agent_team: "Marketing Tools · Agenten",
-  guitar: "Lernen · Gitarre",
-  languages: "Lernen · Sprachen",
-  magic: "Hobby · Kartenmagie",
+  ...personalRecord((app) => app.windowTitle),
 };
 
 // Apps that have their own route — openApp navigates there instead of creating a floating window
@@ -368,9 +362,7 @@ const ROUTED_APP_PATHS: Partial<Record<AppId, string>> = {
   marketplace: "/os/marketplace",
   mini_apps: "/os/mini-apps",
   agent_team: "/os/agents",
-  guitar: "/os/guitar",
-  languages: "/os/languages",
-  magic: "/os/magic",
+  ...personalRecord((app) => app.route),
 };
 
 type WorkspaceOSInnerProps = {

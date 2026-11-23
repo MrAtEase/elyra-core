@@ -22,9 +22,7 @@ import {
   Code2,
   FileText,
   GitMerge,
-  Guitar,
   Image as ImageIcon,
-  Languages,
   Loader2,
   Mail,
   Network,
@@ -37,7 +35,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShoppingBag,
-  Spade,
   Target,
   Users,
   Wand2,
@@ -46,11 +43,12 @@ import {
   X,
   History,
   Presentation,
-  Store,
+  Store
 } from "lucide-react";
 import type { AppId, WindowRecord } from "@/components/os/kernel/types";
 import { SHELL_LAYERS } from "@/components/os/shell/layers";
 import { loadEdgeRailOrder, reorderEdgeRailIds, saveEdgeRailOrder } from "@/lib/os/edgeRail";
+import { PERSONAL_ICONS } from "@/components/os/personal/personalWindows";
 
 const APP_ICONS: Partial<Record<string, ComponentType<{ size?: number; className?: string }>>> = {
   mail: Mail,
@@ -76,9 +74,7 @@ const APP_ICONS: Partial<Record<string, ComponentType<{ size?: number; className
   marketplace: Store,
   mini_apps: Wand2,
   agent_team: Users,
-  guitar: Guitar,
-  languages: Languages,
-  magic: Spade,
+  ...PERSONAL_ICONS,
   approvals: ShieldCheck,
   audit: History,
   runs: History,

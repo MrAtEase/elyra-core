@@ -1,5 +1,6 @@
 import type { AppId, WindowRecord } from "@/components/os/kernel/types";
 import { getApp } from "@/components/os/kernel/appRegistry";
+import { personalRecord } from "@/lib/personal/personalApps";
 
 // ── Per-app size/position preference (persisted to localStorage) ────────────
 
@@ -77,9 +78,7 @@ const APP_DEFAULTS: Record<AppId, { width: number; height: number; x: number; y:
   marketplace: { width: 1180, height: 820, x: 120, y: 60 },
   mini_apps: { width: 1100, height: 780, x: 140, y: 70 },
   agent_team: { width: 1320, height: 840, x: 70, y: 50 },
-  guitar: { width: 1180, height: 800, x: 110, y: 60 },
-  languages: { width: 1100, height: 800, x: 130, y: 60 },
-  magic: { width: 1200, height: 820, x: 90, y: 50 },
+  ...personalRecord((app) => app.window),
   settings_ai: { width: 600, height: 400, x: 214, y: 146 },
   settings_os: { width: 600, height: 400, x: 244, y: 164 },
   settings_admin: { width: 760, height: 580, x: 158, y: 90 },

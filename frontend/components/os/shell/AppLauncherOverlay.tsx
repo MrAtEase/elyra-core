@@ -21,13 +21,11 @@ import {
   Sparkles,
   Workflow,
   Target,
-  Guitar,
-  Spade,
   Plug,
   Radar,
   GitMerge,
   ShoppingBag,
-  Newspaper,
+  Newspaper
 } from "lucide-react";
 import type { AppId } from "@/components/os/kernel/types";
 import {
@@ -44,6 +42,7 @@ import type { AppManifest, InstalledApp, IntegrationStatus, ToolRegistryItem } f
 import { withSupabaseAuthorization } from "@/lib/auth/clientAuthHeaders";
 import { openMiniApp, useMarketplace } from "@/lib/marketplace/client";
 import { MARKETPLACE_ICONS } from "@/components/os/apps/marketplace/icons";
+import { PERSONAL_ICONS_BY_NAME } from "@/components/os/personal/personalWindows";
 
 const APP_ICONS_BY_NAME: Record<string, ComponentType<{ size?: number; className?: string }>> = {
   ...MARKETPLACE_ICONS,
@@ -67,8 +66,7 @@ const APP_ICONS_BY_NAME: Record<string, ComponentType<{ size?: number; className
   languages: Languages,
   chart: BarChart3,
   target: Target,
-  guitar: Guitar,
-  spade: Spade,
+  ...PERSONAL_ICONS_BY_NAME,
 };
 
 type LauncherItem = {

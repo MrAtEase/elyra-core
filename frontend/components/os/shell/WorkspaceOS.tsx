@@ -147,12 +147,12 @@ function renderAppWindow(appId: AppId, windowId: string, workspaceId: string, ac
   else if (appId === "magic") content = <MagicWindow />;
   else if (appId === "settings_ai") content = <AiSettingsWindow />;
   else if (appId === "settings_os") content = <OsSettingsWindow />;
-  else if (appId === "settings_admin") content = <AdminSettingsWindow />;
+  else if (appId === "settings_admin") content = <AdminSettingsWindow workspaceId={workspaceId} />;
   else if (appId === "approvals") content = <AppApprovalsWindow />;
   else if (appId === "audit") content = <AppAuditWindow />;
   else if (appId === "runs") content = <AppRunsWindow />;
   else if (appId === "image_studio") content = <ImageStudioWindow workspaceId={workspaceId} />;
-  else content = <AdminSettingsWindow />;
+  else content = <AdminSettingsWindow workspaceId={workspaceId} />;
 
   return (
     <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-white/30">Loading...</div>}>

@@ -31,7 +31,20 @@ You will get an answer within a few days.
 
 ### Roles
 
-- `owner`, `admin`, `member`, `viewer` per workspace.
+- `owner`, `admin`, `member`, `viewer` (shown as "Gast") per workspace.
+- Owners and admins manage the team; only owners grant or change the owner role. A workspace
+  always keeps at least one owner. The worker enforces these rules, not the UI.
+- Personal workspaces never get other members. Teams live in separate company workspaces.
+- Only the platform owner can invite people into the system workspace.
+
+### Invitations
+
+- An invitation is bound to one email address and a role. The link token (32 random bytes) is
+  shown once; only its SHA-256 hash is stored.
+- Accepting requires a session with exactly that email address, so a forwarded link is useless.
+- Links expire after 7 days, work once and can be withdrawn. A new invite for the same address
+  replaces the old one; at most 50 invitations can be open per workspace.
+- Invites, role changes and removals are written to the audit log (domain `team`).
 - **Platform owner** (the operator of an instance) is configured by exact email address in
   `SYSTEM_FOUNDER_ALLOWLIST` / `NEXT_PUBLIC_SYSTEM_FOUNDER_ALLOWLIST`. Whole domains are never
   trusted. The role cannot be requested by a client.

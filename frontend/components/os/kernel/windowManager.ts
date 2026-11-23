@@ -82,7 +82,7 @@ const APP_DEFAULTS: Record<AppId, { width: number; height: number; x: number; y:
   magic: { width: 1200, height: 820, x: 90, y: 50 },
   settings_ai: { width: 600, height: 400, x: 214, y: 146 },
   settings_os: { width: 600, height: 400, x: 244, y: 164 },
-  settings_admin: { width: 640, height: 440, x: 158, y: 138 },
+  settings_admin: { width: 760, height: 580, x: 158, y: 90 },
   approvals: { width: 680, height: 460, x: 168, y: 138 },
   audit: { width: 820, height: 540, x: 148, y: 118 },
   runs: { width: 940, height: 600, x: 128, y: 108 },

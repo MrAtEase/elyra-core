@@ -22,6 +22,7 @@ Key frontend paths:
 | `components/os/kernel/` | Window and app state, workspace model |
 | `lib/api/requireAuth.ts` | Central login / platform-owner check for API routes |
 | `lib/marketplace/` | Marketplace, templates and sandboxed mini-apps |
+| `components/os/apps/settings/TeamPanel.tsx` | Team & roles UI; API in `app/api/os/team/`, rules in `worker/src/team.ts` |
 
 ## Run locally
 

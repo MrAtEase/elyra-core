@@ -32,6 +32,7 @@ I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2
 | **Calendar** | Google Calendar and CalDAV (iCloud) – list, create, update and delete events |
 | **Tasks & docs** | Task management, Notion integration, docs and slides windows |
 | **Marketplace & own apps** | Optional apps, skills and templates per workspace; Elly builds small apps on request – once approved they appear under Apps and run in a sandboxed iframe with their own data |
+| **Team & roles** | Company workspaces with owner, admin, member and guest roles; invitations bound to one email address, single-use and valid for 7 days; every change in the audit log |
 | **Governance** | User approval for destructive actions, workspace-level policies, audit log |
 
 ## Marketing tools
@@ -57,13 +58,14 @@ Built as prototypes with sample data – each one follows the same rule: Elly an
 - **Connectors & auth** – OAuth 2.0 for Google, Microsoft and Apple; secure session cookies across subdomains; HMAC-signed internal APIs.
 - **Workspace isolation** – one login, several separate workspaces (personal, company). Every API route checks membership on the server; the AI service verifies it again with the worker. See [`SECURITY.md`](SECURITY.md).
 - **MCP support** – workspaces can configure Model Context Protocol (MCP) servers that Elly can use as tools.
-- **Robust patch pipeline** – AI-generated diffs are repaired and verified step by step (hunk recount → `git apply` fallbacks → AI repair → build gate) before anything is committed.
+- **Teams without data leaks** – company workspaces get members and roles; personal workspaces stay private by design, even for admins of a company workspace.
 - **Quality** – unit and end-to-end tests (Playwright), including security, auth-flow and workspace-policy checks, plus an evaluation harness for AI responses.
 
 ## Security model
 
 - **One login, separate workspaces.** A user can switch between their personal and company workspaces; data never mixes. Every API route checks workspace membership on the server, and the AI service verifies it again with the worker before touching any data.
 - **No shortcuts.** There is no development-mode bypass around authentication or membership checks; the platform owner is configured by exact email address, never by domain.
+- **Teams by invitation only.** Only owners and admins invite; a link works once, for one email address, for 7 days. Only its hash is stored.
 - **Sandboxed mini-apps.** Tools built by Elly run in an isolated iframe without network or same-origin access.
 
 Details: [`SECURITY.md`](SECURITY.md).

@@ -28,7 +28,7 @@ const REGISTRY: AppManifest[] = [
   { id: "weather", name: "Wetter", icon: "◈", category: "utility", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_ai", name: "KI-Einstellungen", icon: "◎", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "settings_os", name: "Einstellungen", icon: "⚙", category: "settings", availableIn: ["individual", "organization", "platform"], openAs: "window" },
-  { id: "settings_admin", name: "Admin-Einstellungen", icon: "◫", category: "settings", availableIn: ["organization", "platform"], openAs: "window" },
+  { id: "settings_admin", name: "Team & Rechte", icon: "◫", category: "governance", availableIn: ["individual", "organization", "platform"], openAs: "window" },
   { id: "approvals", name: "Freigaben", icon: "✓", category: "governance", availableIn: ["organization", "platform"], openAs: "window" },
   { id: "audit", name: "Audit-Log", icon: "◉", category: "governance", availableIn: ["organization", "platform"], openAs: "window" },
   { id: "runs", name: "KI-Läufe", icon: "◈", category: "governance", availableIn: ["individual", "organization", "platform"], openAs: "window" },

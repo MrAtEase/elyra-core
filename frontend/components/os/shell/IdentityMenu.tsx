@@ -31,7 +31,7 @@ const QUICK_LINKS = [
 ];
 const WORKSPACE_LINKS = [
   { label: "Workspace Settings", href: "/os/settings/workspace-profile" },
-  { label: "Members & Roles", href: "/os/settings/members-roles" },
+  { label: "Team & Rechte", href: "/os/settings/members-roles" },
 ];
 const ADMIN_LINKS = [
   { label: "Platform Admin", href: "/os/settings/platform-admin" },
@@ -132,7 +132,7 @@ export default function IdentityMenu({
                     onClick={onClose}
                     className="block rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2 text-neutral-900/70 transition hover:border-black/20 hover:bg-black/[0.06]"
                   >
-                    Members & Roles
+                    Team & Rechte
                   </Link>
                 ) : null}
               </div>

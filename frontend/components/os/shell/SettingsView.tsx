@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import TeamPanel from "@/components/os/apps/settings/TeamPanel";
 import {
   Bell,
   Bot,
@@ -106,22 +107,6 @@ type SettingsDetailContext = {
   onGoogleDisconnect: () => void;
 };
 
-const MEMBER_ROWS = [
-  { name: "Alex Meyer", email: "alex@example.com", role: "Founder", avatar: "AM", active: true },
-  { name: "Sarah Chen", email: "sarah@elyra-core.app", role: "Admin", avatar: "SC", active: true },
-  { name: "Max Weber", email: "max@elyra-core.app", role: "Member", avatar: "MW", active: true },
-  { name: "Lisa Park", email: "lisa@elyra-core.app", role: "Member", avatar: "LP", active: false },
-  { name: "Tom Fischer", email: "tom@example.com", role: "Guest", avatar: "TF", active: true },
-];
-
-const ROLE_TEMPLATES = [
-  { name: "Founder", perms: ["All access", "System config", "Feature flags", "Billing"] },
-  { name: "Admin", perms: ["Workspace settings", "Members", "Integrations", "Audit log"] },
-  { name: "Manager", perms: ["Team tasks", "Shared flows", "Reports"] },
-  { name: "Member", perms: ["Own tasks", "Mail", "Calendar", "Files"] },
-  { name: "Guest", perms: ["Read-only", "Limited apps"] },
-];
-
 const GROUPS: SettingsGroup[] = [
   {
     id: "profile",
@@ -156,7 +141,7 @@ const GROUPS: SettingsGroup[] = [
     kinds: ["organization", "platform"],
     items: [
       { id: "workspace-profile", label: "Workspace Profile", icon: Building2 },
-      { id: "members-roles", label: "Members & Roles", icon: Users },
+      { id: "members-roles", label: "Team & Rechte", icon: Users },
       { id: "billing", label: "Billing & Usage", icon: CreditCard },
       { id: "integrations", label: "Integrations", icon: Link2 },
     ],
@@ -194,13 +179,6 @@ function roleBadgeText(minRole?: OverlayRole): string | null {
   if (minRole === "owner") return "Founder";
   if (minRole === "admin") return "Admin";
   return null;
-}
-
-function roleTone(roleLabel: string): string {
-  if (roleLabel === "Founder") return "border-violet-300/25 bg-violet-500/12 text-violet-100";
-  if (roleLabel === "Admin") return "border-blue-300/20 bg-blue-500/12 text-blue-100";
-  if (roleLabel === "Guest") return "border-[var(--border-strong)] bg-[var(--panel2)] text-[var(--text-secondary)]";
-  return "border-white/15 bg-white/[0.05] text-white/90";
 }
 
 const THEME_OPTIONS = [
@@ -1423,67 +1401,7 @@ function renderDetail(
   }
 
   if (section === "members-roles") {
-    return (
-      <div className="space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--text-muted)]">Workspace</p>
-          <h2 className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">Members & Roles</h2>
-          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
-            Manage who has access to this workspace and what they are allowed to do.
-          </p>
-        </div>
-
-        <section className="space-y-2 rounded-2xl border p-4" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-surface-soft)" }}>
-          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--text-muted)]">Members ({MEMBER_ROWS.length})</p>
-          {MEMBER_ROWS.map((member) => (
-            <article
-              key={member.email}
-              className="flex items-center justify-between rounded-xl border px-3 py-2"
-              style={{ borderColor: "var(--border-subtle)", background: "var(--bg-surface)" }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-xs font-semibold text-white">
-                  {member.avatar}
-                </span>
-                <div>
-                  <p className="text-sm text-[color:var(--text-primary)]">{member.name}</p>
-                  <p className="text-xs text-[color:var(--text-muted)]">{member.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`rounded-full border px-2 py-0.5 text-[11px] ${roleTone(member.role)}`}>
-                  {member.role}
-                </span>
-                <span
-                  className={`inline-flex h-2.5 w-2.5 rounded-full ${member.active ? "bg-emerald-400" : "bg-white/25"}`}
-                  aria-label={member.active ? "Active" : "Offline"}
-                />
-              </div>
-            </article>
-          ))}
-        </section>
-
-        <section className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--text-muted)]">Role Templates</p>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {ROLE_TEMPLATES.map((template) => (
-              <article
-                key={template.name}
-                className="rounded-xl border p-3"
-                style={{ borderColor: "var(--border-subtle)", background: "var(--bg-surface-soft)" }}
-              >
-                <p className="text-sm font-medium text-[color:var(--text-primary)]">{template.name}</p>
-                <ul className="mt-2 space-y-1 text-xs text-[color:var(--text-secondary)]">
-                  {template.perms.map((perm) => (
-                    <li key={`${template.name}-${perm}`}>• {perm}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
-    );
+    return <TeamPanel workspaceId={workspaceId} />;
   }
 
   if (section === "developer") {

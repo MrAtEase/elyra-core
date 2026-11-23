@@ -40,6 +40,7 @@ async function forwardToAIService(request: Request, env: Env): Promise<Response>
 import { googleOAuthStart, googleOAuthCallback, getAccessTokenFromKV } from "./google";
 import { handleWindowLayoutRoute } from "./windowLayouts";
 import { base64url } from "./rfc822";
+import { routeTeam, previewInvite, acceptInvite, type TeamDeps } from "./team";
 
 interface Env {
   ASSISTANT_DB: D1Database;
@@ -830,6 +831,45 @@ async function createWorkspaceForUser(
       .bind(crypto.randomUUID(), user.id, workspaceId, now),
   ]);
   return workspaceId;
+}
+
+// ---------------------------------------------------------------------------
+// Team: members, roles and invitations (see team.ts)
+// ---------------------------------------------------------------------------
+
+async function teamDepsFor(req: Request, env: Env): Promise<TeamDeps | null> {
+  const resolved = await resolveSession(req, env);
+  if (!resolved) return null;
+  return {
+    db: env.ASSISTANT_DB,
+    user: { id: resolved.user.id, email: resolved.user.email ?? null },
+    isFounder: (email) => isFounderIdentity(email, env),
+  };
+}
+
+async function readJsonBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const body = (await req.json()) as unknown;
+    return body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+async function handleInviteRoute(req: Request, env: Env, token: string, accept: boolean): Promise<Response> {
+  const deps = await teamDepsFor(req, env);
+  if (!deps) return json({ ok: false, error: "AUTH_REQUIRED", message: "Bitte zuerst anmelden." }, 401);
+  const result = accept ? await acceptInvite(deps, token) : await previewInvite(deps, token);
+  return json(result.body, result.status);
+}
+
+async function handleTeamRoute(req: Request, env: Env, workspaceId: string, sub: string): Promise<Response | null> {
+  if (!sub.startsWith("/team")) return null;
+  const deps = await teamDepsFor(req, env);
+  if (!deps) return json({ ok: false, error: "AUTH_REQUIRED", message: "Not authenticated." }, 401);
+  const result = await routeTeam(deps, workspaceId, sub, req.method, () => readJsonBody(req));
+  if (!result) return json({ ok: false, error: "not_found" }, 404);
+  return json(result.body, result.status);
 }
 
 async function handleCreateWorkspace(req: Request, env: Env): Promise<Response> {
@@ -2839,6 +2879,13 @@ export default {
       // Active workspace
       // -----------------------------------------------------------------
 
+      const inviteMatch = url.pathname.match(/^\/assistant\/invites\/([A-Za-z0-9_-]{20,100})(\/accept)?$/);
+      if (inviteMatch) {
+        const accept = Boolean(inviteMatch[2]);
+        if ((accept && request.method === "POST") || (!accept && request.method === "GET")) {
+          return withCors(request, await handleInviteRoute(request, env, inviteMatch[1], accept), env);
+        }
+      }
       if (url.pathname === "/assistant/workspaces/create" && request.method === "POST") {
         return withCors(request, await handleCreateWorkspace(request, env), env);
       }
@@ -3163,6 +3210,10 @@ export default {
       if (wsMatch) {
         const [, wsId, subPath] = wsMatch;
         const sub = subPath || "";
+
+        // --- Team ---
+        const teamResponse = await handleTeamRoute(request, env, wsId, sub);
+        if (teamResponse) return withCors(request, teamResponse, env);
 
         // --- Poker ---
         if (sub === "/poker" && request.method === "GET") {

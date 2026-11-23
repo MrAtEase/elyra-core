@@ -1069,7 +1069,7 @@ export default function SlidesWindow() {
               style={{ background: "var(--bg-surface)", color: "var(--text-primary)", border: "1px solid var(--os-border-soft)" }}
             >
               {publishingDeckId === activeDeck?.id ? <Loader2 size={11} className="animate-spin" /> : <Download size={11} />}
-              {publishedDeckLink ? "In Google Slides öffnen" : "Nach Google Slides"}
+              {publishedDeckLink ? "Erneut exportieren" : "Nach Google Slides"}
             </button>
             <button
               type="button"

@@ -117,8 +117,8 @@ export async function writeSpeakerNotes(input: {
   accessToken: string;
   presentationId: string;
   notes: Array<{ slideId: string; text: string }>;
-}): Promise<void> {
-  if (input.notes.length === 0) return;
+}): Promise<number> {
+  if (input.notes.length === 0) return 0;
   const deck = await googleApiFetch<{
     slides?: Array<{ objectId?: string; slideProperties?: { notesPage?: { notesProperties?: { speakerNotesObjectId?: string } } } }>;
   }>(
@@ -134,6 +134,9 @@ export async function writeSpeakerNotes(input: {
   const requests = input.notes
     .filter((n) => notesIds.has(n.slideId))
     .map((n) => ({ insertText: { objectId: notesIds.get(n.slideId), insertionIndex: 0, text: n.text } }));
-  if (requests.length === 0) return;
+  if (requests.length === 0) {
+    throw new Error(`Keine Notizfelder gefunden (${deck.slides?.length ?? 0} Folien gelesen).`);
+  }
   await batchUpdateSlides({ accessToken: input.accessToken, presentationId: input.presentationId, requests });
+  return requests.length;
 }

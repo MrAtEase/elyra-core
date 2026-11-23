@@ -138,6 +138,13 @@ class Builder {
     });
     if (o.bullets) {
       this.requests.push({ createParagraphBullets: { objectId: id, textRange: { type: "ALL" }, bulletPreset: "BULLET_DISC_CIRCLE_SQUARE" } });
+      this.requests.push({
+        updateParagraphStyle: {
+          objectId: id, textRange: { type: "ALL" },
+          style: { indentStart: { magnitude: 16, unit: "PT" }, indentFirstLine: { magnitude: 0, unit: "PT" } },
+          fields: "indentStart,indentFirstLine",
+        },
+      });
     }
     return id;
   }
@@ -195,9 +202,15 @@ export function buildThemedDeckRequests(input: {
         if (layout === "title" && deckTitle && deckTitle !== s.title.trim()) {
           b.text(page, 64, 92, 560, 20, deckTitle.toUpperCase(), { size: 10, color: p.accent, bold: true });
         }
-        b.text(page, 64, 118, 590, 130, s.title, { size: fit(s.title, [[30, 44], [60, 36], [90, 30]], 26), color: p.heroText, bold: true, serif: p.serif, valign: "BOTTOM", lineSpacing: 100 });
-        b.shape(page, "RECTANGLE", 64, 262, 56, 4, p.accent);
-        b.text(page, 64, 278, 560, 70, body || (s.bullets ?? []).slice(0, 2).join(" · "), { size: 15, color: p.heroMuted, lineSpacing: 130 });
+        const lift = layout === "closing" && s.bullets?.length ? 40 : 0;
+        b.text(page, 64, 118 - lift, 590, 130, s.title, { size: fit(s.title, [[30, 44], [60, 36], [90, 30]], 26), color: p.heroText, bold: true, serif: p.serif, valign: "BOTTOM", lineSpacing: 100 });
+        b.shape(page, "RECTANGLE", 64, 262 - lift, 56, 4, p.accent);
+        if (layout === "closing" && s.bullets?.length) {
+          b.text(page, 64, 278 - lift, 560, 26, body, { size: 15, color: p.heroMuted, lineSpacing: 130 });
+          b.text(page, 64, body ? 308 - lift : 280 - lift, 560, 110, s.bullets.slice(0, 4).join("\n"), { size: 13, color: p.heroText, bullets: true, lineSpacing: 120, spaceBelow: 4 });
+        } else {
+          b.text(page, 64, 278, 560, 70, body || (s.bullets ?? []).slice(0, 2).join(" · "), { size: 15, color: p.heroMuted, lineSpacing: 130 });
+        }
         break;
       }
       case "section": {
@@ -229,12 +242,18 @@ export function buildThemedDeckRequests(input: {
         b.frame(page, s.title, deckTitle, i, total, s.source);
         const cols = (s.columns ?? []).slice(0, 2);
         const cw = (innerW - 16) / 2;
+        const maxPoints = Math.max(...cols.map((c) => Math.min(6, c.points?.length ?? 0)), 1);
+        const chh = Math.min(240, 74 + maxPoints * 26);
+        b.text(page, M, top - 4, innerW, 30, body, { size: 13, color: p.muted });
+        const ctop = body ? top + 34 : top;
         cols.forEach((c, k) => {
           const x = M + k * (cw + 16);
-          b.shape(page, "ROUND_RECTANGLE", x, top, cw, 240, k === 0 ? p.surface : p.bg, p.border);
-          b.shape(page, "RECTANGLE", x, top, cw, 4, k === 0 ? p.muted : p.accent);
-          b.text(page, x + 18, top + 16, cw - 36, 26, c.heading ?? "", { size: 15, color: k === 0 ? p.text : p.accent, bold: true });
-          b.text(page, x + 18, top + 48, cw - 36, 180, (c.points ?? []).slice(0, 6).join("\n"), { size: 12, color: p.text, bullets: true, lineSpacing: 120, spaceBelow: 6 });
+          // Like the in-app design: left card in the surface colour, right card filled with the accent colour.
+          const featured = k === 1;
+          const ink = featured ? p.onAccent : p.text;
+          b.shape(page, "ROUND_RECTANGLE", x, ctop, cw, chh, featured ? p.accent : p.surface);
+          b.text(page, x + 18, ctop + 18, cw - 36, 18, (c.heading ?? "").toUpperCase(), { size: 9.5, color: featured ? p.onAccent : p.muted, bold: true });
+          b.text(page, x + 18, ctop + 44, cw - 36, chh - 52, (c.points ?? []).slice(0, 6).join("\n"), { size: 12.5, color: ink, bullets: true, lineSpacing: 120, spaceBelow: 6 });
         });
         break;
       }

@@ -52,7 +52,12 @@ export async function POST(request: NextRequest) {
       requests,
     });
     // Speaker notes are a nice-to-have; never fail the export because of them.
-    await writeSpeakerNotes({ accessToken: token.accessToken, presentationId: created.presentationId, notes }).catch(() => undefined);
+    const notesError = await writeSpeakerNotes({ accessToken: token.accessToken, presentationId: created.presentationId, notes })
+      .then((count) => (notes.length > 0 && count === 0 ? "Sprechernotizen nicht geschrieben." : null))
+      .catch((err: unknown) => {
+        console.error("[slides/publish] speaker notes failed", err);
+        return err instanceof Error ? err.message : "Sprechernotizen konnten nicht geschrieben werden.";
+      });
 
     return NextResponse.json({
       ok: true,
@@ -60,6 +65,7 @@ export async function POST(request: NextRequest) {
       openUrl: updated.openUrl,
       title: created.title,
       slidesApplied: slides.length,
+      ...(notesError ? { notesError } : {}),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";

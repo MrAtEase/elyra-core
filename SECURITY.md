@@ -59,8 +59,16 @@ You will get an answer within a few days.
 - **Platform owner** (the operator of an instance) is configured by exact email address in
   `SYSTEM_FOUNDER_ALLOWLIST` / `NEXT_PUBLIC_SYSTEM_FOUNDER_ALLOWLIST`. Whole domains are never
   trusted. The role cannot be requested by a client.
-- Only the platform owner can use the diagnostic routes. There is no in-app agent that can read
-  or change the codebase.
+- Only the platform owner can use the diagnostic routes (see below). There is no in-app agent that
+  can read or change the codebase.
+
+### Diagnostic and test routes
+
+- `/api/dev/email-io-health` (mail service health for the diagnostics panel) answers only the
+  platform owner; everyone else gets `403`. It returns status information, never credentials.
+- `/dev/*` pages only call owner-only APIs and show nothing to other users.
+- `/os/smoke/*` pages are fixtures for the Playwright tests and return `404` in production builds.
+- There is no route that exposes environment variables or secrets.
 
 ### Human in the loop
 

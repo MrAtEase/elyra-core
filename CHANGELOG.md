@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Debug-Route `/api/debug-env` entfernt; `SECURITY.md` beschreibt die verbleibenden Diagnose- und Testrouten und wie sie abgesichert sind.
 - Persönliche Apps (Gitarre, Sprachen, Kartenmagie) laufen jetzt über einen eigenen Erweiterungspunkt (`lib/personal`, `components/os/personal`) statt fest in der Shell. Das öffentliche Repo enthält dafür eine leere Version; `scripts/sync-public.sh` hält beide Stände getrennt. Lern-Coach und Beispiele im Agenten-Team neutral formuliert. README: Abschnitt „Known limitations & next steps“.
 - Neu: „Kunden“ unter Elyra Core › Workspace Admin (nur Plattform-Owner). Kennzahlen zu allen Firmen und Einzelnutzern (Owner, Nutzer, zuletzt aktiv, KI-Aufrufe und Kosten der letzten 30 Tage), Suche und Filter, Firmen-Workspaces sperren und entsperren. Keine Inhalte sichtbar. Gesperrte Workspaces verschwinden für ihre Mitglieder, Einladungen in sie sind ungültig.
 - Team & Rechte: Owner können einen Firmen-Workspace endgültig löschen (Bestätigung durch Eintippen des Namens). Mitgliedschaften, Einladungen und Workspace-Daten werden entfernt, der Audit-Log bleibt. Persönliche und System-Workspaces sind nicht löschbar.

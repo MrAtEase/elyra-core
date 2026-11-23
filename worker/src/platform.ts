@@ -135,7 +135,15 @@ async function listCustomers(deps: PlatformDeps): Promise<Result> {
       companies: companies.length,
       individuals: customers.length - companies.length,
       users: Number(
-        (await deps.db.prepare(`SELECT COUNT(*) AS n FROM users`).first<{ n: number }>())?.n ?? 0
+        (
+          await deps.db
+            .prepare(
+              `SELECT COUNT(DISTINCT m.user_id) AS n FROM memberships m
+               JOIN workspaces w ON w.id = m.workspace_id
+               WHERE w.type <> 'system_platform'`
+            )
+            .first<{ n: number }>()
+        )?.n ?? 0
       ),
       active7d: customers.filter((c) => (c.lastActiveAt ?? 0) >= activeSince).length,
       suspended: customers.filter((c) => c.suspendedAt).length,

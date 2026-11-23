@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Wand2 } from "lucide-react";
 import { useKernel } from "@/components/os/kernel/KernelProvider";
 import {
-  MINI_APP_OPEN_EVENT, marketplaceRequest, openMarketplace, requestOpenApp, useMarketplace,
+  MINI_APP_OPEN_EVENT, getRequestedMiniApp, marketplaceRequest, openMarketplace, requestOpenApp, useMarketplace,
 } from "@/lib/marketplace/client";
 import MiniAppFrame from "@/components/os/apps/marketplace/MiniAppFrame";
 
@@ -15,20 +15,20 @@ export default function MiniAppsWindow() {
   const { activeWorkspace } = useKernel();
   const workspaceId = activeWorkspace.id;
   const market = useMarketplace(workspaceId);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The app requested via openMiniApp() wins over the "newest app" default (read synchronously on mount).
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const requested = getRequestedMiniApp();
+    if (requested) return requested;
+    try { return window.sessionStorage.getItem(MINI_APP_OPEN_EVENT); } catch { return null; }
+  });
   const [app, setApp] = useState<Loaded | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    try {
-      const pending = window.sessionStorage.getItem(MINI_APP_OPEN_EVENT);
-      if (pending) { setSelectedId(pending); window.sessionStorage.removeItem(MINI_APP_OPEN_EVENT); }
-    } catch { /* ignore */ }
     const onOpen = (e: Event) => {
       setSelectedId((e as CustomEvent<string>).detail);
-      try { window.sessionStorage.removeItem(MINI_APP_OPEN_EVENT); } catch { /* ignore */ }
     };
     window.addEventListener(MINI_APP_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(MINI_APP_OPEN_EVENT, onOpen);

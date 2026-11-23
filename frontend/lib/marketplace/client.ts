@@ -111,7 +111,14 @@ export function openMarketplace(detail: MarketplaceOpenDetail = {}) {
   window.dispatchEvent(new CustomEvent<MarketplaceOpenDetail>(MARKETPLACE_OPEN_EVENT, { detail }));
 }
 
+// Last app requested via openMiniApp(); survives remounts of the app window (route changes).
+let requestedMiniApp: string | null = null;
+export function getRequestedMiniApp(): string | null {
+  return requestedMiniApp;
+}
+
 export function openMiniApp(id: string) {
+  requestedMiniApp = id;
   try { window.sessionStorage.setItem(MINI_APP_OPEN_EVENT, id); } catch { /* ignore */ }
   window.dispatchEvent(new CustomEvent<string>(MINI_APP_OPEN_EVENT, { detail: id }));
 }

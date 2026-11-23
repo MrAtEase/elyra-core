@@ -271,7 +271,7 @@ export async function googleAuthUrl(env: Env, state: string, redirectUri?: strin
     redirect_uri: redirect,
     response_type: "code",
     access_type: "offline",
-    prompt: "consent",
+    prompt: "select_account consent", // always let the user pick which Google account to connect
     scope: scopes,
     state,
   });

@@ -12,6 +12,8 @@
  * - Every change is written to the audit log (domain "team").
  */
 
+import { ensurePlatformSchema } from "./platform";
+
 export type TeamRole = "owner" | "admin" | "member" | "viewer";
 
 const ROLES: readonly TeamRole[] = ["owner", "admin", "member", "viewer"];
@@ -170,8 +172,13 @@ async function context(deps: TeamDeps, workspaceId: string): Promise<Context | R
   await ensureTeamSchema(deps.db);
   const ws = await loadWorkspace(deps.db, workspaceId);
   const myRole = ws ? await roleOf(deps.db, workspaceId, deps.user.id) : null;
+  await ensurePlatformSchema(deps.db);
+  const suspended = await deps.db
+    .prepare(`SELECT 1 AS x FROM workspace_suspensions WHERE workspace_id = ?1`)
+    .bind(workspaceId)
+    .first();
   // Same answer for "does not exist" and "not a member": no workspace enumeration.
-  if (!ws || !myRole) return fail(403, "workspace_not_accessible", "Kein Zugriff auf diesen Workspace.");
+  if (!ws || !myRole || suspended) return fail(403, "workspace_not_accessible", "Kein Zugriff auf diesen Workspace.");
   return { ws, myRole };
 }
 
@@ -375,8 +382,15 @@ async function findOpenInvite(db: Db, token: string) {
 /** Shows what an invite is for. Requires a session; reveals nothing for a wrong account. */
 export async function previewInvite(deps: TeamDeps, token: string): Promise<Result> {
   await ensureTeamSchema(deps.db);
+  await ensurePlatformSchema(deps.db);
   const invite = await findOpenInvite(deps.db, token);
-  if (!invite || invite.expires_at <= Date.now()) {
+  const suspended = invite
+    ? await deps.db
+        .prepare(`SELECT 1 AS x FROM workspace_suspensions WHERE workspace_id = ?1`)
+        .bind(invite.workspace_id)
+        .first()
+    : null;
+  if (!invite || invite.expires_at <= Date.now() || suspended) {
     return fail(404, "invite_invalid", "Diese Einladung ist ungültig oder abgelaufen.");
   }
   const myEmail = (deps.user.email ?? "").toLowerCase();

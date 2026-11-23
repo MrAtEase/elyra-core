@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Neu: „Kunden“ unter Elyra Core › Workspace Admin (nur Plattform-Owner). Kennzahlen zu allen Firmen und Einzelnutzern (Owner, Nutzer, zuletzt aktiv, KI-Aufrufe und Kosten der letzten 30 Tage), Suche und Filter, Firmen-Workspaces sperren und entsperren. Keine Inhalte sichtbar. Gesperrte Workspaces verschwinden für ihre Mitglieder, Einladungen in sie sind ungültig.
 - Team & Rechte: Owner können einen Firmen-Workspace endgültig löschen (Bestätigung durch Eintippen des Namens). Mitgliedschaften, Einladungen und Workspace-Daten werden entfernt, der Audit-Log bleibt. Persönliche und System-Workspaces sind nicht löschbar.
 - Neu: „Team & Rechte“ (als erster Bereich unter Workspace Admin, außerdem unter Apps → Verwaltung und in den Einstellungen) ersetzt die Demo-Daten. Firmen-Workspace anlegen, Personen per E-Mail einladen (Link einmalig, 7 Tage gültig, nur für die eingeladene Adresse), Rollen Owner/Admin/Mitglied/Gast ändern, Mitglieder entfernen oder selbst verlassen, offene Einladungen zurückziehen, Verlauf der Team-Änderungen. Persönliche Workspaces bleiben privat. Beitrittsseite unter `/invite/…`.
 - Coding-Agent komplett entfernt: Code-Fenster, `/os/code`, die Code-Routen, die Datei-/Code-Werkzeuge im Chat, die „Run in Coder“-Knöpfe im Builder und der lokale Dev-Agent im Worker. Damit gibt es keinen Weg mehr, über die App Code des Systems zu lesen oder zu ändern. GitHub-Verbindungen führen zurück auf den Desktop.

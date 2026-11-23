@@ -41,6 +41,7 @@ import { googleOAuthStart, googleOAuthCallback, getAccessTokenFromKV } from "./g
 import { handleWindowLayoutRoute } from "./windowLayouts";
 import { base64url } from "./rfc822";
 import { routeTeam, previewInvite, acceptInvite, type TeamDeps } from "./team";
+import { routePlatform, ensurePlatformSchema } from "./platform";
 
 interface Env {
   ASSISTANT_DB: D1Database;
@@ -576,12 +577,14 @@ async function getUserWorkspaces(
   db: D1Database,
   userId: string
 ): Promise<WorkspaceRow[]> {
+  await ensurePlatformSchema(db);
   const { results } = await db
     .prepare(
       `SELECT w.id, w.slug, w.type, w.name, w.brand_json
        FROM workspaces w
        JOIN memberships m ON m.workspace_id = w.id
-       WHERE m.user_id = ?1`
+       WHERE m.user_id = ?1
+         AND NOT EXISTS (SELECT 1 FROM workspace_suspensions s WHERE s.workspace_id = w.id)`
     )
     .bind(userId)
     .all<WorkspaceRow>();
@@ -599,9 +602,12 @@ async function getUserMembership(
   userId: string,
   workspaceId: string
 ): Promise<MembershipRow | null> {
+  await ensurePlatformSchema(db);
   return db
     .prepare(
-      `SELECT role, title, workspace_id FROM memberships WHERE user_id = ?1 AND workspace_id = ?2`
+      `SELECT role, title, workspace_id FROM memberships m
+       WHERE m.user_id = ?1 AND m.workspace_id = ?2
+         AND NOT EXISTS (SELECT 1 FROM workspace_suspensions s WHERE s.workspace_id = m.workspace_id)`
     )
     .bind(userId, workspaceId)
     .first<MembershipRow>();
@@ -2879,6 +2885,12 @@ export default {
       // Active workspace
       // -----------------------------------------------------------------
 
+      if (url.pathname.startsWith("/assistant/platform/")) {
+        const deps = await teamDepsFor(request, env);
+        if (!deps) return withCors(request, json({ ok: false, error: "AUTH_REQUIRED" }, 401), env);
+        const result = await routePlatform(deps, url.pathname, request.method, () => readJsonBody(request));
+        return withCors(request, json(result?.body ?? { ok: false, error: "not_found" }, result?.status ?? 404), env);
+      }
       const inviteMatch = url.pathname.match(/^\/assistant\/invites\/([A-Za-z0-9_-]{20,100})(\/accept)?$/);
       if (inviteMatch) {
         const accept = Boolean(inviteMatch[2]);

@@ -39,6 +39,15 @@ You will get an answer within a few days.
 - Only owners can delete a company workspace, after typing its exact name. Personal and system
   workspaces cannot be deleted. The audit log is kept.
 
+### Platform view ("Kunden")
+
+- Only the platform owner sees the customer list (Elyra Core › Workspace Admin › Kunden). The
+  worker checks this on every call, independent of the UI.
+- It shows metadata only: workspace name, owner email, member count, last activity and AI usage
+  numbers. Mails, events, documents, chats and app data are never read for it.
+- The platform owner can suspend a company workspace (e.g. abuse or an unpaid invoice). Members
+  lose access immediately, data stays, and it can be reactivated at any time. Both are audited.
+
 ### Invitations
 
 - An invitation is bound to one email address and a role. The link token (32 random bytes) is

@@ -72,9 +72,10 @@ import type {
 import ProfileSurface from "@/components/os/shell/surfaces/ProfileSurface";
 import WorkspaceAdminSurface from "@/components/os/shell/surfaces/WorkspaceAdminSurface";
 import TeamPanel from "@/components/os/apps/settings/TeamPanel";
+import CustomersPanel from "@/components/os/shell/admin/CustomersPanel";
 import ArtifactResultCard from "@/components/os/shell/cards/ArtifactResultCard";
 import { withSupabaseAuthorization } from "@/lib/auth/clientAuthHeaders";
-import { usePlatformOwner, useVisibleWorkspaces } from "@/components/os/kernel/workspaceModel";
+import { getWorkspace, usePlatformOwner, useVisibleWorkspaces } from "@/components/os/kernel/workspaceModel";
 
 const AgentTeamWindow = lazy(() => import("@/components/os/apps/agent-team/AgentTeamWindow"));
 
@@ -406,7 +407,14 @@ export default function DesktopSurface({
   const [goalFilter, setGoalFilter] = useState<GoalFilter>("all");
   const [upcomingWindow, setUpcomingWindow] = useState<UpcomingWindow>("3d");
   const [activeSurface, setActiveSurface] = useState<SurfaceId>("dashboard");
-  const [systemSection, setSystemSection] = useState<"team" | "integrations" | "marketplace" | "policies" | "health" | "billing" | "ai">("team");
+  const isSystemAdminView = platformOwner && getWorkspace(workspaceId).kind === "platform";
+  const [systemSection, setSystemSection] = useState<"customers" | "team" | "integrations" | "marketplace" | "policies" | "health" | "billing" | "ai">("team");
+  // In the system workspace the platform owner starts with "Kunden"; elsewhere that section does not exist.
+  useEffect(() => {
+    setSystemSection((previous) =>
+      isSystemAdminView ? (previous === "team" ? "customers" : previous) : previous === "customers" ? "team" : previous,
+    );
+  }, [isSystemAdminView]);
   const [now, setNow] = useState<Date>(() => new Date());
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string>("");
@@ -1735,6 +1743,7 @@ export default function DesktopSurface({
             <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
               <nav className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-3">
                 {[
+                  ...(isSystemAdminView ? [["customers", "Kunden"]] : []),
                   ["team", "Team & Rechte"],
                   ["integrations", "Integrations"],
                   ["marketplace", "Marketplace"],
@@ -1758,7 +1767,9 @@ export default function DesktopSurface({
                 ))}
               </nav>
               <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
-                {systemSection === "team" ? (
+                {systemSection === "customers" && isSystemAdminView ? (
+                  <CustomersPanel />
+                ) : systemSection === "team" || systemSection === "customers" ? (
                   <TeamPanel workspaceId={workspaceId} />
                 ) : systemSection === "integrations" ? (
                   <>

@@ -33,6 +33,7 @@ I designed it alongside my franchise start-up **Fish Delish Portugal** (2022–2
 | **Tasks & docs** | Task management, Notion integration, docs and slides windows |
 | **Marketplace & own apps** | Optional apps, skills and templates per workspace; Elly builds small apps on request – once approved they appear under Apps and run in a sandboxed iframe with their own data |
 | **Team & roles** | Company workspaces with owner, admin, member and guest roles; invitations bound to one email address, single-use and valid for 7 days; every change in the audit log |
+| **Platform view** | For the operator: customers, owners, activity and AI usage at a glance, suspend and reactivate company workspaces – metadata only, never content |
 | **Governance** | User approval for destructive actions, workspace-level policies, audit log |
 
 ## Marketing tools

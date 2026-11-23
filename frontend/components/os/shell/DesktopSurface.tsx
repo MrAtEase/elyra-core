@@ -71,6 +71,7 @@ import type {
 } from "@/lib/orb-os/contracts/types";
 import ProfileSurface from "@/components/os/shell/surfaces/ProfileSurface";
 import WorkspaceAdminSurface from "@/components/os/shell/surfaces/WorkspaceAdminSurface";
+import TeamPanel from "@/components/os/apps/settings/TeamPanel";
 import ArtifactResultCard from "@/components/os/shell/cards/ArtifactResultCard";
 import { withSupabaseAuthorization } from "@/lib/auth/clientAuthHeaders";
 import { usePlatformOwner, useVisibleWorkspaces } from "@/components/os/kernel/workspaceModel";
@@ -405,7 +406,7 @@ export default function DesktopSurface({
   const [goalFilter, setGoalFilter] = useState<GoalFilter>("all");
   const [upcomingWindow, setUpcomingWindow] = useState<UpcomingWindow>("3d");
   const [activeSurface, setActiveSurface] = useState<SurfaceId>("dashboard");
-  const [systemSection, setSystemSection] = useState<"integrations" | "marketplace" | "policies" | "health" | "billing" | "ai">("integrations");
+  const [systemSection, setSystemSection] = useState<"team" | "integrations" | "marketplace" | "policies" | "health" | "billing" | "ai">("team");
   const [now, setNow] = useState<Date>(() => new Date());
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string>("");
@@ -1728,12 +1729,13 @@ export default function DesktopSurface({
             <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
               <h3 className="text-[14px] font-semibold text-[color:var(--text-primary)]">Workspace Admin</h3>
               <p className="mt-1 text-[12px] text-[color:var(--text-muted)]">
-                Integrations, policies, members and workspace health.
+                Team und Rechte, Integrationen, Richtlinien und Zustand des Workspace.
               </p>
             </article>
             <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
               <nav className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-3">
                 {[
+                  ["team", "Team & Rechte"],
                   ["integrations", "Integrations"],
                   ["marketplace", "Marketplace"],
                   ["policies", "Policies"],
@@ -1756,7 +1758,9 @@ export default function DesktopSurface({
                 ))}
               </nav>
               <article className="rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-elevated)] p-4">
-                {systemSection === "integrations" ? (
+                {systemSection === "team" ? (
+                  <TeamPanel workspaceId={workspaceId} />
+                ) : systemSection === "integrations" ? (
                   <>
                     <h4 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Apps & Integrations</h4>
                     <div className="mt-3 rounded-2xl border border-[color:var(--os-border-soft)] bg-[color:var(--bg-surface)] p-4">
@@ -1764,7 +1768,7 @@ export default function DesktopSurface({
                         <div>
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">Connectors</p>
                           <p className="mt-1 text-[12px] text-[color:var(--text-secondary)]">
-                            Connect Elyra to your apps, files, and services so the agent and code tools can use the same context.
+                            Connect Elyra to your apps, files, and services so Elly can work with the same context.
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.08em]">

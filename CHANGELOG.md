@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Vorlagen: Bereits gebaute Vorlagen sind mit „Unter Apps“ markiert und bieten „Öffnen“, „Bearbeiten“ und (bei fertigen Vorlagen) „Aktualisieren“ auf die neueste Version – die gespeicherten Daten bleiben erhalten.
+- KI-Aufrufe: Kurzzeitige Serverfehler des Anbieters (500/502/504) werden automatisch wiederholt; bleibt es dabei, erscheint eine verständliche Meldung statt „Internal error encountered.“
 - Eigene Apps: Nach der Freigabe im Builder erscheint eine App direkt unter Apps in ihrer Kategorie (Launcher und Apps-Tab) statt in einer eigenen „Mini-Apps“-Liste; der Builder wechselt danach zurück und öffnet die App. Das Fenster zeigt nur noch die App selbst. Überall „Apps“ statt „Mini-Apps“; Freigabe-Knopf heißt „Unter Apps freigeben“.
 - Apps: Launcher und Apps-Tab nutzen eine gemeinsame Liste mit festen deutschen Kategorien (Organisation, Erstellen, Marketing, Wissen & Recherche, Alltag & Freizeit, Entwicklung, Verwaltung) und deutschen Namen. Doppelte Einträge aus alten App-Manifesten und das Integrations-Raster entfernt; Code und Builder nur für den Plattform-Owner. Launcher scrollt bei vielen Apps.
 - Vorlagen von 33 auf 16 zusammengeführt (z. B. Reiseplaner mit Plan/Budget/Packliste, Jobsuche mit Bewerbungen/Interview/Gehalt); Kategorien gestrafft.

@@ -69,7 +69,7 @@ function ItemCard({
   );
 }
 
-function TemplateCard({ tpl, locked, canManage, onBuild }: { tpl: MiniAppTemplate; locked: boolean; canManage: boolean; onBuild: () => void }) {
+function TemplateCard({ tpl, locked, canManage, onBuild, builtId, onOpen, onEdit }: { tpl: MiniAppTemplate; locked: boolean; canManage: boolean; onBuild: () => void; builtId: string | null; onOpen: () => void; onEdit: () => void }) {
   return (
     <article className="flex flex-col gap-2 rounded-2xl p-3.5" style={card}>
       <div className="flex items-start gap-3">
@@ -78,9 +78,29 @@ function TemplateCard({ tpl, locked, canManage, onBuild }: { tpl: MiniAppTemplat
           <p className="truncate text-[13px] font-semibold text-[color:var(--text-primary)]">{tpl.name}</p>
           <p className="text-[10px] uppercase tracking-wide text-[color:var(--text-tertiary)]">Vorlage · {tpl.category}</p>
         </div>
+        {builtId ? <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-emerald-300" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)" }}><Check size={10} /> Unter Apps</span> : null}
       </div>
       <p className="flex-1 text-[12px] leading-snug text-[color:var(--text-secondary)]">{tpl.description}</p>
-      {locked ? (
+      {builtId ? (
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={onOpen}
+            className="inline-flex w-fit items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:opacity-90" style={{ background: "var(--os-accent)" }}>
+            Öffnen
+          </button>
+          {canManage ? (
+            <button type="button" onClick={onEdit}
+              className="inline-flex w-fit items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--text-primary)] transition hover:bg-white/5" style={{ borderColor: "var(--os-border-soft)" }}>
+              <Wand2 size={11} /> Bearbeiten
+            </button>
+          ) : null}
+          {canManage && tpl.prebuilt ? (
+            <button type="button" onClick={onBuild} title="Neueste Version der Vorlage laden – deine Daten bleiben erhalten"
+              className="inline-flex w-fit items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] text-[color:var(--text-tertiary)] transition hover:text-[color:var(--text-primary)]">
+              <RotateCcw size={11} /> Aktualisieren
+            </button>
+          ) : null}
+        </div>
+      ) : locked ? (
         <p className="inline-flex items-center gap-1 text-[11px] text-[color:var(--text-tertiary)]"><Lock size={11} /> Nur im eigenen Personal-Workspace (sensible Daten)</p>
       ) : (
         <button type="button" onClick={onBuild} disabled={!canManage}
@@ -363,9 +383,15 @@ export default function MarketplaceWindow() {
                 <section key={category}>
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[color:var(--text-tertiary)]">{category}</p>
                   <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                    {group.map((tpl) => (
-                      <TemplateCard key={tpl.id} tpl={tpl} locked={Boolean(tpl.personalOnly) && !market.personal && market.loaded} canManage={market.canManage} onBuild={() => void buildFromTemplate(tpl)} />
-                    ))}
+                    {group.map((tpl) => {
+                        const built = market.miniApps.find((m) => m.name.trim().toLowerCase() === tpl.name.trim().toLowerCase()) ?? null;
+                        return (
+                          <TemplateCard key={tpl.id} tpl={tpl} locked={Boolean(tpl.personalOnly) && !market.personal && market.loaded} canManage={market.canManage}
+                            onBuild={() => void buildFromTemplate(tpl)} builtId={built?.id ?? null}
+                            onOpen={() => { if (built) { openMiniApp(built.id); requestOpenApp("mini_apps"); } }}
+                            onEdit={() => { if (built) { setTab("build"); void editMiniApp(built.id); } }} />
+                        );
+                    })}
                   </div>
                 </section>
               );

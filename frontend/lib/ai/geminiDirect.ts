@@ -81,7 +81,7 @@ export async function callGeminiText(input: {
       lastError = err;
       const status = (err as { status?: number }).status;
       // With Google Search grounding, some models answer 400 (tool unsupported) – try the next model.
-      const retriable = status === 404 || status === 429 || status === 503 || (err as Error).name === "AbortError" || (Boolean(input.googleSearch) && status === 400);
+      const retriable = status === 404 || status === 429 || status === 500 || status === 502 || status === 503 || status === 504 || (err as Error).name === "AbortError" || (Boolean(input.googleSearch) && status === 400);
       console.warn(`[geminiDirect] ${model} failed${retriable ? ", retrying" : ""}:`, (err as Error).message);
       if (!retriable) break;
       // 404 (model unavailable) and timeouts: don't retry the same model, jump to the next one.
@@ -89,6 +89,13 @@ export async function callGeminiText(input: {
     } finally {
       clearTimeout(timer);
     }
+  }
+  const lastStatus = (lastError as { status?: number } | null)?.status ?? 0;
+  if (lastStatus >= 500 || lastStatus === 429) {
+    // Provider hiccup ("Internal error encountered." etc.): give users a clear, actionable message.
+    const friendly = new Error("Der KI-Dienst ist gerade überlastet. Bitte in einer Minute noch einmal versuchen.") as Error & { status?: number };
+    friendly.status = lastStatus;
+    throw friendly;
   }
   throw lastError instanceof Error ? lastError : new Error("Gemini request failed");
 }

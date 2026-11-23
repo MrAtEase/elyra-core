@@ -254,7 +254,6 @@ function mapWindowToSurface(appId: AppId): AIDockSurfaceId {
   if (appId === "graph") return "apps";
   if (appId === "builder") return "research";
   if (appId === "studio") return "apps";
-  if (appId === "code") return "apps";
   if (appId === "settings_ai" || appId === "settings_os" || appId === "settings_admin") return "system";
   if (appId === "approvals" || appId === "audit" || appId === "runs") return "system";
   return "agent";
@@ -299,27 +298,26 @@ function buildUserInitials(value?: string | null): string {
 
 // Human-readable label for each routed app (shown in the chrome bar)
 const ROUTED_APP_LABELS: Partial<Record<AppId, string>> = {
-  code:     "Coding Agent",
   mail:     "Mail",
-  calendar: "Calendar",
-  tasks:    "Tasks",
-  files:    "Files",
-  builder:  "Builder",
-  slides:   "Slides",
+  calendar: "Kalender",
+  tasks:    "Aufgaben",
+  files:    "Dateien",
+  builder:  "App-Builder",
+  slides:   "Präsentationen",
   studio:   "Studio",
-  weather:  "Weather",
-  reporting: "Marketing Tools · Reporting",
-  leads: "Marketing Tools · Leads",
-  ads_audit: "Marketing Tools · Ads Audit",
+  weather:  "Wetter",
+  reporting: "Marketing · Reporting",
+  leads: "Marketing · Leads",
+  ads_audit: "Marketing · Ads-Audit",
   toolbox: "Werkzeuge",
-  visibility: "Marketing Tools · KI-Sichtbarkeit",
-  synergy: "Marketing Tools · Paid-Organic-Synergie",
-  feed: "Marketing Tools · Feed-Optimierer",
-  insights: "Marketing Tools · KI-Newsletter-Digest",
-  automations: "Marketing Tools · Automationen (n8n)",
-  marketplace: "Marktplatz · Apps, Vorlagen & Skills",
+  visibility: "Marketing · KI-Sichtbarkeit",
+  synergy: "Marketing · Paid × Organic",
+  feed: "Marketing · Feed-Optimierer",
+  insights: "Marketing · KI-Newsletter-Digest",
+  automations: "Marketing · Automationen",
+  marketplace: "Marktplatz",
   mini_apps: "Meine Apps",
-  agent_team: "Marketing Tools · Agenten",
+  agent_team: "Marketing · Agenten-Team",
   ...personalRecord((app) => app.windowTitle),
 };
 
@@ -471,85 +469,6 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
   const sessionCacheRef = useRef<Record<string, GoogleStatusResponse | null>>({});
   const bootstrapCacheRef = useRef<Record<string, { contract: UiBootstrapContract; ui: ResolvedUiModel } | null>>({});
   const onboardingCacheRef = useRef<Record<string, boolean>>({});
-  const looksLikeCodeIntent = useCallback((text: string) => {
-    const lower = text.toLowerCase();
-    const codeVerbs = [
-      "scan",
-      "analyze",
-      "analyse",
-      "inspect",
-      "audit",
-      "find",
-      "show",
-      "fix",
-      "repair",
-      "debug",
-      "refactor",
-      "implement",
-      "change",
-      "update",
-      "rewrite",
-      "review",
-      "überprüf",
-      "prüf",
-      "prüf",
-      "änd",
-      "verbesser",
-      "überarbeit",
-      "bearbeit",
-      "mach",
-      "build",
-      "fehler",
-      "bug",
-    ];
-    const codeTargets = [
-      "app",
-      "ui",
-      "frontend",
-      "backend",
-      "component",
-      "feature",
-      "error",
-      "weather app",
-      "wetter app",
-      "surf",
-      "mail app",
-      "calendar app",
-      "kalender",
-      "task app",
-      "todo",
-      "intent line",
-      "chat",
-      "builder",
-      "workflow",
-      "code",
-      "repo",
-      "repository",
-      "whole repo",
-      "issues",
-      "issue",
-      "problem",
-      "problems",
-      "datei",
-      "window",
-      "typescript",
-      "next js",
-      "nextjs",
-      "react",
-    ];
-
-    const hasVerb = codeVerbs.some((term) => lower.includes(term));
-    const hasTarget = codeTargets.some((term) => lower.includes(term));
-    const mentionsFilePath = /([\w-]+\/)+[\w.-]+\.(tsx|ts|js|jsx|css|md|json)/i.test(text);
-    return (hasVerb && hasTarget) || mentionsFilePath;
-  }, []);
-  const looksLikeCodeReviewIntent = useCallback((text: string) => {
-    const lower = text.toLowerCase();
-    return (
-      /\b(scan|review|analy[sz]e|analyse|inspect|audit|find|show)\b/.test(lower) &&
-      /\b(repo|repository|codebase|whole repo|issues|issue|problems|problem|errors|fehler)\b/.test(lower)
-    );
-  }, []);
   const routeIntentTarget = useCallback((text: string, attachments: IntentAttachment[] = []): IntentRouteTarget => {
     const lower = text.toLowerCase();
     const hasImages = attachments.some((attachment) => attachment.mimeType.startsWith("image/"));
@@ -564,81 +483,14 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
       /\b(calendar|kalender|event|meeting|schedule|plan my week|woche planen)\b/i.test(text);
     const mentionsTasks =
       /\b(task|tasks|todo|to-do|aufgabe|aufgaben)\b/i.test(text);
-    const mentionsCode = looksLikeCodeIntent(text) || looksLikeCodeReviewIntent(text);
 
     if (mentionsSlides) return "slides";
     if (mentionsBuilder) return "builder";
     if (mentionsMail) return "mail";
     if (mentionsCalendar) return "calendar";
     if (mentionsTasks) return "tasks";
-    // The coding agent was removed: code requests go to Elly like any other request.
-    void mentionsCode;
     return "general";
-  }, [looksLikeCodeIntent]);
-  const guessCodeTargetFiles = useCallback((text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes("weather") || lower.includes("wetter") || lower.includes("surf")) {
-      return ["components/os/apps/weather/WeatherWindow.tsx"];
-    }
-    if (lower.includes("mail")) {
-      return ["components/os/programs/MailProgram.tsx"];
-    }
-    if (lower.includes("calendar") || lower.includes("kalender")) {
-      return ["components/os/programs/CalendarProgram.tsx"];
-    }
-    if (lower.includes("task") || lower.includes("todo") || lower.includes("aufgabe")) {
-      return ["components/os/apps/tasks/TasksApp.tsx"];
-    }
-    if (lower.includes("builder") || lower.includes("workflow")) {
-      return ["components/os/apps/builder/BuilderWindow.tsx"];
-    }
-    if (
-      lower.includes("menu") ||
-      lower.includes("dropdown") ||
-      lower.includes("profile") ||
-      lower.includes("account") ||
-      lower.includes("namen") ||
-      lower.includes("name")
-    ) {
-      return ["components/os/shell/IdentityMenu.tsx"];
-    }
-    if (
-      lower.includes("intent") ||
-      lower.includes("input") ||
-      lower.includes("composer") ||
-      lower.includes("prompt")
-    ) {
-      return ["components/os/shell/IntentLine.tsx"];
-    }
-    if (lower.includes("rail") || lower.includes("right rail")) {
-      return ["components/agent/AIDock.tsx"];
-    }
-    return [];
   }, []);
-  const forwardIntentToCode = useCallback(
-    (text: string, attachments: IntentAttachment[]) => {
-      const trimmed = text.trim();
-      const reviewIntent = looksLikeCodeReviewIntent(trimmed);
-      const selectedFiles = reviewIntent ? [] : guessCodeTargetFiles(trimmed);
-      const shouldAutoExecute = reviewIntent || (attachments.length > 0 && trimmed.length > 0);
-      const repoUrl = /\b(repo|repository|whole repo|codebase)\b/i.test(trimmed)
-        ? "/Users/paulodak/Projects/elyra-core"
-        : "/Users/paulodak/Projects/elyra-core/frontend";
-      const payload = {
-        task: trimmed,
-        skill: (reviewIntent ? "review-code" : "custom") as "review-code" | "custom",
-        repoUrl,
-        ...(selectedFiles.length > 0 ? { selectedFiles } : {}),
-        attachments,
-        autoRun: true,
-        ...(shouldAutoExecute ? { autoExecute: true } : {}),
-      };
-      window.localStorage.setItem("elyra_ai_task_queue", JSON.stringify(payload));
-      window.dispatchEvent(new CustomEvent("elyra:code-task-queued"));
-      handleOpenApp("code");
-    },
-    [guessCodeTargetFiles, handleOpenApp, looksLikeCodeReviewIntent],
-  );
   const forwardIntentToSlides = useCallback(
     (text: string, attachments: IntentLineAttachment[]) => {
       try {
@@ -708,7 +560,7 @@ function WorkspaceOSInner({ whoami, children }: WorkspaceOSInnerProps) {
 
       submitIntent(trimmed, attachments);
     },
-    [forwardIntentToCode, forwardIntentToSlides, handleOpenApp, routeIntentTarget, submitIntent],
+    [forwardIntentToSlides, handleOpenApp, routeIntentTarget, submitIntent],
   );
 
   // Other components (marketplace, Elly cards, skills) open apps and prefill the input via window events.

@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Fix: Eigene Apps waren im hellen Design kaum lesbar (dunkler Hintergrund mit dunkler Schrift). Die App-Fenster übernehmen die Farben jetzt aus dem aktiven Theme und erkennen Hell/Dunkel am tatsächlichen Hintergrund.
+- „Dateien“ zeigt echte Dateien aus Google Drive statt Beispieldaten (Suche, Filter nach Typ, Markiert/Geteilt, Details, „In Google Drive öffnen“). Ohne Verbindung erklärt das Fenster, was fehlt, und bietet „Google verbinden“ an.
+- Beispieldaten in Apps liegen jetzt relativ zum heutigen Datum statt in 2024/2025; Kalenderansichten starten im aktuellen Monat. Der App-Builder erzeugt keine festen Daten mehr.
+- Fenstertitel auf Deutsch (Kalender, Aufgaben, Dateien, Präsentationen …). Letzte Reste des Coding-Agenten entfernt (Weiterleitung von Code-Anfragen mit lokalem Pfad, App-ID „code“, alte Dev-Agent-Aufgaben im Worker).
 - Debug-Route `/api/debug-env` entfernt; `SECURITY.md` beschreibt die verbleibenden Diagnose- und Testrouten und wie sie abgesichert sind.
 - Persönliche Apps (Gitarre, Sprachen, Kartenmagie) laufen jetzt über einen eigenen Erweiterungspunkt (`lib/personal`, `components/os/personal`) statt fest in der Shell. Das öffentliche Repo enthält dafür eine leere Version; `scripts/sync-public.sh` hält beide Stände getrennt. Lern-Coach und Beispiele im Agenten-Team neutral formuliert. README: Abschnitt „Known limitations & next steps“.
 - Neu: „Kunden“ unter Elyra Core › Workspace Admin (nur Plattform-Owner). Kennzahlen zu allen Firmen und Einzelnutzern (Owner, Nutzer, zuletzt aktiv, KI-Aufrufe und Kosten der letzten 30 Tage), Suche und Filter, Firmen-Workspaces sperren und entsperren. Keine Inhalte sichtbar. Gesperrte Workspaces verschwinden für ihre Mitglieder, Einladungen in sie sind ungültig.

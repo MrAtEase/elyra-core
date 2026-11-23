@@ -17,25 +17,54 @@ window.addEventListener('error',function(e){parent.postMessage({__elyra:1,method
 window.addEventListener('unhandledrejection',function(e){parent.postMessage({__elyra:1,method:'error',args:[String((e.reason&&e.reason.message)||e.reason)]},'*');});
 document.addEventListener('submit',function(e){e.preventDefault();},true);})();`;
 
+/** The element that carries Elyra's active theme variables (they are scoped, not on :root). */
+function themeElement(): Element {
+  return document.querySelector(".elyra-os-theme") ?? document.body ?? document.documentElement;
+}
+
+/** Relative luminance of a CSS colour; used to decide whether the active theme is dark. */
+function isDarkColor(color: string): boolean | null {
+  const probe = document.createElement("span");
+  probe.style.color = color;
+  document.body.appendChild(probe);
+  const rgb = getComputedStyle(probe).color.match(/[\d.]+/g)?.map(Number) ?? [];
+  probe.remove();
+  if (rgb.length < 3) return null;
+  const [r, g, b] = rgb.map((c) => {
+    const v = (c ?? 0) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.35;
+}
+
+function resolveTheme(): { dark: boolean; vars: Array<[string, string]> } {
+  const css = getComputedStyle(themeElement());
+  const read = (name: string) => css.getPropertyValue(name).trim();
+  const bg = read("--bg-canvas") || read("--bg-base");
+  const dark = (bg ? isDarkColor(bg) : null) ?? document.documentElement.classList.contains("dark");
+  const v = (name: string, fallback: string) => read(name) || fallback;
+  return {
+    dark,
+    vars: [
+      ["--bg", bg || (dark ? "#0f1120" : "#f7f8fb")],
+      ["--surface", v("--os-surface-window", v("--bg-surface", dark ? "#171a2e" : "#ffffff"))],
+      ["--text", v("--text-primary", dark ? "#eef0f8" : "#14161f")],
+      ["--muted", v("--text-secondary", dark ? "#9aa0b8" : "#5b6275")],
+      ["--accent", v("--os-accent", "#6c9cfc")],
+      ["--border", v("--os-border-soft", dark ? "rgba(255,255,255,.12)" : "rgba(0,0,0,.1)")],
+    ],
+  };
+}
+
 function themeVars(): string {
   if (typeof window === "undefined") return "";
-  const css = getComputedStyle(document.documentElement);
-  const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
-  const dark = document.documentElement.classList.contains("dark");
+  const { dark, vars } = resolveTheme();
   // !important: generated apps sometimes redefine these variables – Elyra's theme must win.
-  const vars: Array<[string, string]> = [
-    ["--bg", v("--bg-canvas", dark ? "#0f1120" : "#f7f8fb")],
-    ["--surface", v("--bg-surface", dark ? "#171a2e" : "#ffffff")],
-    ["--text", v("--text-primary", dark ? "#eef0f8" : "#14161f")],
-    ["--muted", v("--text-secondary", dark ? "#9aa0b8" : "#5b6275")],
-    ["--accent", v("--os-accent", "#6c9cfc")],
-    ["--border", v("--os-border-soft", dark ? "rgba(255,255,255,.12)" : "rgba(0,0,0,.1)")],
-  ];
   return `:root{${vars.map(([k, val]) => `${k}:${val} !important;`).join("")}color-scheme:${dark ? "dark" : "light"};}`;
 }
 
 export function buildSrcDoc(bodyHtml: string): string {
-  const dark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const dark = typeof document !== "undefined" && resolveTheme().dark;
   return `<!doctype html><html lang="de" data-theme="${dark ? "dark" : "light"}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">
 <meta name="viewport" content="width=device-width,initial-scale=1">

@@ -129,7 +129,6 @@ export type AppId =
   | "builder"
   | "slides"
   | "studio"
-  | "code"
   | "weather"
   | "reporting"
   | "leads"

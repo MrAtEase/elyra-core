@@ -66,7 +66,7 @@ class Builder {
   private n = 0;
   constructor(private p: Palette) {}
 
-  id(prefix: string) { this.n += 1; return `${prefix}_${this.n}`; }
+  id(prefix: string) { this.n += 1; return `elyra_${prefix}_${String(this.n).padStart(4, "0")}`; }
 
   slide(index: number, bg: string) {
     const slideId = this.id("s");

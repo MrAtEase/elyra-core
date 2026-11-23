@@ -7,6 +7,8 @@
  * - A workspace always keeps at least one owner.
  * - Invitations are bound to one email address. The link token is shown once and
  *   only its SHA-256 hash is stored. Accepting requires a session with that email.
+ * - Only owners can delete a company workspace, after typing its name. Personal and
+ *   system workspaces cannot be deleted.
  * - Every change is written to the audit log (domain "team").
  */
 
@@ -494,6 +496,76 @@ async function removeMember(deps: TeamDeps, workspaceId: string, targetUserId: s
 }
 
 /* ------------------------------------------------------------------ */
+/* Delete a company workspace                                          */
+/* ------------------------------------------------------------------ */
+
+const IDENT_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+async function deleteWorkspace(deps: TeamDeps, workspaceId: string, body: Record<string, unknown>): Promise<Result> {
+  const ctx = await context(deps, workspaceId);
+  if (isResult(ctx)) return ctx;
+  const { db } = deps;
+
+  if (ctx.myRole !== "owner") return fail(403, "forbidden", "Nur Owner können einen Workspace löschen.");
+  if (!isTeamWorkspace(ctx.ws) || ctx.ws.type === "system_platform") {
+    return fail(400, "not_deletable", "Persönliche und System-Workspaces können nicht gelöscht werden.");
+  }
+  const confirmName = typeof body.confirmName === "string" ? body.confirmName.trim() : "";
+  if (confirmName !== ctx.ws.name.trim()) {
+    return fail(400, "confirm_mismatch", "Bitte gib zur Bestätigung den genauen Namen des Workspace ein.");
+  }
+
+  // Remove everything that belongs to this workspace. The audit log is kept on purpose.
+  const tables = await db
+    .prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'`)
+    .all<{ name: string }>();
+  const keep = new Set(["workspaces", "audit_log", "sessions", "users"]);
+  const pending: string[] = [];
+  for (const { name } of tables.results ?? []) {
+    if (keep.has(name) || !IDENT_RE.test(name)) continue;
+    const columns = await db.prepare(`PRAGMA table_info(${name})`).all<{ name: string }>();
+    const names = new Set((columns.results ?? []).map((c) => c.name));
+    for (const column of ["workspace_id", "source_workspace_id", "target_workspace_id"]) {
+      if (!names.has(column)) continue;
+      const found = await db
+        .prepare(`SELECT COUNT(*) AS n FROM ${name} WHERE ${column} = ?1`)
+        .bind(workspaceId)
+        .first<{ n: number }>();
+      if (Number(found?.n ?? 0) > 0) pending.push(`DELETE FROM ${name} WHERE ${column} = ?1`);
+    }
+  }
+  // Child tables may reference each other; retry until every delete went through.
+  const errors = new Map<string, string>();
+  for (let pass = 0; pass < 6 && pending.length; pass += 1) {
+    for (const sql of [...pending]) {
+      try {
+        await db.prepare(sql).bind(workspaceId).run();
+        pending.splice(pending.indexOf(sql), 1);
+      } catch (error) {
+        errors.set(sql, error instanceof Error ? error.message : String(error));
+      }
+    }
+  }
+  if (pending.length) {
+    console.error("[team] workspace delete incomplete", pending.map((sql) => `${sql} → ${errors.get(sql)}`));
+    return {
+      status: 500,
+      body: {
+        ok: false,
+        error: "delete_incomplete",
+        message: "Der Workspace konnte nicht vollständig gelöscht werden.",
+        detail: pending.map((sql) => errors.get(sql) ?? sql).slice(0, 5),
+      },
+    };
+  }
+  await db.prepare(`UPDATE sessions SET active_workspace_id = NULL WHERE active_workspace_id = ?1`).bind(workspaceId).run();
+  await db.prepare(`UPDATE users SET default_workspace_id = NULL WHERE default_workspace_id = ?1`).bind(workspaceId).run();
+  await db.prepare(`DELETE FROM workspaces WHERE id = ?1`).bind(workspaceId).run();
+  await audit(db, workspaceId, deps.user.id, "workspace_deleted", workspaceId, { name: ctx.ws.name });
+  return ok();
+}
+
+/* ------------------------------------------------------------------ */
 /* Router                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -506,6 +578,7 @@ export async function routeTeam(
   readBody: () => Promise<Record<string, unknown>>
 ): Promise<Result | null> {
   if (sub === "/team" && method === "GET") return getTeam(deps, workspaceId);
+  if (sub === "/team/workspace" && method === "DELETE") return deleteWorkspace(deps, workspaceId, await readBody());
   if (sub === "/team/invites" && method === "POST") return createInvite(deps, workspaceId, await readBody());
 
   const inviteMatch = sub.match(/^\/team\/invites\/([a-f0-9-]{36})$/);

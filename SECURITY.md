@@ -36,6 +36,8 @@ You will get an answer within a few days.
   always keeps at least one owner. The worker enforces these rules, not the UI.
 - Personal workspaces never get other members. Teams live in separate company workspaces.
 - Only the platform owner can invite people into the system workspace.
+- Only owners can delete a company workspace, after typing its exact name. Personal and system
+  workspaces cannot be deleted. The audit log is kept.
 
 ### Invitations
 

@@ -64,6 +64,7 @@ const ACTIVITY_LABEL: Record<string, string> = {
   role_changed: "hat eine Rolle geändert",
   member_removed: "hat ein Mitglied entfernt",
   member_left: "hat den Workspace verlassen",
+  workspace_deleted: "hat den Workspace gelöscht",
 };
 
 const card = { borderColor: "var(--os-border-faint, rgba(255,255,255,0.08))", background: "var(--bg-elevated, rgba(255,255,255,0.03))" };
@@ -143,6 +144,8 @@ export default function TeamPanel({ workspaceId }: { workspaceId: string }) {
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deleteName, setDeleteName] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!workspaceId) return;
@@ -260,6 +263,22 @@ export default function TeamPanel({ workspaceId }: { workspaceId: string }) {
     }
     const id = data.activeWorkspace?.id;
     window.location.assign(id ? `/os?workspaceId=${encodeURIComponent(id)}` : "/os");
+  }
+
+  async function deleteWorkspace() {
+    if (!state || deleting) return;
+    setDeleting(true);
+    setError(null);
+    const { ok, data } = await api("/api/os/team/workspaces", {
+      method: "DELETE",
+      body: JSON.stringify({ workspaceId, confirmName: deleteName }),
+    });
+    setDeleting(false);
+    if (!ok) {
+      setError(data.message ?? "Löschen fehlgeschlagen.");
+      return;
+    }
+    window.location.assign("/os?workspaceId=ws-personal");
   }
 
   if (loading && !state) {
@@ -587,6 +606,37 @@ export default function TeamPanel({ workspaceId }: { workspaceId: string }) {
               ))}
             </div>
           )}
+        </section>
+      )}
+      {/* Danger zone: owners of a company workspace */}
+      {workspace.teamEnabled && workspace.type !== "system_platform" && me?.role === "owner" && (
+        <section className="rounded-2xl border p-5" style={{ borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)" }}>
+          <p className="flex items-center gap-2 text-sm font-semibold" style={{ color: "#f87171" }}>
+            <Trash2 size={14} /> Workspace löschen
+          </p>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            Entfernt den Workspace mit allen Mitgliedschaften, Einladungen und Einstellungen. Das kann nicht rückgängig gemacht werden.
+            Der Verlauf im Audit-Log bleibt erhalten. Tippe zur Bestätigung <b>{workspace.name}</b> ein.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input
+              value={deleteName}
+              onChange={(e) => setDeleteName(e.target.value)}
+              placeholder={workspace.name}
+              className="min-w-[200px] flex-1 rounded-xl border bg-transparent px-3 py-2 text-sm outline-none"
+              style={{ borderColor: "rgba(239,68,68,0.3)", color: "var(--text-primary)" }}
+              aria-label="Name des Workspace zur Bestätigung"
+            />
+            <button
+              type="button"
+              disabled={deleting || deleteName.trim() !== workspace.name.trim()}
+              onClick={() => void deleteWorkspace()}
+              className="rounded-xl px-4 py-2 text-xs font-semibold text-white transition disabled:opacity-40"
+              style={{ background: "#ef4444" }}
+            >
+              {deleting ? "Wird gelöscht …" : "Endgültig löschen"}
+            </button>
+          </div>
         </section>
       )}
     </div>

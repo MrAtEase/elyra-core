@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Team & Rechte: Owner können einen Firmen-Workspace endgültig löschen (Bestätigung durch Eintippen des Namens). Mitgliedschaften, Einladungen und Workspace-Daten werden entfernt, der Audit-Log bleibt. Persönliche und System-Workspaces sind nicht löschbar.
 - Neu: „Team & Rechte“ (als erster Bereich unter Workspace Admin, außerdem unter Apps → Verwaltung und in den Einstellungen) ersetzt die Demo-Daten. Firmen-Workspace anlegen, Personen per E-Mail einladen (Link einmalig, 7 Tage gültig, nur für die eingeladene Adresse), Rollen Owner/Admin/Mitglied/Gast ändern, Mitglieder entfernen oder selbst verlassen, offene Einladungen zurückziehen, Verlauf der Team-Änderungen. Persönliche Workspaces bleiben privat. Beitrittsseite unter `/invite/…`.
 - Coding-Agent komplett entfernt: Code-Fenster, `/os/code`, die Code-Routen, die Datei-/Code-Werkzeuge im Chat, die „Run in Coder“-Knöpfe im Builder und der lokale Dev-Agent im Worker. Damit gibt es keinen Weg mehr, über die App Code des Systems zu lesen oder zu ändern. GitHub-Verbindungen führen zurück auf den Desktop.
 - Fix: Beim Öffnen einer eigenen App aus Launcher oder Apps-Tab öffnete sich immer die neueste App, wenn das Fenster noch geschlossen war. Die gewählte App bleibt jetzt auch über das Neu-Laden des Fensters erhalten.

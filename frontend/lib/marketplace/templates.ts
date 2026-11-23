@@ -82,9 +82,10 @@ Alles mit elyra.set speichern (Buchungen, Regeln, Budgets, Kategorien). ${NO_FIN
   },
   // ── Zuhause ──
   {
-    id: "tpl-kueche", name: "Küche & Einkauf", icon: "🥗", category: "Zuhause",
-    description: "Wochen-Essensplan mit Einkaufsliste und Rezeptideen aus dem, was im Kühlschrank ist.",
-    prompt: `Eine App mit Tabs (Essensplan / Was koche ich heute?). Tab „Essensplan“: Ein Wochen-Essensplaner. Rezepte mit Zutaten (Menge, Einheit, Name) anlegen. Wochenraster (Mo–So × Mittag/Abend), Rezepte zuordnen. Einkaufsliste wird automatisch aus dem Plan zusammengefasst (gleiche Zutaten addieren), Einträge abhaken, eigene Einträge ergänzen. Optional „Ideen von Elly“: per elyra.ask 5 einfache Gerichte für die Woche vorschlagen. Tab „Was koche ich heute?“: Eine Rezept-Ideen-App. Zutaten als Chips eingeben (Enter fügt hinzu), Vorrats-Grundzutaten (Öl, Salz, Pfeffer …) als feste Liste. Knopf „Rezepte vorschlagen“: elyra.ask liefert 3 Rezepte als JSON [{titel, zeit_minuten, zutaten:[], schritte:[]}]; robust parsen (auch wenn Text um das JSON steht). Rezepte als Karten mit aufklappbaren Schritten; Favoriten speichern mit elyra.set. Alles speichern mit elyra.set.`,
+    id: "tpl-kueche", name: "Küche & Einkauf", icon: "🍳", category: "Zuhause",
+    prebuilt: "/mini-app-templates/kueche.html",
+    description: "Wochenplan mit Frühstück, Mittag und Abend, Rezepte von Elly nach deinen Vorlieben (Fisch, Fleisch, vegetarisch, vegan, Hülsenfrüchte) und eine Einkaufsliste nach Supermarkt-Bereichen.",
+    prompt: `Eine Küchen-App mit Tabs Wochenplan · Rezepte · Einkaufsliste · Vorlieben. Wochenplan Montag–Sonntag mit Frühstück, Mittag, Abend; „Woche von Elly planen“ per elyra.ask nach Vorlieben (Ernährungsarten, Lieblingsküchen, Kochniveau, Zeit werktags/Wochenende, Unverträglichkeiten). Rezepte mit Zutaten (für die eingestellte Personenzahl umgerechnet) und Schritten, von Elly ausarbeiten lassen. Einkaufsliste automatisch aus dem Plan, nach Supermarkt-Bereichen gruppiert, abhakbar, eigene Einträge. Speichern mit elyra.set.`,
   },
   {
     id: "tpl-putzplan", name: "Putzplan (WG/Familie)", icon: "🧹", category: "Zuhause",

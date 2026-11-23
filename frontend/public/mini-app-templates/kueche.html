@@ -1,0 +1,402 @@
+<style>
+  .kc-head-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .kc-plan { display:grid; grid-template-columns: 110px repeat(var(--cols), minmax(0,1fr)); gap:8px; align-items:stretch; }
+  .kc-plan-h { font-size:11.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; padding:2px 4px; }
+  .kc-day { font-weight:600; font-size:13px; padding:10px 4px; display:flex; flex-direction:column; justify-content:center; }
+  .kc-day small { color:var(--muted); font-weight:500; font-size:11.5px; }
+  .kc-slot { min-height:64px; border:1px dashed color-mix(in srgb,var(--border) 90%,transparent); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; cursor:pointer; transition:border-color .15s, background .15s; text-align:left; background:transparent; color:var(--text); font:inherit; }
+  .kc-slot:hover { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 6%,transparent); }
+  .kc-slot.filled { border-style:solid; background:var(--surface); }
+  .kc-slot-name { font-size:12.5px; font-weight:600; line-height:1.3; }
+  .kc-slot-meta { font-size:11px; color:var(--muted); }
+  .kc-empty-slot { font-size:12px; color:var(--muted); }
+  .kc-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .kc-chip { height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--text); font-size:12.5px; cursor:pointer; }
+  .kc-chip.on { background:var(--accent); border-color:transparent; color:#fff; }
+  .kc-recipes { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
+  .kc-recipe { cursor:pointer; display:flex; flex-direction:column; gap:6px; }
+  .kc-recipe:hover { border-color:var(--accent); }
+  .kc-recipe-title { font-size:14px; font-weight:650; line-height:1.3; }
+  .kc-tags { display:flex; flex-wrap:wrap; gap:5px; }
+  .kc-detail { display:grid; grid-template-columns: minmax(220px,1fr) minmax(0,1.6fr); gap:16px; }
+  .kc-ing { list-style:none; margin:0; padding:0; font-size:13px; }
+  .kc-ing li { display:flex; gap:8px; padding:6px 0; border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent); }
+  .kc-ing li span:first-child { min-width:86px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .kc-steps { margin:0; padding-left:20px; font-size:13.5px; line-height:1.6; }
+  .kc-steps li { margin-bottom:8px; }
+  .kc-shop-group { margin-bottom:14px; }
+  .kc-shop-group h4 { margin:0 0 6px; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .kc-shop-item { display:flex; align-items:center; gap:10px; padding:7px 2px; border-bottom:1px solid color-mix(in srgb,var(--border) 50%,transparent); font-size:13px; cursor:pointer; }
+  .kc-shop-item.done span { text-decoration:line-through; color:var(--muted); }
+  .kc-shop-item input { width:16px; height:16px; accent-color:var(--accent); }
+  .kc-msg { padding:10px 12px; border-radius:10px; font-size:13px; background:color-mix(in srgb,var(--accent) 10%,transparent); border:1px solid color-mix(in srgb,var(--accent) 30%,transparent); }
+  .kc-msg.err { background:color-mix(in srgb,var(--critical) 10%,transparent); border-color:color-mix(in srgb,var(--critical) 35%,transparent); }
+  .kc-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; z-index:20; overflow:auto; }
+  .kc-modal-card { width:min(520px,100%); }
+  .kc-pick { display:flex; flex-direction:column; gap:6px; max-height:340px; overflow:auto; margin-top:10px; }
+  .kc-pick button { text-align:left; }
+  .kc-busy { opacity:.6; pointer-events:none; }
+  @media (max-width:760px){ .kc-plan{ grid-template-columns: 70px repeat(var(--cols), minmax(0,1fr)); } .kc-detail{ grid-template-columns:1fr; } }
+</style>
+
+<div class="e-app" id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "kueche.v1";
+  var MEALS = [["breakfast", "Frühstück"], ["lunch", "Mittag"], ["dinner", "Abend"]];
+  var DAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+  var DIETS = ["Fisch", "Fleisch", "Geflügel", "Vegetarisch", "Vegan", "Hülsenfrüchte"];
+  var CUISINES = ["Portugiesisch", "Mediterran", "Balkan", "Asiatisch", "Orientalisch", "Mexikanisch", "Deutsch", "Französisch"];
+  var LEVELS = [["einfach", "Einfach"], ["fortgeschritten", "Fortgeschritten"], ["profi", "Anspruchsvoll"]];
+  var AISLES = [
+    ["Obst & Gemüse", ["tomate", "zwiebel", "knoblauch", "paprika", "zucchini", "aubergine", "karotte", "möhre", "kartoffel", "spinat", "salat", "gurke", "zitrone", "limette", "orange", "apfel", "banane", "beere", "avocado", "fenchel", "pilz", "champignon", "lauch", "sellerie", "ingwer", "chili", "petersilie", "koriander", "basilikum", "minze", "dill", "rosmarin", "thymian", "kräuter", "brokkoli", "blumenkohl", "kürbis", "süßkartoffel", "frühlingszwiebel", "schalotte", "rucola", "kohl", "erbsen", "bohnen, grün", "mango", "granatapfel"]],
+    ["Fisch & Fleisch", ["lachs", "dorade", "kabeljau", "bacalhau", "stockfisch", "thunfisch", "garnele", "fisch", "muschel", "tintenfisch", "hähnchen", "huhn", "pute", "rind", "hack", "lamm", "schwein", "chorizo", "speck", "wurst", "steak"]],
+    ["Milch & Eier", ["milch", "joghurt", "quark", "sahne", "butter", "käse", "feta", "parmesan", "mozzarella", "ricotta", "ei", "eier", "skyr", "schmand", "crème"]],
+    ["Vorrat", ["reis", "nudel", "pasta", "spaghetti", "linsen", "kichererbsen", "bohnen", "mehl", "zucker", "haferflocken", "brot", "toast", "couscous", "bulgur", "quinoa", "polenta", "tomatenmark", "passierte", "dose", "kokosmilch", "brühe", "fond", "öl", "olivenöl", "essig", "senf", "honig", "sojasauce", "tahini", "nüsse", "mandel", "walnuss", "sesam", "chiasamen", "risotto", "wein", "ajvar"]],
+    ["Gewürze", ["salz", "pfeffer", "kreuzkümmel", "kurkuma", "paprikapulver", "curry", "zimt", "muskat", "oregano", "lorbeer", "piri", "garam", "kardamom", "chiliflocken", "sumach", "za'atar"]]
+  ];
+
+  // Curated starter recipes (servings = 2).
+  var STARTERS = [
+    { name: "Shakshuka mit Feta und Koriander", meal: "breakfast", diet: ["Vegetarisch"], cuisine: "Orientalisch", time: 30, level: "einfach",
+      ing: [[1, "EL", "Olivenöl"], [1, "", "Zwiebel"], [1, "", "rote Paprika"], [2, "", "Knoblauchzehen"], [1, "TL", "Kreuzkümmel"], [1, "TL", "Paprikapulver (edelsüß)"], [400, "g", "gehackte Tomaten (Dose)"], [4, "", "Eier"], [60, "g", "Feta"], [0.5, "Bund", "Koriander"], [2, "Scheiben", "Brot"]],
+      steps: ["Zwiebel, Paprika und Knoblauch fein schneiden und im Öl 6–8 Minuten weich dünsten.", "Kreuzkümmel und Paprikapulver 30 Sekunden mitrösten, Tomaten zugeben, salzen und 10 Minuten einkochen.", "Vier Mulden in die Sauce drücken, Eier hineinschlagen, Deckel auflegen und 6–8 Minuten stocken lassen, bis das Eiweiß fest und das Eigelb noch weich ist.", "Mit zerbröseltem Feta und Koriander bestreuen, mit geröstetem Brot servieren."] },
+    { name: "Overnight Oats mit Beeren und Mandeln", meal: "breakfast", diet: ["Vegan"], cuisine: "Mediterran", time: 10, level: "einfach",
+      ing: [[100, "g", "Haferflocken"], [250, "ml", "Haferdrink"], [2, "EL", "Chiasamen"], [1, "TL", "Zimt"], [150, "g", "Beeren"], [2, "EL", "Mandeln"], [1, "EL", "Ahornsirup"]],
+      steps: ["Haferflocken, Haferdrink, Chiasamen und Zimt verrühren und abgedeckt über Nacht kühlen.", "Morgens mit Beeren, gehackten Mandeln und Ahornsirup toppen."] },
+    { name: "Rührei mit Räucherlachs und Schnittlauch", meal: "breakfast", diet: ["Fisch"], cuisine: "Deutsch", time: 15, level: "einfach",
+      ing: [[5, "", "Eier"], [2, "EL", "Sahne"], [1, "EL", "Butter"], [100, "g", "Räucherlachs"], [0.5, "Bund", "Schnittlauch"], [2, "Scheiben", "Sauerteigbrot"]],
+      steps: ["Eier mit Sahne, Salz und Pfeffer verquirlen.", "Butter bei niedriger Hitze schmelzen, Eier zugeben und unter ständigem Rühren cremig stocken lassen – vom Herd nehmen, solange sie noch glänzen.", "Mit Lachsstreifen und Schnittlauch auf geröstetem Brot anrichten."] },
+    { name: "Bacalhau à Brás", meal: "dinner", diet: ["Fisch"], cuisine: "Portugiesisch", time: 45, level: "fortgeschritten",
+      ing: [[300, "g", "Bacalhau (gewässert)"], [400, "g", "Kartoffeln"], [2, "", "Zwiebeln"], [3, "", "Knoblauchzehen"], [5, "", "Eier"], [4, "EL", "Olivenöl"], [12, "", "schwarze Oliven"], [0.5, "Bund", "Petersilie"]],
+      steps: ["Bacalhau kurz pochieren, Haut und Gräten entfernen und in feine Fasern zupfen.", "Kartoffeln in sehr feine Stifte (Batata palha) schneiden und in Öl goldbraun frittieren, auf Küchenpapier abtropfen lassen.", "Zwiebeln in Ringen und Knoblauch im Olivenöl langsam weich und hell dünsten, Fisch zugeben und 3 Minuten mitziehen lassen.", "Kartoffelstifte unterheben, verquirlte Eier darübergeben und bei kleiner Hitze cremig stocken lassen.", "Mit Oliven und Petersilie servieren."] },
+    { name: "Dorade aus dem Ofen mit Fenchel und Zitrone", meal: "dinner", diet: ["Fisch"], cuisine: "Mediterran", time: 40, level: "fortgeschritten",
+      ing: [[2, "", "Doraden (küchenfertig)"], [1, "", "Fenchelknolle"], [1, "", "Zitrone"], [400, "g", "kleine Kartoffeln"], [3, "", "Knoblauchzehen"], [4, "Zweige", "Thymian"], [4, "EL", "Olivenöl"], [100, "ml", "Weißwein"]],
+      steps: ["Ofen auf 200 °C Ober-/Unterhitze vorheizen. Kartoffeln halbieren, mit 2 EL Öl und Salz 15 Minuten vorbacken.", "Fenchel in Spalten schneiden, Doraden innen und außen salzen, mit Zitronenscheiben, Knoblauch und Thymian füllen und die Haut zweimal einschneiden.", "Fenchel und Fische auf die Kartoffeln legen, mit Weißwein und restlichem Öl beträufeln.", "Weitere 20–22 Minuten garen, bis sich die Rückenflosse leicht lösen lässt."] },
+    { name: "Frango Piri-Piri mit Ofenkartoffeln", meal: "dinner", diet: ["Geflügel"], cuisine: "Portugiesisch", time: 70, level: "fortgeschritten",
+      ing: [[4, "", "Hähnchenschenkel"], [3, "", "rote Chilischoten"], [4, "", "Knoblauchzehen"], [1, "", "Zitrone"], [1, "TL", "Paprikapulver (geräuchert)"], [4, "EL", "Olivenöl"], [1, "EL", "Weißweinessig"], [500, "g", "Kartoffeln"]],
+      steps: ["Chili, Knoblauch, Zitronensaft, Paprika, Essig, Öl und Salz zu einer Marinade mixen.", "Hähnchen damit einreiben und mindestens 1 Stunde (besser über Nacht) marinieren.", "Kartoffeln in Spalten schneiden, mit Öl und Salz aufs Blech geben. Hähnchen darauflegen.", "Bei 210 °C 40–45 Minuten garen, zwischendurch mit Marinade bestreichen, zum Schluss 3 Minuten grillen."] },
+    { name: "Ćevapčići mit Ajvar und Zwiebeln", meal: "dinner", diet: ["Fleisch"], cuisine: "Balkan", time: 35, level: "einfach",
+      ing: [[500, "g", "Rinderhack (oder halb Lamm)"], [2, "", "Knoblauchzehen"], [1, "TL", "Paprikapulver"], [0.5, "TL", "Natron"], [1, "", "rote Zwiebel"], [4, "EL", "Ajvar"], [2, "", "Fladenbrote (Lepinja)"], [100, "g", "Schmand"]],
+      steps: ["Hack mit gepresstem Knoblauch, Paprika, Natron, Salz und 2 EL Wasser 3 Minuten kräftig kneten und 30 Minuten kühlen.", "Zu fingerlangen Röllchen formen.", "Auf dem Grill oder in der heißen Grillpfanne rundum 8–10 Minuten braten.", "Mit Ajvar, fein geschnittener roter Zwiebel, Schmand und warmem Fladenbrot servieren."] },
+    { name: "Rote-Linsen-Dal mit Kokos und Spinat", meal: "lunch", diet: ["Vegan", "Hülsenfrüchte"], cuisine: "Asiatisch", time: 35, level: "einfach",
+      ing: [[200, "g", "rote Linsen"], [400, "ml", "Kokosmilch"], [1, "", "Zwiebel"], [2, "", "Knoblauchzehen"], [1, "Stück", "Ingwer (2 cm)"], [1, "TL", "Kurkuma"], [1, "TL", "Garam Masala"], [100, "g", "Babyspinat"], [150, "g", "Basmatireis"]],
+      steps: ["Zwiebel, Knoblauch und Ingwer fein hacken und in etwas Öl anschwitzen, Gewürze 1 Minute mitrösten.", "Linsen, Kokosmilch und 300 ml Wasser zugeben, 18–20 Minuten sanft köcheln lassen.", "Reis nach Packung garen. Spinat zum Schluss unter den Dal heben und mit Salz und Limette abschmecken."] },
+    { name: "Kichererbsen-Curry mit Süßkartoffel", meal: "dinner", diet: ["Vegan", "Hülsenfrüchte"], cuisine: "Asiatisch", time: 40, level: "einfach",
+      ing: [[400, "g", "Kichererbsen (Dose)"], [1, "", "Süßkartoffel"], [400, "ml", "Kokosmilch"], [2, "EL", "Currypaste (rot)"], [1, "", "Zwiebel"], [1, "", "Limette"], [0.5, "Bund", "Koriander"], [150, "g", "Reis"]],
+      steps: ["Zwiebel anschwitzen, Currypaste 1 Minute mitrösten.", "Süßkartoffel in Würfeln, Kokosmilch und 150 ml Wasser zugeben, 15 Minuten köcheln.", "Kichererbsen zugeben, 5 Minuten weiterköcheln, mit Limette und Salz abschmecken, mit Koriander und Reis servieren."] },
+    { name: "Pilzrisotto mit Parmesan und Thymian", meal: "dinner", diet: ["Vegetarisch"], cuisine: "Mediterran", time: 45, level: "fortgeschritten",
+      ing: [[200, "g", "Risottoreis"], [300, "g", "Champignons (oder gemischte Pilze)"], [1, "", "Schalotte"], [100, "ml", "Weißwein"], [900, "ml", "Gemüsebrühe"], [40, "g", "Parmesan"], [30, "g", "Butter"], [3, "Zweige", "Thymian"]],
+      steps: ["Pilze in heißer Pfanne kräftig anbraten, salzen und beiseitestellen.", "Schalotte in der Hälfte der Butter glasig dünsten, Reis 1 Minute mitrösten, mit Wein ablöschen.", "Heiße Brühe kellenweise zugeben und unter Rühren 18 Minuten garen, bis der Reis cremig und bissfest ist.", "Pilze, restliche Butter, Parmesan und Thymian unterrühren, 2 Minuten ruhen lassen."] },
+    { name: "Chili sin Carne mit Bohnen und Mais", meal: "lunch", diet: ["Vegan", "Hülsenfrüchte"], cuisine: "Mexikanisch", time: 40, level: "einfach",
+      ing: [[400, "g", "Kidneybohnen (Dose)"], [200, "g", "schwarze Bohnen (Dose)"], [150, "g", "Mais"], [400, "g", "gehackte Tomaten (Dose)"], [1, "", "Zwiebel"], [1, "", "rote Paprika"], [1, "TL", "Kreuzkümmel"], [1, "TL", "Chiliflocken"], [1, "", "Avocado"]],
+      steps: ["Zwiebel und Paprika würfeln und anbraten, Gewürze mitrösten.", "Tomaten, Bohnen und Mais zugeben, 20 Minuten köcheln, abschmecken.", "Mit Avocadowürfeln und frischem Koriander servieren."] },
+    { name: "Griechischer Salat mit Bulgur und Kichererbsen", meal: "lunch", diet: ["Vegetarisch", "Hülsenfrüchte"], cuisine: "Mediterran", time: 25, level: "einfach",
+      ing: [[120, "g", "Bulgur"], [200, "g", "Kichererbsen (Dose)"], [1, "", "Gurke"], [250, "g", "Kirschtomaten"], [0.5, "", "rote Zwiebel"], [100, "g", "Feta"], [12, "", "Kalamata-Oliven"], [3, "EL", "Olivenöl"], [1, "", "Zitrone"]],
+      steps: ["Bulgur mit kochendem Salzwasser übergießen und 10 Minuten quellen lassen.", "Gemüse schneiden, mit Kichererbsen, Oliven und Bulgur mischen.", "Mit Olivenöl, Zitronensaft, Oregano, Salz und Pfeffer anmachen, Feta darüberbröseln."] }
+  ];
+
+  var state = {
+    prefs: { diets: ["Fisch", "Fleisch", "Geflügel", "Vegetarisch", "Hülsenfrüchte"], cuisines: ["Portugiesisch", "Mediterran", "Balkan"], level: "fortgeschritten", weekdayTime: 45, weekendTime: 90, persons: 2, avoid: "", meals: ["breakfast", "lunch", "dinner"] },
+    recipes: [], plan: {}, shop: { done: {}, extra: [] },
+    view: "plan", open: null, pick: null, busy: false, msg: null, filter: { meal: "", diet: "", q: "" }
+  };
+
+  function save() { return elyra.set(KEY, { prefs: state.prefs, recipes: state.recipes, plan: state.plan, shop: state.shop }); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function byId(id) { for (var i = 0; i < state.recipes.length; i++) if (state.recipes[i].id === id) return state.recipes[i]; return null; }
+  function mealLabel(m) { for (var i = 0; i < MEALS.length; i++) if (MEALS[i][0] === m) return MEALS[i][1]; return m; }
+  function levelLabel(l) { for (var i = 0; i < LEVELS.length; i++) if (LEVELS[i][0] === l) return LEVELS[i][1]; return l || ""; }
+  function activeMeals() { return MEALS.filter(function (m) { return state.prefs.meals.indexOf(m[0]) >= 0; }); }
+  function fmtQty(q) { if (!q) return ""; var r = Math.round(q * 100) / 100; if (Math.abs(r - Math.round(r)) < 0.01) return String(Math.round(r)); if (Math.abs(r - 0.5) < 0.01) return "½"; if (Math.abs(r - 0.25) < 0.01) return "¼"; return String(r).replace(".", ","); }
+  function scale(r) { return (state.prefs.persons || 2) / (r.servings || 2); }
+  function weekStart() { var d = new Date(); var day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); return d; }
+  function dayDate(i) { var d = weekStart(); d.setDate(d.getDate() + i); return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }); }
+
+  function seedIfEmpty() {
+    if (state.recipes.length) return;
+    state.recipes = STARTERS.map(function (s) {
+      return { id: uid(), name: s.name, meal: s.meal, diet: s.diet, cuisine: s.cuisine, time: s.time, level: s.level, servings: 2,
+        ing: s.ing.map(function (x) { return { q: x[0], u: x[1], n: x[2] }; }), steps: s.steps, source: "Elyra" };
+    });
+  }
+
+  // ── Elly ────────────────────────────────────────────────────────────────
+  function prefsText() {
+    var p = state.prefs;
+    return "Ernährung (erlaubt): " + (p.diets.join(", ") || "alles") + ". Küchen: " + (p.cuisines.join(", ") || "beliebig") +
+      ". Kochniveau: " + levelLabel(p.level) + " – die Person kocht gern und gut, also gern auch aufwendigere, abwechslungsreiche Gerichte (keine Standardgerichte wie Spaghetti Bolognese, Toast oder Fertigprodukte)." +
+      " Zeit: werktags bis " + p.weekdayTime + " Min., am Wochenende bis " + p.weekendTime + " Min." +
+      (p.avoid ? " Vermeiden (Unverträglichkeiten/Abneigungen): " + p.avoid + "." : "") + " Portionen: 2. Gerichtsnamen auf Deutsch (landestypische Originalnamen wie „Bacalhau à Brás“ sind erlaubt, aber nie englisch gemischt). Ernährungs-Tags ehrlich: Gerichte mit Fleisch, Geflügel oder Fisch sind nie „Vegetarisch“ oder „Vegan“.";
+  }
+  function parseJson(text) {
+    var t = String(text || "").replace(/```json|```/g, "").trim();
+    var a = t.indexOf("["), o = t.indexOf("{");
+    var start = a >= 0 && (o < 0 || a < o) ? a : o;
+    var end = Math.max(t.lastIndexOf("]"), t.lastIndexOf("}"));
+    return JSON.parse(t.slice(start, end + 1));
+  }
+  function cleanDiet(list) {
+    var d = list.map(String).filter(function (x) { return DIETS.indexOf(x) >= 0; });
+    var animal = d.some(function (x) { return x === "Fleisch" || x === "Fisch" || x === "Geflügel"; });
+    if (animal) d = d.filter(function (x) { return x !== "Vegetarisch" && x !== "Vegan"; });
+    if (d.indexOf("Vegan") >= 0) d = d.filter(function (x) { return x !== "Vegetarisch"; });
+    return d.filter(function (x, i) { return d.indexOf(x) === i; });
+  }
+  function normRecipe(x, meal) {
+    return { id: uid(), name: String(x.name || "Rezept").slice(0, 80), meal: meal || x.meal || "dinner",
+      diet: cleanDiet(Array.isArray(x.diet) ? x.diet : []), cuisine: x.cuisine || "",
+      time: Number(x.time) || null, level: x.level || state.prefs.level, servings: 2,
+      ing: Array.isArray(x.ing) ? x.ing.map(function (i) { return Array.isArray(i) ? { q: Number(i[0]) || 0, u: String(i[1] || ""), n: String(i[2] || "") } : { q: Number(i.q) || 0, u: String(i.u || ""), n: String(i.n || i.name || "") }; }).filter(function (i) { return i.n; }) : [],
+      steps: Array.isArray(x.steps) ? x.steps.map(String) : [], desc: x.desc ? String(x.desc) : "", source: "Elly" };
+  }
+  var RECIPE_FORMAT = 'Antworte NUR mit JSON. Format pro Rezept: {"name":"…","diet":["Fisch"|"Fleisch"|"Geflügel"|"Vegetarisch"|"Vegan"|"Hülsenfrüchte"],"cuisine":"…","time":Minuten,"level":"einfach"|"fortgeschritten"|"profi","ing":[[Menge,"Einheit","Zutat"]],"steps":["kurzer, präziser Schritt", …]}. Mengen für 2 Personen, metrische Einheiten, deutsche Zutatennamen, 4–7 Schritte mit Temperaturen und Zeiten.';
+
+  function planWeek() {
+    state.busy = true; state.msg = { text: "Elly plant deine Woche …" }; render();
+    // Replanning: drop Elly suggestions that were never worked out, keep everything with a full recipe.
+    state.recipes = state.recipes.filter(function (r) { return !(r.source === "Elly" && !r.ing.length); });
+    state.plan = {};
+    var meals = activeMeals(), used = [];
+    // One request per meal type, in sequence, so no dish appears twice in the week.
+    var chain = Promise.resolve();
+    meals.forEach(function (m) {
+      chain = chain.then(function () {
+        var prompt = "Plane 7 verschiedene " + m[1] + "-Gerichte für eine Woche (Montag bis Sonntag), abwechslungsreich über die erlaubten Ernährungsarten verteilt, Wochenende gern aufwendiger. " + prefsText() +
+          (used.length ? " Diese Gerichte sind schon in der Woche und dürfen NICHT noch einmal vorkommen (auch keine Variante davon): " + used.join(", ") + "." : "") +
+          ' Antworte NUR mit einem JSON-Array aus 7 Objekten: {"name":"…","diet":["…"],"cuisine":"…","time":Minuten,"level":"…","desc":"ein Satz, was das Gericht besonders macht"}.';
+        return elyra.ask(prompt).then(function (t) {
+          var list = parseJson(t);
+          (Array.isArray(list) ? list : []).slice(0, 7).forEach(function (x, day) {
+            var r = normRecipe(x, m[0]); state.recipes.push(r); used.push(r.name);
+            state.plan[day] = state.plan[day] || {}; state.plan[day][m[0]] = r.id;
+          });
+          save(); render();
+        });
+      });
+    });
+    chain.then(function () {
+      state.busy = false; state.msg = { text: "Wochenplan steht. Öffne ein Gericht, um das vollständige Rezept von Elly ausarbeiten zu lassen – oder lass alle auf einmal ausarbeiten." };
+      save(); render();
+    }).catch(function (e) { state.busy = false; state.msg = { text: "Elly konnte die Woche nicht planen: " + (e && e.message ? e.message : e), err: true }; render(); });
+  }
+  function detailRecipes(ids) {
+    // Up to 3 recipes per request (fits the answer limit).
+    var batches = []; for (var i = 0; i < ids.length; i += 3) batches.push(ids.slice(i, i + 3));
+    state.busy = true; state.msg = { text: "Elly arbeitet " + ids.length + " Rezept" + (ids.length > 1 ? "e" : "") + " aus …" }; render();
+    var chain = Promise.resolve();
+    batches.forEach(function (batch) {
+      chain = chain.then(function () {
+        var names = batch.map(function (id) { var r = byId(id); return r ? r.name : ""; });
+        return elyra.ask("Arbeite diese Gerichte als vollständige Rezepte aus: " + names.join(" | ") + ". " + prefsText() + " " + RECIPE_FORMAT + " Antworte mit einem JSON-Array in derselben Reihenfolge.")
+          .then(function (t) {
+            var list = parseJson(t); if (!Array.isArray(list)) list = [list];
+            batch.forEach(function (id, k) {
+              var r = byId(id), x = list[k]; if (!r || !x) return;
+              var n = normRecipe(x, r.meal); r.ing = n.ing; r.steps = n.steps; r.time = n.time || r.time; r.level = n.level || r.level; if (n.diet.length) r.diet = n.diet; if (n.cuisine) r.cuisine = n.cuisine;
+            });
+            save(); render();
+          });
+      });
+    });
+    chain.then(function () { state.busy = false; state.msg = { text: "Rezepte sind fertig – die Einkaufsliste ist aktualisiert." }; save(); render(); })
+      .catch(function (e) { state.busy = false; state.msg = { text: "Ausarbeiten fehlgeschlagen: " + (e && e.message ? e.message : e), err: true }; render(); });
+  }
+  function newRecipeFromIdea(idea, meal) {
+    state.busy = true; state.msg = { text: "Elly entwickelt das Rezept …" }; render();
+    elyra.ask("Entwickle ein " + mealLabel(meal) + "-Rezept: " + idea + ". " + prefsText() + " " + RECIPE_FORMAT + " Antworte mit EINEM JSON-Objekt.")
+      .then(function (t) { var x = parseJson(t); if (Array.isArray(x)) x = x[0]; var r = normRecipe(x, meal); state.recipes.unshift(r); state.open = r.id; state.busy = false; state.msg = null; state.view = "recipes"; save(); render(); })
+      .catch(function (e) { state.busy = false; state.msg = { text: "Das hat nicht geklappt: " + (e && e.message ? e.message : e), err: true }; render(); });
+  }
+
+  // ── Shopping list ───────────────────────────────────────────────────────
+  function aisleOf(name) {
+    var n = name.toLowerCase();
+    for (var i = 0; i < AISLES.length; i++) for (var j = 0; j < AISLES[i][1].length; j++) if (n.indexOf(AISLES[i][1][j]) >= 0) return AISLES[i][0];
+    return "Sonstiges";
+  }
+  function shoppingList() {
+    var map = {}, missing = 0;
+    Object.keys(state.plan).forEach(function (day) {
+      Object.keys(state.plan[day] || {}).forEach(function (meal) {
+        var r = byId(state.plan[day][meal]); if (!r) return;
+        if (!r.ing.length) { missing++; return; }
+        var f = scale(r);
+        r.ing.forEach(function (i) {
+          var key = (i.n.toLowerCase() + "|" + i.u.toLowerCase()).trim();
+          if (!map[key]) map[key] = { n: i.n, u: i.u, q: 0 };
+          map[key].q += (i.q || 0) * f;
+        });
+      });
+    });
+    var groups = {};
+    Object.keys(map).forEach(function (k) { var a = aisleOf(map[k].n); (groups[a] = groups[a] || []).push({ key: k, item: map[k] }); });
+    return { groups: groups, missing: missing };
+  }
+
+  // ── Rendering ───────────────────────────────────────────────────────────
+  var app = document.getElementById("app");
+  function on(sel, ev, fn) { Array.prototype.forEach.call(app.querySelectorAll(sel), function (el) { el.addEventListener(ev, fn); }); }
+  function tag(t) { return '<span class="e-badge">' + esc(t) + "</span>"; }
+
+  function render() {
+    var tabs = [["plan", "Wochenplan"], ["recipes", "Rezepte"], ["shop", "Einkaufsliste"], ["prefs", "Vorlieben"]];
+    var html = '<div class="e-header"><div><h1 class="e-title">Küche & Einkauf</h1><p class="e-sub">Woche ab ' + esc(dayDate(0)) + " · " + state.prefs.persons + " Personen · " + esc(levelLabel(state.prefs.level)) + "</p></div>" +
+      '<div class="kc-head-actions"><button class="e-btn primary" id="kc-plan-week"' + (state.busy ? " disabled" : "") + ">Woche von Elly planen</button></div></div>" +
+      '<div class="e-row"><div class="e-tabs">' + tabs.map(function (t) { return '<button class="e-tab' + (state.view === t[0] ? " active" : "") + '" data-view="' + t[0] + '">' + t[1] + "</button>"; }).join("") + "</div></div>";
+    if (state.msg) html += '<div class="kc-msg' + (state.msg.err ? " err" : "") + '">' + esc(state.msg.text) + "</div>";
+    if (state.view === "plan") html += planHtml();
+    else if (state.view === "recipes") html += state.open ? detailHtml(byId(state.open)) : recipesHtml();
+    else if (state.view === "shop") html += shopHtml();
+    else html += prefsHtml();
+    if (state.pick) html += pickHtml();
+    app.innerHTML = '<div class="' + (state.busy ? "kc-busy-wrap" : "") + '">' + html + "</div>";
+    bind();
+  }
+
+  function planHtml() {
+    var meals = activeMeals();
+    var head = '<div class="kc-plan" style="--cols:' + meals.length + '"><div></div>' + meals.map(function (m) { return '<div class="kc-plan-h">' + m[1] + "</div>"; }).join("");
+    var rows = DAYS.map(function (d, i) {
+      return '<div class="kc-day">' + d + "<small>" + dayDate(i) + "</small></div>" + meals.map(function (m) {
+        var r = byId((state.plan[i] || {})[m[0]]);
+        return r ? '<button class="kc-slot filled" data-slot="' + i + ":" + m[0] + '"><span class="kc-slot-name">' + esc(r.name) + '</span><span class="kc-slot-meta">' + esc([r.diet.join(" · "), r.time ? r.time + " Min." : ""].filter(Boolean).join(" · ")) + (r.ing.length ? "" : " · Rezept offen") + "</span></button>"
+          : '<button class="kc-slot" data-slot="' + i + ":" + m[0] + '"><span class="kc-empty-slot">+ Gericht wählen</span></button>';
+      }).join("");
+    }).join("");
+    var open = planned().filter(function (r) { return !r.ing.length; });
+    return '<div class="e-card">' + head + rows + "</div></div>" +
+      '<div class="e-row" style="justify-content:space-between;margin-top:4px"><span class="e-muted" style="font-size:12.5px">Tippe auf ein Feld, um ein Gericht zu wählen oder zu öffnen.</span><div class="e-row">' +
+      (open.length ? '<button class="e-btn" id="kc-detail-all"' + (state.busy ? " disabled" : "") + ">" + open.length + " Rezepte ausarbeiten lassen</button>" : "") +
+      '<button class="e-btn ghost" id="kc-clear-plan">Plan leeren</button></div></div>';
+  }
+  function planned() { var out = []; Object.keys(state.plan).forEach(function (d) { Object.keys(state.plan[d] || {}).forEach(function (m) { var r = byId(state.plan[d][m]); if (r && out.indexOf(r) < 0) out.push(r); }); }); return out; }
+
+  function recipesHtml() {
+    var f = state.filter, q = f.q.toLowerCase();
+    var list = state.recipes.filter(function (r) { return (!f.meal || r.meal === f.meal) && (!f.diet || r.diet.indexOf(f.diet) >= 0) && (!q || r.name.toLowerCase().indexOf(q) >= 0 || (r.cuisine || "").toLowerCase().indexOf(q) >= 0); });
+    return '<div class="e-card"><div class="e-row">' +
+      '<input class="e-input" id="kc-q" placeholder="Suchen (Gericht oder Küche) …" value="' + esc(f.q) + '" style="flex:2">' +
+      '<select class="e-select" id="kc-fmeal" style="flex:1"><option value="">Alle Mahlzeiten</option>' + MEALS.map(function (m) { return '<option value="' + m[0] + '"' + (f.meal === m[0] ? " selected" : "") + ">" + m[1] + "</option>"; }).join("") + "</select>" +
+      '<select class="e-select" id="kc-fdiet" style="flex:1"><option value="">Alle Ernährungsarten</option>' + DIETS.map(function (d) { return "<option" + (f.diet === d ? " selected" : "") + ">" + d + "</option>"; }).join("") + "</select></div></div>" +
+      '<div class="e-card"><p class="e-card-title">Neues Rezept von Elly</p><div class="e-row" style="margin-top:10px">' +
+      '<input class="e-input" id="kc-idea" placeholder="z. B. „Dorade mit Salzkruste“ oder „etwas mit Linsen und Spinat“" style="flex:3">' +
+      '<select class="e-select" id="kc-idea-meal" style="flex:1">' + MEALS.map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === "dinner" ? " selected" : "") + ">" + m[1] + "</option>"; }).join("") + "</select>" +
+      '<button class="e-btn primary" id="kc-idea-go"' + (state.busy ? " disabled" : "") + ">Entwickeln</button></div></div>" +
+      (list.length ? '<div class="kc-recipes">' + list.map(function (r) {
+        return '<div class="e-card kc-recipe" data-open="' + r.id + '"><span class="kc-slot-meta">' + esc(mealLabel(r.meal)) + (r.cuisine ? " · " + esc(r.cuisine) : "") + '</span><span class="kc-recipe-title">' + esc(r.name) + "</span>" +
+          '<div class="kc-tags">' + r.diet.map(tag).join("") + (r.time ? tag(r.time + " Min.") : "") + (r.level ? tag(levelLabel(r.level)) : "") + (r.ing.length ? "" : tag("Rezept offen")) + "</div></div>";
+      }).join("") + "</div>" : '<div class="e-card"><div class="e-empty"><div class="e-empty-icon">🍳</div><span>Keine Rezepte für diesen Filter.</span></div></div>');
+  }
+
+  function detailHtml(r) {
+    if (!r) { state.open = null; return recipesHtml(); }
+    var f = scale(r);
+    return '<div class="e-row" style="justify-content:space-between"><button class="e-btn ghost sm" id="kc-back">← Alle Rezepte</button><div class="e-row">' +
+      (r.ing.length ? "" : '<button class="e-btn primary sm" id="kc-detail-one"' + (state.busy ? " disabled" : "") + ">Rezept von Elly ausarbeiten</button>") +
+      '<button class="e-btn ghost sm" id="kc-del">Löschen</button></div></div>' +
+      '<div class="e-card"><span class="kc-slot-meta">' + esc(mealLabel(r.meal)) + (r.cuisine ? " · " + esc(r.cuisine) : "") + '</span><h2 style="margin:4px 0 8px;font-size:20px">' + esc(r.name) + "</h2>" +
+      (r.desc ? '<p class="e-muted" style="margin:0 0 8px;font-size:13px">' + esc(r.desc) + "</p>" : "") +
+      '<div class="kc-tags">' + r.diet.map(tag).join("") + (r.time ? tag(r.time + " Min.") : "") + (r.level ? tag(levelLabel(r.level)) : "") + tag(state.prefs.persons + " Personen") + "</div></div>" +
+      (r.ing.length ? '<div class="kc-detail"><div class="e-card"><p class="e-card-title">Zutaten</p><ul class="kc-ing" style="margin-top:8px">' +
+        r.ing.map(function (i) { return "<li><span>" + esc((fmtQty(i.q * f) + " " + i.u).trim()) + "</span><span>" + esc(i.n) + "</span></li>"; }).join("") + "</ul></div>" +
+        '<div class="e-card"><p class="e-card-title">Zubereitung</p><ol class="kc-steps" style="margin-top:10px">' + r.steps.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ol></div></div>"
+        : '<div class="e-card"><div class="e-empty"><div class="e-empty-icon">📝</div><span>Für dieses Gericht gibt es noch kein ausgearbeitetes Rezept. Elly schreibt dir Zutaten und Schritte passend zu deinen Vorlieben.</span></div></div>');
+  }
+
+  function shopHtml() {
+    var s = shoppingList(), order = AISLES.map(function (a) { return a[0]; }).concat(["Sonstiges"]);
+    var groups = order.filter(function (a) { return s.groups[a] && s.groups[a].length; }).map(function (a) {
+      return '<div class="kc-shop-group"><h4>' + a + "</h4>" + s.groups[a].map(function (x) {
+        var done = !!state.shop.done[x.key];
+        return '<label class="kc-shop-item' + (done ? " done" : "") + '"><input type="checkbox" data-shop="' + esc(x.key) + '"' + (done ? " checked" : "") + "><span>" + esc((fmtQty(x.item.q) + " " + x.item.u + " " + x.item.n).trim()) + "</span></label>";
+      }).join("") + "</div>";
+    }).join("");
+    var extra = state.shop.extra.map(function (e) {
+      return '<label class="kc-shop-item' + (e.done ? " done" : "") + '"><input type="checkbox" data-extra="' + e.id + '"' + (e.done ? " checked" : "") + "><span>" + esc(e.text) + '</span><button class="e-btn ghost sm" data-extra-del="' + e.id + '" style="margin-left:auto">✕</button></label>';
+    }).join("");
+    return (s.missing ? '<div class="kc-msg">' + s.missing + " geplante Gerichte haben noch kein ausgearbeitetes Rezept – ihre Zutaten fehlen in der Liste. Im Wochenplan „Rezepte ausarbeiten lassen“.</div>" : "") +
+      '<div class="e-grid-2"><div class="e-card"><div class="e-card-head"><div><p class="e-card-title">Aus dem Wochenplan</p><p class="e-card-sub">Für ' + state.prefs.persons + " Personen, nach Supermarkt-Bereichen sortiert</p></div>" +
+      '<button class="e-btn ghost sm" id="kc-shop-reset">Haken zurücksetzen</button></div>' + (groups || '<div class="e-empty"><div class="e-empty-icon">🛒</div><span>Plane Gerichte in den Wochenplan, dann erscheint hier die Liste.</span></div>') + "</div>" +
+      '<div class="e-card"><p class="e-card-title">Zusätzlich</p><div class="e-row" style="margin:10px 0"><input class="e-input" id="kc-extra" placeholder="z. B. Kaffee, Spülmittel" style="flex:1"><button class="e-btn" id="kc-extra-add">Hinzufügen</button></div>' + (extra || '<p class="e-muted" style="font-size:12.5px;margin:0">Noch nichts hinzugefügt.</p>') + "</div></div>";
+  }
+
+  function chips(list, selected, attr) { return '<div class="kc-chips">' + list.map(function (x) { var v = Array.isArray(x) ? x[0] : x, l = Array.isArray(x) ? x[1] : x; var on = Array.isArray(selected) ? selected.indexOf(v) >= 0 : selected === v; return '<button class="kc-chip' + (on ? " on" : "") + '" data-' + attr + '="' + esc(v) + '">' + esc(l) + "</button>"; }).join("") + "</div>"; }
+  function prefsHtml() {
+    var p = state.prefs;
+    return '<div class="e-card"><p class="e-card-title">Was darf auf den Teller?</p><p class="e-card-sub" style="margin-bottom:10px">Mehrfachauswahl – Elly mischt die Woche daraus.</p>' + chips(DIETS, p.diets, "diet") + "</div>" +
+      '<div class="e-card"><p class="e-card-title">Lieblingsküchen</p><p class="e-card-sub" style="margin-bottom:10px">Optional – leer lassen für alles.</p>' + chips(CUISINES, p.cuisines, "cuisine") + "</div>" +
+      '<div class="e-grid-2"><div class="e-card"><p class="e-card-title">Kochniveau</p><div style="margin-top:10px">' + chips(LEVELS, p.level, "level") + "</div></div>" +
+      '<div class="e-card"><p class="e-card-title">Mahlzeiten im Plan</p><div style="margin-top:10px">' + chips(MEALS, p.meals, "meal") + "</div></div></div>" +
+      '<div class="e-card"><div class="e-row">' +
+      '<label class="e-field" style="flex:1"><span class="e-label">Personen</span><input class="e-input" id="kc-persons" type="number" min="1" max="12" value="' + p.persons + '"></label>' +
+      '<label class="e-field" style="flex:1"><span class="e-label">Zeit werktags (Min.)</span><input class="e-input" id="kc-wd" type="number" min="10" step="5" value="' + p.weekdayTime + '"></label>' +
+      '<label class="e-field" style="flex:1"><span class="e-label">Zeit am Wochenende (Min.)</span><input class="e-input" id="kc-we" type="number" min="10" step="5" value="' + p.weekendTime + '"></label></div>' +
+      '<label class="e-field" style="margin-top:10px"><span class="e-label">Unverträglichkeiten / mag ich nicht</span><input class="e-input" id="kc-avoid" placeholder="z. B. keine Pilze, laktosefrei" value="' + esc(p.avoid) + '"></label></div>';
+  }
+
+  function pickHtml() {
+    var parts = state.pick.split(":"), day = +parts[0], meal = parts[1];
+    var current = byId((state.plan[day] || {})[meal]);
+    var options = state.recipes.filter(function (r) { return r.meal === meal; }).concat(state.recipes.filter(function (r) { return r.meal !== meal; }));
+    return '<div class="kc-modal" id="kc-modal"><div class="e-card kc-modal-card"><div class="e-card-head"><div><p class="e-card-title">' + DAYS[day] + " · " + mealLabel(meal) + '</p><p class="e-card-sub">Gericht wählen</p></div><button class="e-btn ghost sm" id="kc-pick-close">✕</button></div>' +
+      (current ? '<div class="e-row"><button class="e-btn sm" data-open-from-pick="' + current.id + '">Rezept öffnen</button><button class="e-btn ghost sm" id="kc-pick-clear">Feld leeren</button></div>' : "") +
+      '<div class="kc-pick">' + options.map(function (r) { return '<button class="e-btn" data-pick="' + r.id + '" style="justify-content:flex-start;height:auto;padding:8px 12px"><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><strong style="font-size:13px">' + esc(r.name) + '</strong><span class="kc-slot-meta">' + esc(mealLabel(r.meal) + (r.diet.length ? " · " + r.diet.join(", ") : "") + (r.time ? " · " + r.time + " Min." : "")) + "</span></span></button>"; }).join("") + "</div></div></div>";
+  }
+
+  function bind() {
+    on("[data-view]", "click", function (e) { state.view = e.currentTarget.getAttribute("data-view"); state.open = null; state.msg = null; render(); });
+    on("#kc-plan-week", "click", planWeek);
+    on("[data-slot]", "click", function (e) { state.pick = e.currentTarget.getAttribute("data-slot"); render(); });
+    on("#kc-pick-close", "click", function () { state.pick = null; render(); });
+    on("#kc-modal", "click", function (e) { if (e.target.id === "kc-modal") { state.pick = null; render(); } });
+    on("[data-pick]", "click", function (e) { var p = state.pick.split(":"); state.plan[p[0]] = state.plan[p[0]] || {}; state.plan[p[0]][p[1]] = e.currentTarget.getAttribute("data-pick"); state.pick = null; save(); render(); });
+    on("#kc-pick-clear", "click", function () { var p = state.pick.split(":"); if (state.plan[p[0]]) delete state.plan[p[0]][p[1]]; state.pick = null; save(); render(); });
+    on("[data-open-from-pick]", "click", function (e) { state.open = e.currentTarget.getAttribute("data-open-from-pick"); state.pick = null; state.view = "recipes"; render(); });
+    on("#kc-detail-all", "click", function () { detailRecipes(planned().filter(function (r) { return !r.ing.length; }).map(function (r) { return r.id; })); });
+    on("#kc-clear-plan", "click", function () { state.plan = {}; state.shop.done = {}; save(); render(); });
+    on("[data-open]", "click", function (e) { state.open = e.currentTarget.getAttribute("data-open"); render(); });
+    on("#kc-back", "click", function () { state.open = null; render(); });
+    on("#kc-detail-one", "click", function () { detailRecipes([state.open]); });
+    on("#kc-del", "click", function () {
+      var id = state.open; state.recipes = state.recipes.filter(function (r) { return r.id !== id; });
+      Object.keys(state.plan).forEach(function (d) { Object.keys(state.plan[d]).forEach(function (m) { if (state.plan[d][m] === id) delete state.plan[d][m]; }); });
+      state.open = null; save(); render();
+    });
+    on("#kc-q", "input", function (e) { state.filter.q = e.target.value; var pos = e.target.selectionStart; render(); var el = app.querySelector("#kc-q"); if (el) { el.focus(); el.setSelectionRange(pos, pos); } });
+    on("#kc-fmeal", "change", function (e) { state.filter.meal = e.target.value; render(); });
+    on("#kc-fdiet", "change", function (e) { state.filter.diet = e.target.value; render(); });
+    on("#kc-idea-go", "click", function () { var v = app.querySelector("#kc-idea").value.trim(); if (!v) return; newRecipeFromIdea(v, app.querySelector("#kc-idea-meal").value); });
+    on("[data-shop]", "change", function (e) { var k = e.target.getAttribute("data-shop"); if (e.target.checked) state.shop.done[k] = true; else delete state.shop.done[k]; save(); render(); });
+    on("#kc-shop-reset", "click", function () { state.shop.done = {}; save(); render(); });
+    on("#kc-extra-add", "click", function () { var el = app.querySelector("#kc-extra"), v = el.value.trim(); if (!v) return; state.shop.extra.push({ id: uid(), text: v, done: false }); save(); render(); });
+    on("[data-extra]", "change", function (e) { var id = e.target.getAttribute("data-extra"); state.shop.extra.forEach(function (x) { if (x.id === id) x.done = e.target.checked; }); save(); render(); });
+    on("[data-extra-del]", "click", function (e) { e.preventDefault(); var id = e.currentTarget.getAttribute("data-extra-del"); state.shop.extra = state.shop.extra.filter(function (x) { return x.id !== id; }); save(); render(); });
+    function toggle(list, v) { var i = list.indexOf(v); if (i >= 0) list.splice(i, 1); else list.push(v); }
+    on("[data-diet]", "click", function (e) { toggle(state.prefs.diets, e.currentTarget.getAttribute("data-diet")); save(); render(); });
+    on("[data-cuisine]", "click", function (e) { toggle(state.prefs.cuisines, e.currentTarget.getAttribute("data-cuisine")); save(); render(); });
+    on("[data-level]", "click", function (e) { state.prefs.level = e.currentTarget.getAttribute("data-level"); save(); render(); });
+    on("[data-meal]", "click", function (e) { toggle(state.prefs.meals, e.currentTarget.getAttribute("data-meal")); if (!state.prefs.meals.length) state.prefs.meals = ["dinner"]; save(); render(); });
+    on("#kc-persons", "change", function (e) { state.prefs.persons = Math.max(1, Math.min(12, +e.target.value || 2)); save(); render(); });
+    on("#kc-wd", "change", function (e) { state.prefs.weekdayTime = Math.max(10, +e.target.value || 45); save(); });
+    on("#kc-we", "change", function (e) { state.prefs.weekendTime = Math.max(10, +e.target.value || 90); save(); });
+    on("#kc-avoid", "change", function (e) { state.prefs.avoid = e.target.value.trim(); save(); });
+  }
+
+  elyra.get(KEY).then(function (data) {
+    if (data && typeof data === "object") {
+      if (data.prefs) state.prefs = Object.assign(state.prefs, data.prefs);
+      state.recipes = Array.isArray(data.recipes) ? data.recipes : [];
+      state.plan = data.plan || {};
+      state.shop = data.shop || { done: {}, extra: [] };
+    }
+    seedIfEmpty(); save(); render();
+  }).catch(function () { seedIfEmpty(); render(); });
+
+  window.__kc = { state: state, shoppingList: shoppingList, parseJson: parseJson };
+})();
+</script>

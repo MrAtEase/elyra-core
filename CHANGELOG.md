@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Vorlage „Küche & Einkauf“ als fertige, getestete App: Wochenplan mit Frühstück, Mittag und Abend; Vorlieben (Fisch, Fleisch, Geflügel, vegetarisch, vegan, Hülsenfrüchte, Lieblingsküchen, Kochniveau, Zeit werktags/Wochenende, Unverträglichkeiten); „Woche von Elly planen“ ohne doppelte Gerichte; Rezepte mit Zutaten für die eingestellte Personenzahl und präzisen Schritten von Elly ausarbeiten lassen; 12 ausgearbeitete Startrezepte (u. a. Bacalhau à Brás, Dorade aus dem Ofen, Ćevapčići, Linsen-Dal); Einkaufsliste nach Supermarkt-Bereichen.
 - Vorlagen: Bereits gebaute Vorlagen sind mit „Unter Apps“ markiert und bieten „Öffnen“, „Bearbeiten“ und (bei fertigen Vorlagen) „Aktualisieren“ auf die neueste Version – die gespeicherten Daten bleiben erhalten.
 - KI-Aufrufe: Kurzzeitige Serverfehler des Anbieters (500/502/504) werden automatisch wiederholt; bleibt es dabei, erscheint eine verständliche Meldung statt „Internal error encountered.“
 - Eigene Apps: Nach der Freigabe im Builder erscheint eine App direkt unter Apps in ihrer Kategorie (Launcher und Apps-Tab) statt in einer eigenen „Mini-Apps“-Liste; der Builder wechselt danach zurück und öffnet die App. Das Fenster zeigt nur noch die App selbst. Überall „Apps“ statt „Mini-Apps“; Freigabe-Knopf heißt „Unter Apps freigeben“.
